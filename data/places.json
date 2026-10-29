@@ -236,6 +236,7 @@
  "ru": "Садовая улица"},
 {"id": "smolny", "kind": "building", "zone": "city", "ll": [59.946389, 30.396389], "acc": 60, "conf": "named", "exists": true, "osm": "relation/2133719", "wd": "Q728971",
  "geo": {"m": "osm", "at": "hint", "q": "Смольный институт", "osm_v": 15, "on": "2026-10-29"},
+ "ctl0": {"state": "held", "holder": "petrograd-soviet", "as_of": "1917-10-29", "ref": {"sec": "II", "q": "Smolny Institute, headquarters of the Tsay-ee-kah and of the Petrograd Soviet"}},
  "name": "Smolny Institute",
  "reed": ["Smolny", "Smolny Institute"],
  "ru": "Смольный институт",

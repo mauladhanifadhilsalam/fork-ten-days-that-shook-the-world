@@ -176,7 +176,7 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 ## 9. Roadmap
 
 1. **Review this data** (the user's call), and fix what a human reader finds.
-2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 19 control timelines on Reed's buildings, the 1917 sky and the first snow. Next: a places index, a better look for the front, and the tram and rail lines of 1917.
+2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 19 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, a better look for the front, and the tram and rail lines of 1917.
 3. **The front view.** Terrain, 1917 railways and roads, and towns without modern suburbs.
 4. **The 1916 plan overlay** and 1917 bridges, including raised and lowered states where the text gives them.
 5. **Coverage.** Chapter I background, the Chapter XI decrees and the appendix documents. Possibly a Moscow inset.

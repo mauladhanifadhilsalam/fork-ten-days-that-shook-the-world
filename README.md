@@ -9,9 +9,10 @@ A 3D map of John Reed's *Ten Days That Shook the World* (1919): Reed's own path 
 
 ## The map
 
+- **An introduction for readers who have not read the book.** The first visit opens with three cards over the city: what happened in Petrograd in 1917 and why the dates are "October"; who the sides are, in their map colours; and who Reed was and how he wrote. "Skip the introduction" goes straight to the map, and "About this map" replays it. The first two cards are background in our own words, not data, and nothing on the map rests on them; where they touch Reed's ground (the timetable of the night of 6–7 November, the Committee for Salvation) they say what he says.
 - **138 scenes, on a timeline of real dates.** Each card gives the date and the time and how the time is known, the place, how Reed knew (he was there, he was told, it was reported, or it is a document he prints), his words, and the moves and changes of control in the scene. Tall ticks on the timeline are scenes Reed saw.
 - **Reed's walks along the streets he names.** Routes with `rc: "stated"` are solid, routes we inferred are dashed, and moves Reed gives no route for (or that go by train or leave the city) are arcs. Reed is ink by day and pale by night; every other mover takes its bloc's colour.
-- **Who holds what.** The 21 buildings that are Reed's places stand out of the city, and the ones that change hands take the holder's colour on the roof, as Reed reports it at that moment. A besieged building pulses in the besieger's colour.
+- **Who holds what.** The 21 buildings that are Reed's places stand out of the city, and the ones Reed reports as held take the holder's colour on the roof, as he reports it at that moment. A besieged building pulses in the besieger's colour.
 - **A sky for each scene** on the 1917 Petrograd clock (about UTC+3:01), and the city turns white after Reed's first snow on 13 November.
 - **The front and Moscow.** The detailed city runs from the Petrograd Side to Smolny. Pulkovo, Tsarskoye Selo and Gatchina are pins on a gridded plain; Moscow and the far stations, as decided, are text only, with a card that says which way and how far.
 - Drag to pan, right-drag or two fingers to rotate, scroll or pinch to zoom. ←/→ step through scenes, space plays. `index.html#storming` opens a scene.
