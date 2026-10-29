@@ -62,6 +62,7 @@ TYPES = {
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL,
+    'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
 }
 
 
@@ -121,16 +122,19 @@ class Checker:
     def __init__(self, data_dir, book, F):
         self.dir, self.book, self.F = data_dir, book, F
         self.meta = self.days = None
-        self.sources, self.actors, self.places, self.events = [], [], [], []
+        self.sources, self.actors, self.places, self.events, self.pictures = [], [], [], [], []
 
     # -- loading --
     def load(self):
         F, ok = self.F, True
         raw = {}
-        for name in ['meta'] + L.TABLES:
+        for name in ['meta'] + L.TABLES + L.OPTIONAL:
             path = os.path.join(self.dir, name + '.json')
             where = f'{name}.json'
             if not os.path.exists(path):
+                if name in L.OPTIONAL:
+                    raw[name] = []
+                    continue
                 F.err('file.missing', where, 'file not found')
                 ok = False
                 continue
@@ -168,6 +172,7 @@ class Checker:
                 F.err('field.unknown', 'meta.json', f'unknown top-level key {k!r}')
         self.meta, self.days = m['meta'], m.get('days', [])
         self.sources, self.actors, self.places, self.events = (raw[n] for n in L.TABLES)
+        self.pictures = raw.get('pictures', [])
         return True
 
     # -- helpers --
@@ -419,6 +424,9 @@ class Checker:
         self.tracks()
         self.control()
         self.presence()
+        self.ids(self.pictures, 'pictures')
+        for pic in self.pictures:
+            self.picture(pic)
         for k, table in (('source', self.S), ('actor', self.A), ('place', self.P)):
             for i in table:
                 if not used[k][i]:
@@ -666,6 +674,47 @@ class Checker:
                 self.F.err('field.missing', where, 'n (how many to draw) needs size, the phrase it reads')
             elif isinstance(r['n'], int) and not 1 <= r['n'] <= 400:
                 self.F.err('field.range', where, 'n is between 1 and 400')
+
+    def picture(self, pic):
+        """A picture shown with a scene: a file in the repo, of the stated size, public domain, with its
+        provenance. Reed's own facsimiles carry his caption (ref), quote-checked like everything else."""
+        F = self.F
+        w = f'pictures/{pic.get("id")}'
+        if not fields(F, pic, 'picture', w):
+            return
+        enum(F, pic, 'kind', 'picture.kind', w)
+        enum(F, pic, 'from', 'picture.from', w)
+        path = os.path.join(os.path.dirname(os.path.abspath(self.dir)), pic.get('file', ''))
+        if not isinstance(pic.get('file'), str) or not pic['file'].startswith('media/'):
+            F.err('picture.file', w, 'file is a path under media/')
+        elif not os.path.exists(path):
+            F.err('picture.file', w, f'no file {pic["file"]}')
+        else:
+            size = L.image_size(path)
+            if size is None:
+                F.err('picture.file', w, 'not a JPEG or PNG')
+            elif size != (pic.get('w'), pic.get('h')):
+                F.err('picture.size', w, f'the file is {size[0]}x{size[1]}, not {pic.get("w")}x{pic.get("h")}')
+        if not str(pic.get('license', '')).startswith('Public domain'):
+            F.err('picture.license', w, 'only public-domain pictures are shown; say which rule ("Public domain (PD-…)")')
+        if not re.match(r'^https://', str(pic.get('url', ''))):
+            F.err('field.pattern', w, 'url is the https page the picture comes from')
+        for e in pic.get('scenes', []):
+            if e not in self.E:
+                F.err('ref.unknown', w, f'scenes: no event {e!r}')
+        if pic.get('from') == 'reed-1919':
+            # Reed's own facsimile: his caption is the evidence, and the page says where in the edition
+            if 'ref' not in pic:
+                F.err('field.missing', w, "a facsimile from Reed's book carries his caption in ref")
+            if 'page' not in pic:
+                F.err('field.missing', w, 'page: where the facsimile is in the edition the scan comes from')
+        else:
+            for k in ('caption', 'author', 'date'):
+                if k not in pic:
+                    F.err('field.missing', w, f'a picture from {pic.get("from")} needs {k}')
+        ref = pic.get('ref')
+        if isinstance(ref, dict) and fields(F, ref, 'ref', w + '.ref') and isinstance(ref.get('q'), str):
+            self.quote_ok(ref.get('sec'), ref['q'], w + '.ref')
 
     def presence(self):
         """Who stays where between scenes (storylib.presence_spans). A `gone` must find someone."""
@@ -1099,7 +1148,7 @@ def main():
     tls = len(getattr(C, 'timelines', {}))
     pres = len(getattr(C, 'spans', []))
     print(f'checked {len(C.sources)} sources, {len(C.actors)} actors, {len(C.places)} places, {len(C.events)} events '
-          f'({moves} moves, {tls} control timelines, {pres} presences): {n_err} errors, {n_warn} warnings')
+          f'({moves} moves, {tls} control timelines, {pres} presences), {len(C.pictures)} pictures: {n_err} errors, {n_warn} warnings')
     sys.exit(1 if n_err or (a.strict and n_warn) else 0)
 
 

@@ -6,7 +6,7 @@ Each test copies a small good fixture, breaks one thing, and asserts the validat
 matching error code. The fixture itself must pass with no errors. The last class repeats a few
 mutations on the real data, if data/ and cache/sections.json exist.
 """
-import os, sys, json, copy, hashlib, tempfile, unittest, datetime as dt
+import os, sys, json, copy, hashlib, tempfile, unittest, struct, zlib, datetime as dt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -103,12 +103,26 @@ def good():
                  'q': 'Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.'},
          'moves': [{'who': 'reed', 'from': 'winter-palace', 'to': 'smolny', 'mode': 'unknown', 'rc': 'none'}]},
     ]
-    return {'meta': meta, 'sources': sources, 'actors': actors, 'places': places, 'events': events}
+    pictures = [{'id': 'pass', 'kind': 'facsimile', 'from': 'reed-1919', 'file': 'media/pass.png', 'w': 4, 'h': 3, 'scenes': ['dan-bell'],
+                 'license': 'Public domain: a test', 'url': 'https://example.org/book.pdf', 'page': 1, 'title': 'A pass',
+                 'ref': {'sec': 'IV', 'q': 'Smolny was ablaze with lights.'}}]
+    return {'meta': meta, 'sources': sources, 'actors': actors, 'places': places, 'events': events, 'pictures': pictures}
+
+
+def png(path, w, h):
+    """a small grey PNG, standard library only"""
+    def chunk(t, d):
+        return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    raw = b''.join(b'\x00' + b'\x80\x80\x80' * w for _ in range(h))
+    with open(path, 'wb') as f:
+        f.write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(raw)) + chunk(b'IEND', b''))
 
 
 def write(d, tmp):
     data = os.path.join(tmp, 'data')
     os.makedirs(data, exist_ok=True)
+    os.makedirs(os.path.join(tmp, 'media'), exist_ok=True)
+    png(os.path.join(tmp, 'media', 'pass.png'), 4, 3)
     for n, obj in d.items():
         text = L.canonical(n, obj if n == 'meta' else L.sort_table(n, obj))
         L.write_text(os.path.join(data, n + '.json'), text)
@@ -243,6 +257,14 @@ Breaks.test_n_range = case('field.range', mutate=lambda d: ev(d, 'telegraph-occu
 Breaks.test_tag_shooting = case('tag.shooting', mutate=lambda d: ev(d, 'dan-bell').update({'tags': ['shooting']}), only=True)
 Breaks.test_geo_stage = case('geo.stage', mutate=lambda d: pl(d, 'duma').update({'stage': [59.95, 30.33]}), only=True)
 Breaks.test_stay_kind = case('presence.kind', mutate=lambda d: ev(d, 'reed-walks')['moves'][0].update({'stay': True}), only=True)
+# pictures: the file, its size, its licence, Reed's caption
+Breaks.test_picture_file = case('picture.file', mutate=lambda d: d['pictures'][0].update({'file': 'media/none.png'}), only=True)
+Breaks.test_picture_size = case('picture.size', mutate=lambda d: d['pictures'][0].update({'w': 5}), only=True)
+Breaks.test_picture_license = case('picture.license', mutate=lambda d: d['pictures'][0].update({'license': 'CC BY-SA 4.0'}), only=True)
+Breaks.test_picture_needs_caption = case('field.missing', mutate=lambda d: d['pictures'][0].pop('ref'), only=True)
+Breaks.test_picture_scene = case('ref.unknown', mutate=lambda d: d['pictures'][0].update({'scenes': ['nowhere']}), only=True)
+Breaks.test_picture_caption_quote = case('quote.not-found', mutate=lambda d: d['pictures'][0]['ref'].update({'q': 'Smolny was ablaze with light.'}), only=True)
+Breaks.test_picture_commons_needs_author = case('field.missing', mutate=lambda d: (d['pictures'][0].update({'from': 'commons', 'caption': 'A pass.', 'date': '1917'}), d['pictures'][0].pop('ref')), only=True)
 
 
 class Presence(unittest.TestCase):

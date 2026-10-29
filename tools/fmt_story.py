@@ -21,7 +21,8 @@ def main():
     ap.add_argument('--check', action='store_true')
     ap.add_argument('--pages')
     a = ap.parse_args()
-    objs = {n: L.load_json(os.path.join(a.data, n + '.json')) for n in ['meta'] + L.TABLES}
+    objs = {n: L.load_json(os.path.join(a.data, n + '.json')) for n in ['meta'] + L.TABLES + L.OPTIONAL
+            if n not in L.OPTIONAL or os.path.exists(os.path.join(a.data, n + '.json'))}
     if a.pages:
         from pypdf import PdfReader
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

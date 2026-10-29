@@ -97,6 +97,17 @@ blockquote.doc::before, blockquote.doc::after { content: none; }
 .facts li { margin: 0 0 4px; }
 .sw { display: inline-block; width: 9px; height: 9px; border-radius: 1px; margin-right: 6px; vertical-align: 0; }
 .pnote { margin-top: 12px; font-size: 13.5px; color: var(--ink-2); }
+.pic { margin: 16px 0 0; }
+.pic-open { display: block; width: 100%; padding: 0; border: 1px solid var(--rule); background: #f4f1ea; cursor: zoom-in; }
+.pic img { display: block; width: 100%; height: auto; max-height: 360px; object-fit: contain; }
+.pic figcaption { font-size: 13.5px; line-height: 1.42; color: var(--ink-2); margin-top: 7px; }
+.pic figcaption q { font-style: italic; color: var(--ink); quotes: "\201C" "\201D"; }
+.pic .cr { display: block; font: 10.5px/1.45 var(--mono); color: var(--ink-3); margin-top: 4px; letter-spacing: .02em; }
+.pic .cr a { color: inherit; }
+#lightbox .sheet { max-width: 1000px; padding: 20px 20px 16px; }
+#lightbox img { display: block; width: 100%; height: auto; max-height: 76vh; object-fit: contain; background: #f4f1ea; }
+#lightbox p { margin: 10px 0 0; font-size: 14px; color: var(--ink-2); padding-right: 70px; }
+#lightbox .cr { display: block; font: 10.5px/1.45 var(--mono); color: var(--ink-3); margin-top: 4px; }
 .nav2 { display: flex; gap: 8px; padding: 10px 22px 14px; border-top: 1px solid var(--rule); }
 .nav2 button { flex: 1; justify-content: center; }
 
@@ -255,6 +266,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <blockquote id="ev-q"></blockquote>
       <div class="qref" id="ev-qref"></div>
       <div id="ev-extra"></div>
+      <div id="ev-pics"></div>
       <dl class="facts" id="ev-facts"></dl>
       <p class="pnote" id="pl-note"></p>
     </div>
@@ -308,6 +320,12 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
 
+      <h3>Pictures</h3>
+      <ul>
+        <li>Reed’s own facsimiles (his passes, proclamations, a leaflet from the streets) appear under his own captions, checked word for word against the text like every quotation here. The scans are from the Marxists Internet Archive’s edition of the 1919 book.</li>
+        <li>Photographs are from Wikimedia Commons and public domain, captioned with what they show and when they were taken. They illustrate; they are not evidence for the scene.</li>
+      </ul>
+
       <h3>Time</h3>
       <ul>
         <li>Dates are New Style, as Reed writes them: “I have adopted in this book our Calendar throughout.” Where a document he prints uses the Old Style, the card says so.</li>
@@ -331,6 +349,10 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Rendering: three.js r147. The 3D engine is Raskolnikov Wandering’s, designed and developed by <a href="https://github.com/altf4m88" target="_blank" rel="noopener">@altf4m8</a>.</li>
       </ul>
     </div>
+  </div>
+
+  <div id="lightbox" class="modal" hidden role="dialog" aria-modal="true" aria-label="Picture">
+    <div class="sheet"><button class="tbtn close" id="lb-close">Close</button><img id="lb-img" alt=""><p id="lb-cap"></p></div>
   </div>
 
   <div id="intro" hidden role="dialog" aria-modal="false" aria-labelledby="intro-h">
@@ -722,6 +744,7 @@ var PK = PEOPLE.build(), figUni = { uTime: { value: 0 } }, figMat = PEOPLE.mater
 var INST = {}, instList = [];
 function inst(key) {
   if (INST[key]) return INST[key];
+  if (!PK.fig[key] && !PK.kit[key]) { console.warn('no model for ' + key); return inst('soldier'); }
   var isFig = !!PK.fig[key], geo = (isFig ? PK.fig[key] : PK.kit[key]).clone();
   var cap = isFig ? (/^(soldier|redguard|worker|sailor)/.test(key) ? 1400 : 700) : key === 'avrora' ? 2 : 90;
   var anim = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
@@ -1453,6 +1476,7 @@ function renderPanel(e) {
     var b = document.createElement('blockquote'); b.className = 'also'; b.textContent = typo(a.q, true); ex.appendChild(b);
     var r = document.createElement('div'); r.className = 'qref'; r.textContent = 'Reed, ' + secLabel(a.sec); ex.appendChild(r);
   });
+  renderPics(e);
   var f = $('ev-facts'); f.innerHTML = '';
   function fact(k, v) { var dt = document.createElement('dt'); dt.textContent = k; var dd = document.createElement('dd'); if (typeof v === 'string') dd.textContent = v; else dd.appendChild(v); f.appendChild(dt); f.appendChild(dd); }
   var tt = TQ[e.tq] || ''; if (e.tq === 'approx' && e.tp) tt += ': “' + e.tp + '”.';
@@ -1487,6 +1511,36 @@ function renderPanel(e) {
   var sp = sunAtEvent(e);
   $('r-sun').textContent = sp ? 'sun ' + (sp.el >= 0 ? sp.el.toFixed(0) + '° up' : Math.abs(sp.el).toFixed(0) + '° below') : 'sun —';
 }
+// pictures for the scene: Reed's facsimiles under his own captions, photographs under ours
+function renderPics(e) {
+  var box = $('ev-pics'); box.innerHTML = '';
+  (e.pics || []).forEach(function (p) {
+    var fig = document.createElement('figure'), btn = document.createElement('button'), img = document.createElement('img'), cap = document.createElement('figcaption');
+    fig.className = 'pic'; btn.className = 'pic-open'; btn.type = 'button'; btn.setAttribute('aria-label', 'Enlarge the picture: ' + p.t);
+    img.loading = 'lazy'; img.decoding = 'async'; img.src = p.f; img.width = p.w; img.height = p.h; img.alt = p.t;
+    btn.appendChild(img); fig.appendChild(btn);
+    if (p.sec) {
+      var q = document.createElement('q'); q.textContent = typo(p.cap, true).replace(/^“|”$/g, ''); cap.appendChild(q);
+      cap.appendChild(document.createTextNode(' Reed, ' + secLabel(p.sec) + '.'));
+    } else cap.appendChild(document.createTextNode(typo(p.cap)));
+    var cr = document.createElement('span'), a = document.createElement('a');
+    cr.className = 'cr';
+    cr.appendChild(document.createTextNode(p.sec ? 'Facsimile in Reed’s 1919 edition · ' : [p.by, p.date].filter(Boolean).join(', ') + ' · '));
+    a.href = p.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = p.sec ? 'scan: Marxists Internet Archive' : 'Wikimedia Commons';
+    cr.appendChild(a); cr.appendChild(document.createTextNode(' · public domain'));
+    cap.appendChild(cr); fig.appendChild(cap); box.appendChild(fig);
+    btn.onclick = function () { openPic(p, (p.sec ? '“' + typo(p.cap, true).replace(/^“|”$/g, '') + '” Reed, ' + secLabel(p.sec) + '.' : typo(p.cap)), cr.textContent); };
+  });
+}
+function openPic(p, text, credit) {
+  $('lb-img').src = p.f; $('lb-img').alt = p.t; $('lb-cap').textContent = text;
+  var c = document.createElement('span'); c.className = 'cr'; c.textContent = credit; $('lb-cap').appendChild(c);
+  $('lightbox').hidden = false; $('lb-close').focus();
+}
+function closePic() { $('lightbox').hidden = true; }
+$('lb-close').onclick = closePic;
+$('lightbox').addEventListener('click', function (ev) { if (ev.target === this) closePic(); });
+
 // the bodies standing at the scene, each with Reed's own words for it and the scene it came in
 var EVBYID = {}; EV.forEach(function (x) { EVBYID[x.id] = x; });
 function renderHere(e) {
@@ -1766,6 +1820,7 @@ $('about').addEventListener('click', function (ev) { if (ev.target === this) sho
 var sheetOpen = false;
 $('handle').onclick = function () { sheetOpen = !sheetOpen; document.documentElement.style.setProperty('--sheet-h', sheetOpen ? '62vh' : '200px'); chromeCache = null; };
 window.addEventListener('keydown', function (ev) {
+  if (!$('lightbox').hidden) { if (ev.key === 'Escape') closePic(); return; }
   if (!$('about').hidden) { if (ev.key === 'Escape') showAbout(false); return; }
   if (intro) {
     if (ev.key === 'Escape') { endIntro(false); ev.preventDefault(); }
@@ -1888,7 +1943,7 @@ function frame(now) {
   else if (!lightNow && skyTo) { lightNow = skyTo; setLight(lightTarget, skyTo); }
   var camD = camera.position.distanceTo(controls.target), FS = Math.max(2.0, Math.min(7, camD / 85));   // figures grow with distance
   var psc = Math.max(0.32, camD / 1800);   // pins grow with distance; close in they give way to the people
-  Object.keys(pinMeshes).forEach(function (k) { var p = pinMeshes[k]; p.scale.y = p.scale.x = p.scale.z = (cur && k === rootOf(cur.loc) ? 1.5 : (dayLocs[k] ? 1 : 0.7)) * psc; });
+  Object.keys(pinMeshes).forEach(function (k) { var p = pinMeshes[k]; p.visible = camD > 70; p.scale.y = p.scale.x = p.scale.z = (cur && k === rootOf(cur.loc) ? 1.5 : (dayLocs[k] ? 1 : 0.7)) * psc; });
   if (walk) {
     var f = Math.min(1, (now - walk.t0) / walk.dur), s = gait(f, walk.dur);
     movers.forEach(function (mv) { mv.f = s; trailTo(mv.o, s); });

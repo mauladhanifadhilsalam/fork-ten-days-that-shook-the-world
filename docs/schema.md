@@ -1,6 +1,6 @@
 # Data schema
 
-The data lives in five files under `data/`. `tools/check_story.py` enforces every rule here, and an unknown field is an error, so a typo cannot slip through. `tools/fmt_story.py` writes the canonical layout: a header line of short fields per record, then one line for each prose field and each nested item.
+The data lives in five files under `data/`, with an optional sixth, `pictures.json`. `tools/check_story.py` enforces every rule here, and an unknown field is an error, so a typo cannot slip through. `tools/fmt_story.py` writes the canonical layout: a header line of short fields per record, then one line for each prose field and each nested item.
 
 **The data follows Reed authoritatively.** Every event, time, move and change of control comes from his text, and the data does not check him against other accounts. Outside sources are used for two things only: locating his places (a place's `src` and `geo`) and the 1917 clock. Where two of Reed's own passages disagree, the main narrative wins over his appendices, captions and the documents he prints; between two documents, the more specific one wins.
 
@@ -138,6 +138,21 @@ Who stands where between scenes. Reed's text keeps people at a place until it re
 `gone[]`: `{who, place?, ref?}` — the text has them leave `place` (default `loc`) after this scene: "the cannon gone", "the sentries in the Square had all disappeared". The checker errors if nobody of that body is there.
 
 A presence also ends, after the scene, when control of its place (or of a place it lies in) passes from its bloc to another: Reed reports the building taken, so its defenders no longer hold it. A later `present` for the same body and place adds to it: its size and count replace the old ones, its kit joins the old kit. `tools/storylib.py` (`presence_spans`) holds these rules, and both the checker and the map use it.
+
+## pictures.json
+
+`{id, kind, from, file, w, h, scenes[], license, author?, date?, url, page?, title?, caption?, ref?, note?}`. Optional: a data set without pictures leaves the file out.
+
+| field | meaning |
+|---|---|
+| `kind` | `facsimile | photo | portrait | building | document | equipment` |
+| `from` | `reed-1919`: a facsimile Reed printed in his book; `commons`: Wikimedia Commons |
+| `file`, `w`, `h` | the image under `media/`, and its size, which the checker reads from the file |
+| `scenes[]` | the events whose card shows it |
+| `license` | it must be public domain, and say by which rule: "Public domain: …" |
+| `url`, `page` | where the file comes from; for a facsimile, the page of the edition scanned |
+| `ref` | for a facsimile, Reed's own caption, quote-checked like every other quotation |
+| `caption`, `author`, `date` | for anything else: what it shows and when, in our words, and who took it. A photograph illustrates a scene; it is not evidence for it. |
 
 ## The tour
 

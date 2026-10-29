@@ -19,4 +19,5 @@ FROM mirror.gcr.io/nginxinc/nginx-unprivileged:1.30-alpine
 ENV PORT=8080
 COPY --from=build /out/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /out/index.html /out/index.html.gz /usr/share/nginx/html/
+COPY media/ /usr/share/nginx/html/media/
 EXPOSE 8080

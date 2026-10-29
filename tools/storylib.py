@@ -16,6 +16,7 @@ import json, math, re, datetime as dt
 from collections import OrderedDict
 
 TABLES = ['sources', 'actors', 'places', 'events']   # plus meta.json, which has its own shape
+OPTIONAL = ['pictures']                             # tables a data set may leave out
 
 # ---------- schema ----------
 # Field order here is the canonical order on disk. PROSE fields get a line of their own.
@@ -37,6 +38,7 @@ FIELDS = {
     'ctl': ['place', 'state', 'holder', 'by'],
     'presence': ['who', 'place', 'size', 'n', 'kit', 'brief', 'ref'],
     'gone': ['who', 'place', 'ref'],
+    'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
 }
 REQUIRED = {
     'day': ['d', 'os', 'label', 'name'],
@@ -53,11 +55,12 @@ REQUIRED = {
     'ctl': ['place', 'state'],
     'presence': ['who'],
     'gone': ['who'],
+    'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'url'],
 }
 PROSE = {'cite', 'name', 'note', 'title', 'why', 'sum', 'q', 'ident', 'today', 'ru', 'reed',
-         'addr1917', 'addr_now'}
+         'addr1917', 'addr_now', 'caption'}
 NESTED_LIST = {'stance', 'also', 'moves', 'ctl', 'present', 'gone'}   # one line per item
-NESTED_ONE = {'geo', 'ctl0', 'doc'}                         # one line for the whole object
+NESTED_ONE = {'geo', 'ctl0', 'doc', 'ref'}                  # one line for the whole object
 
 ENUM = {
     'source.kind': {'primary', 'secondary', 'reference', 'map', 'data'},
@@ -76,6 +79,8 @@ ENUM = {
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'torch', 'bicycle', 'leaflets'},
+    'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
+    'picture.from': {'reed-1919', 'commons'},
 }
 HOLDABLE = {'building', 'complex', 'square', 'bridge', 'station', 'district', 'town', 'area'}
 # Who can stand somewhere between scenes: bodies of people, and ships; not single persons
@@ -143,7 +148,7 @@ def _order(rec, kind):
 
 def _sub(kind_of, key):
     return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl', 'present': 'presence', 'gone': 'gone',
-            'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc'}.get(key)
+            'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc', 'ref': 'ref'}.get(key)
 
 
 def _flat(obj, kind):
@@ -203,7 +208,7 @@ def canonical(name, obj):
     """The exact text a data file must contain."""
     if name == 'meta':
         return dump_meta(obj)
-    kind = {'sources': 'source', 'actors': 'actor', 'places': 'place', 'events': 'event'}[name]
+    kind = {'sources': 'source', 'actors': 'actor', 'places': 'place', 'events': 'event', 'pictures': 'picture'}[name]
     return dump_table(obj, kind)
 
 
@@ -420,6 +425,34 @@ def seg_dist(p, a, b):
 
 def ring_dist(pt, ring):
     return min(seg_dist(pt, a, b) for a, b in zip(ring, ring[1:] + ring[:1]))
+
+
+# ---------- images ----------
+def image_size(path):
+    """(width, height) of a JPEG or PNG, read from its header; None if neither"""
+    with open(path, 'rb') as f:
+        head = f.read(26)
+        if head[:8] == b'\x89PNG\r\n\x1a\n':
+            return int.from_bytes(head[16:20], 'big'), int.from_bytes(head[20:24], 'big')
+        if head[:2] != b'\xff\xd8':
+            return None
+        f.seek(2)
+        while True:
+            b = f.read(1)
+            while b and b != b'\xff':
+                b = f.read(1)
+            while b == b'\xff':
+                b = f.read(1)
+            if not b:
+                return None
+            marker = b[0]
+            if marker in (0xd8, 0x01) or 0xd0 <= marker <= 0xd7:
+                continue
+            seg = int.from_bytes(f.read(2), 'big')
+            if marker in (0xc0, 0xc1, 0xc2, 0xc3, 0xc5, 0xc6, 0xc7, 0xc9, 0xca, 0xcb, 0xcd, 0xce, 0xcf):
+                d = f.read(5)
+                return int.from_bytes(d[3:5], 'big'), int.from_bytes(d[1:3], 'big')
+            f.seek(seg - 2, 1)
 
 
 # ---------- presence ----------

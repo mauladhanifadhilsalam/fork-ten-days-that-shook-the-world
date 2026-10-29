@@ -58,6 +58,11 @@ with open(os.path.join(out_dir, 'index.html'), 'w', encoding='utf-8') as f:
     f.write(full)
 with open(os.path.join(out_dir, 'artifact.html'), 'w', encoding='utf-8') as f:
     f.write(head + rest)
+# the pictures the scenes show sit beside the page, in media/
+import shutil
+media = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[3]))), 'media')
+if os.path.isdir(media):
+    shutil.copytree(media, os.path.join(out_dir, 'media'), dirs_exist_ok=True)
 
 # The page has exactly one executable inline script (the JSON data block is not executed).
 inline = [m.group(2) for m in re.finditer(r'<script(\s[^>]*)?>(.*?)</script>', full, re.S)

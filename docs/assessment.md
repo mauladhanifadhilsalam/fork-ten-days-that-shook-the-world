@@ -176,8 +176,10 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 ## 9. Roadmap
 
 1. **Review this data** (the user's call), and fix what a human reader finds.
-2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 19 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, a better look for the front, and the tram and rail lines of 1917.
-3. **The front view.** Terrain, 1917 railways and roads, and towns without modern suburbs.
+2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 19 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, and the tram and rail lines of 1917.
+   - *Done since:* the tour keeps to Petrograd (112 of the 138 scenes); the people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora, and stay where Reed's text keeps them (72 presence spans, each tied to a passage of his); Reed's own facsimiles, and public-domain photographs, illustrate the scenes.
+   - *What the figures are not:* a head count, or a claim about any uniform in particular. The counts drawn are display choices from Reed's phrases ("two thousand" is drawn as 140), the faces are all alike, and the uniforms are the common ones of 1917 Petrograd, not the regiment's. Where a body stands within a place (in front of the main gate, down the street) is the open ground nearest the place, not something Reed says, except where the data names the place (the Red Arch, the Police Bridge, the corner of the Gogolia).
+3. **The front view**, if the tour is ever to leave the city: terrain, 1917 railways and roads, and towns without modern suburbs.
 4. **The 1916 plan overlay** and 1917 bridges, including raised and lowered states where the text gives them.
 5. **Coverage.** Chapter I background, the Chapter XI decrees and the appendix documents. Possibly a Moscow inset.
 

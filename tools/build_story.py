@@ -29,6 +29,7 @@ from shapely.strtree import STRtree
 DATA, MAP, GRAPH, OUT = sys.argv[1:5]
 meta = L.load_json(os.path.join(DATA, 'meta.json'))
 T = {k: L.load_json(os.path.join(DATA, k + '.json')) for k in ('sources', 'actors', 'places', 'events')}
+PICS = L.load_json(os.path.join(DATA, 'pictures.json')) if os.path.exists(os.path.join(DATA, 'pictures.json')) else []
 with open(MAP, encoding='utf-8') as f:
     M = json.load(f)
 with open(GRAPH, 'rb') as f:
@@ -364,7 +365,7 @@ def shape(m):
 # ---------- figures ----------
 # what each body is drawn as: figure types and their shares (the page models each type)
 ACTOR_FIG = {
-    'red-guards': [('redguard', 1)], 'sailors': [('sailor', 1)], 'cyclists': [('cyclist', 1)],
+    'red-guards': [('redguard', 1)], 'sailors': [('sailor', 1)], 'cyclists': [('soldier', 1)],
     'garrison': [('soldier', 1)], 'pavlovsky': [('soldier', 1)], 'semionovsky': [('soldier', 1)],
     'peter-paul-garrison': [('soldier', 1)], 'tsarskoye-rifles': [('soldier', 1)],
     'pulkovo-detachment': [('redguard', .4), ('sailor', .3), ('soldier', .3)],
@@ -500,6 +501,19 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['moves'] = mv
     if e.get('ctl'):
         rec['ctl'] = e['ctl']
+    # pictures for the card: Reed's own facsimiles carry his caption; the rest, ours, with a credit
+    pics = []
+    for p in PICS:
+        if e['id'] not in p.get('scenes', []):
+            continue
+        r = {'f': p['file'], 'w': p['w'], 'h': p['h'], 'k': p['kind'], 't': p.get('title', ''), 'lic': p['license'], 'url': p['url']}
+        if p.get('ref'):
+            r['cap'], r['sec'] = p['ref']['q'], p['ref']['sec']
+        else:
+            r['cap'], r['by'], r['date'] = p['caption'], p.get('author', ''), p.get('date', '')
+        pics.append(r)
+    if pics:
+        rec['pics'] = pics
     events.append(rec)
 print(f"tour: {len(events)} of {len(events_all)} scenes (Petrograd only); presence spans {len(presence)} of {len(spans)}")
 

@@ -40,7 +40,8 @@ var PEOPLE = (function (THREE) {
   Model.prototype.put = function (geo, col, x, y, z, sx, sy, sz, rx, ry, rz, part) {
     tm.compose(tp.set(x, y, z), tq.setFromEuler(te.set(rx || 0, ry || 0, rz || 0, 'YXZ')), ts.set(sx, sy, sz));
     nm.getNormalMatrix(tm);
-    var P = geo.attributes.position.array, N = geo.attributes.normal.array, c = col instanceof THREE.Color ? col : new THREE.Color(col);
+    // colours are written as seen (sRGB) and stored linear, so a navy coat renders navy, not slate
+    var P = geo.attributes.position.array, N = geo.attributes.normal.array, c = (col instanceof THREE.Color ? col.clone() : new THREE.Color(col)).convertSRGBToLinear();
     for (var i = 0; i < P.length; i += 3) {
       cv.set(P[i], P[i + 1], P[i + 2]).applyMatrix4(tm); cn.set(N[i], N[i + 1], N[i + 2]).applyMatrix3(nm).normalize();
       this.p.push(cv.x, cv.y, cv.z); this.n.push(cn.x, cn.y, cn.z); this.c.push(c.r, c.g, c.b); this.a.push(part || 0);
@@ -148,7 +149,7 @@ var PEOPLE = (function (THREE) {
     soldier2: person({ coat: C.shinel, len: 'long', hat: 'furazhka', hatCol: C.khaki, rifle: true, skatka: '#5c5747' }),
     yunker: person({ coat: C.yunker, len: 'long', hat: 'furazhka', hatCol: '#5a5a55', band: C.red, rifle: true, boards: C.red }),
     officer: person({ coat: C.officer, len: 'long', hat: 'furazhka', hatCol: '#62604f', band: C.red, boards: C.gold, sabre: true, beltCol: '#5a3d26' }),
-    sailor: person({ coat: C.navy, len: 'short', hat: 'sailor', hatCol: '#e8e4da', rifle: true, belts: C.brass, beltCol: C.black, collar: '#33476b' }),
+    sailor: person({ coat: C.navy, len: 'short', hat: 'sailor', hatCol: '#141518', rifle: true, belts: C.brass, beltCol: C.black, collar: '#33476b' }),
     sailor2: person({ coat: C.navy, len: 'mid', hat: 'sailor', hatCol: C.navy, rifle: true, belts: C.brass, beltCol: C.black }),
     redguard: person({ coat: '#2e2b27', len: 'mid', legs: '#24221f', hat: 'cap', hatCol: '#3b3732', rifle: true, armband: C.red, beltCol: C.leather }),
     redguard2: person({ coat: '#3a3833', len: 'short', legs: '#2a2825', hat: 'cap', hatCol: '#2d2b28', rifle: true, armband: C.red, skatka: '#4a4339' }),
