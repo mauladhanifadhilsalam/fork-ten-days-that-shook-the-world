@@ -1,8 +1,10 @@
 """Pack the map geometry and the story into the page template.
 
 usage: python3 -I tools/bundle.py build/map.json build/story.json src/app.html OUT_DIR
-writes OUT_DIR/index.html (the full document) and OUT_DIR/csp.txt (a Content-Security-Policy that
-pins the inline app script by hash). Adapted from Raskolnikov Wandering's bundle.py.
+writes OUT_DIR/index.html (the full document), OUT_DIR/artifact.html (the same page as a fragment,
+for a Claude artifact, whose host adds the document skeleton) and OUT_DIR/csp.txt (a
+Content-Security-Policy that pins the inline app script by hash). Adapted from Raskolnikov
+Wandering's bundle.py.
 """
 import sys, json, os, re, hashlib, base64
 
@@ -50,6 +52,8 @@ full = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
 os.makedirs(out_dir, exist_ok=True)
 with open(os.path.join(out_dir, 'index.html'), 'w', encoding='utf-8') as f:
     f.write(full)
+with open(os.path.join(out_dir, 'artifact.html'), 'w', encoding='utf-8') as f:
+    f.write(head + rest)
 
 # The page has exactly one executable inline script (the JSON data block is not executed).
 inline = [m.group(2) for m in re.finditer(r'<script(\s[^>]*)?>(.*?)</script>', full, re.S)

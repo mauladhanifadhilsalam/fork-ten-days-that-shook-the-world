@@ -1,4 +1,5 @@
 <title>Ten Days That Shook the World</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=PT+Mono&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap">
@@ -1229,7 +1230,7 @@ function frame(now) {
 }
 
 // ---------- boot ----------
-function boot() {
+function boot(state) {
   loadMsg.textContent = 'Raising ' + (M.b.length + M.key.length).toLocaleString('en') + ' buildings…';
   setTimeout(function () {
     try {
@@ -1237,7 +1238,7 @@ function boot() {
       buildTimeline();
       camera.position.set(-1500, 2400, 2600); controls.target.set(0, 0, 0);
       resize();
-      var start = location.hash && location.hash.slice(1);
+      var start = (state && state.ev) || (location.hash && location.hash.slice(1));
       if (start && routeHash(start)) { if (flight) { flyTo({ target: flight.toT, pos: flight.toP }, 0); flight = null; } }
       else if (!introSeen()) startIntro();
       else select(FIRST, { instant: true });
@@ -1250,6 +1251,9 @@ function boot() {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select };
-boot();
+// in a Claude artifact viewer, keep the open scene across republishes
+var hot = window.claude && window.claude.hot;
+if (hot && hot.snapshot) { try { hot.snapshot(function () { return { ev: cur && cur.id }; }); } catch (e) { } }
+if (hot && hot.ready) hot.ready(boot); else boot((hot && hot.data) || {});
 })();
 </script>
