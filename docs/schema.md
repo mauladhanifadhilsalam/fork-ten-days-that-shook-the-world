@@ -130,11 +130,14 @@ Only sources actually read for this project go here: what locates a place, and w
 
 Who stands where between scenes. Reed's text keeps people at a place until it removes them, and the map keeps them there too.
 
-`present[]`: `{who, place?, size?, n?, kit?, say?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
+`present[]`: `{who, place?, size?, n?, kit?, say?, form?, march?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
 - `who` is a body: a unit, a school, a crowd, a ship, an organ or a party. Never a single person.
 - The evidence is Reed's: `ref` `{sec, q}` is the passage that puts them there; without it, the scene's own quotes. Either way the body must be named there, or within 1,500 characters, under one of its `reed[]` spellings.
 - `size`, `n`, `kit` and `say` as for moves; the kit's words must be in the evidence passage.
-- `brief: true` keeps them for this scene only: a crowd watching, a column passing. If the same body already stands at the place, the brief entry adds to it for that scene and the map draws the two as one.
+- `brief: true` keeps them for this scene only: a crowd watching, a column passing. If the same body already stands at the place, the brief entry adds to it for that scene and the map draws the two as one, unless the brief one is marching past (`march`): that is a body of its own.
+- `form` is how Reed has them stand: `column | line | ranks`. Each needs its word in the evidence passage or in `size`: "an interminable column of soldiers", "a long double file of cyclists", "a line of soldiers, rifles ready", "a cordon of troops", "three companies of long-coated yunkers were drawn up under arms". A formation is the scene's, not the body's: it holds only in the scene that states it, and in later scenes the body stands loose again.
+- `march: true` is a column on the move ("shuffled", "tramped", "marching out of step"): it needs `form: column` and `brief`, and a word for the movement. The map walks it down the street for the length of the scene. Which way it goes is not data: Reed's "up the Nevsky" is not resolved to a compass direction.
+- The map reads the rest of a formation from `size`: how many abreast ("double file" 2, "lines of four" 4, else 4), how many companies, and whether the ranks are ragged ("irregular lines of four", "out of step", "shuffled").
 
 `gone[]`: `{who, place?, ref?}` — the text has them leave `place` (default `loc`) after this scene: "the cannon gone", "the sentries in the Square had all disappeared". The checker errors if nobody of that body is there.
 

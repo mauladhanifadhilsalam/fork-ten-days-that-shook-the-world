@@ -883,6 +883,75 @@ function members(fig, n, seed) {
 }
 function holderBloc(id, t) { var s = holdAt(id, t); return s && s.holder ? blocOf(s.holder) : null; }
 function facingYaw(x, y, tx, ty) { return Math.atan2(tx - x, -(ty - y)); }   // world z is -y
+// a formation's spine: points through open ground with their arc lengths; spineAt gives the point
+// s metres along it and the unit tangent there, [x, y, tx, ty]
+function spineAt(sp, s) {
+  var c = sp.cum, n = c.length;
+  if (n < 2) return [sp.p[0][0], sp.p[0][1], 1, 0];
+  s = Math.max(0, Math.min(sp.len, s));
+  var lo = 0, hi = n - 1;
+  while (hi - lo > 1) { var m = (lo + hi) >> 1; if (c[m] <= s) lo = m; else hi = m; }
+  var a = sp.p[lo], b = sp.p[hi], L = c[hi] - c[lo] || 1, f = (s - c[lo]) / L, tx = (b[0] - a[0]) / L, ty = (b[1] - a[1]) / L;
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, tx, ty];
+}
+// the street centre-lines (OSM), for a column to march down
+var STREETS = null;
+function centreLines() {
+  if (!STREETS) STREETS = M.s.map(function (s) { var r = ring(s[1]), p = []; for (var i = 0; i + 1 < r.length; i += 2) p.push([r[i], r[i + 1]]); return { r: s[0], p: p }; });
+  return STREETS;
+}
+// the centre-line of the street nearest (x, y), the larger street first, `need` metres each way
+// from the nearest point on it, carried across junctions into the straightest way of its rank:
+// {f, b}, two polylines from that point, or null if no street is within 45 m
+function streetSpine(x, y, need) {
+  var L = centreLines(), best = null;
+  L.forEach(function (st, si) {
+    for (var i = 0; i + 1 < st.p.length; i++) {
+      var a = st.p[i], b = st.p[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1;
+      var t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)), d = Math.hypot(x - a[0] - dx * t, y - a[1] - dy * t);
+      if (d <= 45 && (!best || d - 15 * st.r < best.sc)) best = { sc: d - 15 * st.r, si: si, i: i, t: t };
+    }
+  });
+  if (!best) return null;
+  function run(dir) {
+    var w = L[best.si], pts = w.p, seen = {}, got = 0, idx = dir > 0 ? best.i + 1 : best.i;
+    var out = [[pts[best.i][0] + (pts[best.i + 1][0] - pts[best.i][0]) * best.t, pts[best.i][1] + (pts[best.i + 1][1] - pts[best.i][1]) * best.t]];
+    seen[best.si] = 1;
+    while (got < need) {
+      if (idx < 0 || idx >= pts.length) {   // the end of this way: on into the straightest one that meets it
+        var end = out[out.length - 1], prev = out[Math.max(0, out.length - 2)], hx = end[0] - prev[0], hy = end[1] - prev[1], hl = Math.hypot(hx, hy) || 1, nb = null;
+        L.forEach(function (o, oi) {
+          if (seen[oi] || o.r !== w.r || o.p.length < 2) return;
+          [0, o.p.length - 1].forEach(function (e) {
+            if (Math.hypot(o.p[e][0] - end[0], o.p[e][1] - end[1]) > 3) return;
+            var nx = o.p[e === 0 ? 1 : o.p.length - 2], vx = nx[0] - o.p[e][0], vy = nx[1] - o.p[e][1], c = (vx * hx + vy * hy) / ((Math.hypot(vx, vy) || 1) * hl);
+            if (c > 0.75 && (!nb || c > nb.c)) nb = { oi: oi, e: e, c: c };
+          });
+        });
+        if (!nb) break;
+        seen[nb.oi] = 1; w = L[nb.oi]; pts = w.p; dir = nb.e === 0 ? 1 : -1; idx = nb.e === 0 ? 1 : pts.length - 2;
+        continue;
+      }
+      var q = pts[idx], last = out[out.length - 1];
+      got += Math.hypot(q[0] - last[0], q[1] - last[1]); out.push(q); idx += dir;
+    }
+    return out;
+  }
+  return { f: run(1), b: run(-1) };
+}
+function resample(pts, step) {   // the polyline, a point every `step` metres
+  var out = [pts[0]], carry = 0;
+  for (var i = 1; i < pts.length; i++) {
+    var a = pts[i - 1], b = pts[i], d = Math.hypot(b[0] - a[0], b[1] - a[1]), s = step - carry;
+    for (; s <= d; s += step) out.push([a[0] + (b[0] - a[0]) * s / d, a[1] + (b[1] - a[1]) * s / d]);
+    carry = d - (s - step);
+  }
+  return out;
+}
+function posOnSpine(g, mm, adv) {   // a member of a column: s0 metres along, lat to the left, facing along
+  var q = spineAt(g.spine, mm.s0 + adv);
+  mm.x = q[0] - q[3] * mm.lat; mm.y = q[1] + q[2] * mm.lat; mm.yaw = Math.atan2(q[2], -q[3]) + mm.yj;
+}
 function layoutPlace(id, groups, t) {
   var G = openGround(id, false); if (!G) return;
   var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t), st = holdAt(id, t);
@@ -904,6 +973,105 @@ function layoutPlace(id, groups, t) {
   function pick(from, r, minI) {   // the first cell in ground order, from index `from`, with room r
     for (var i = Math.max(from, minI || 0); i < G.order.length; i++) { var k = G.order[i]; if (free(k) && (!r || clear(k, r))) return i; }
     return -1;
+  }
+  function cellAt(x, y) { var i = Math.floor((x - G.R.x0) / G.R.cs), j = Math.floor((y - G.R.y0) / G.R.cs); return i >= 0 && j >= 0 && i < W && j < G.R.h ? j * W + i : -1; }
+  function freeAt(x, y) { var k = cellAt(x, y); return k >= 0 && free(k); }
+  // from (x, y) heading a, a metre a step, bending round walls and other bodies; a column's spine
+  // keeps to the middle of the street
+  function walkSpine(x, y, a, len, centre) {
+    var pts = [[x, y]];
+    for (var s = 1; s <= len; s++) {
+      var moved = false;
+      for (var k = 0; k < 11 && !moved; k++) {
+        var b = a + (k ? (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.1 : 0), nx = x + Math.cos(b), ny = y + Math.sin(b);
+        if (freeAt(nx, ny)) { x = nx; y = ny; a = b; moved = true; }
+      }
+      if (!moved) break;
+      if (centre) {
+        var px = -Math.sin(a), py = Math.cos(a), dl = 0, dr = 0;
+        while (dl < 24 && freeAt(x + px * (dl + 1), y + py * (dl + 1))) dl++;
+        while (dr < 24 && freeAt(x - px * (dr + 1), y - py * (dr + 1))) dr++;
+        x += px * (dl - dr) * 0.06; y += py * (dl - dr) * 0.06;
+      }
+      pts.push([x, y]);
+    }
+    return pts;
+  }
+  function makeSpine(pts) {   // smoothed, with arc lengths
+    var sm = pts.map(function (p, i) {
+      var sx = 0, sy = 0, c = 0;
+      for (var j = Math.max(0, i - 3); j <= Math.min(pts.length - 1, i + 3); j++) { sx += pts[j][0]; sy += pts[j][1]; c++; }
+      return [sx / c, sy / c];
+    });
+    var cum = [0];
+    for (var i = 1; i < sm.length; i++) cum.push(cum[i - 1] + Math.hypot(sm[i][0] - sm[i - 1][0], sm[i][1] - sm[i - 1][1]));
+    return { p: sm, cum: cum, len: cum[cum.length - 1] };
+  }
+  // Reed's formation, in the scene whose passage gives it: a column along the street (rows `abreast`
+  // wide; a passing one advances while the scene lasts), a line across the approach, or companies
+  // drawn up in ranks. Returns the index of the first figure it did not place.
+  function formUp(g, figs, fi, cur, defend) {
+    var at = pick(cur, 0); if (at < 0) return fi;
+    var k0 = G.order[at], ax = cellX(G, k0), ay = cellY(G, k0), left = figs.length - fi, seed = g.seed;
+    var lie = groundLie(G, ax, ay, 40), ox = ax - G.cx, oy = ay - G.cy, ol = Math.hypot(ox, oy);
+    function rnd(i) { return hash(seed + i * 2.37) - 0.5; }
+    if (g.form === 'column') {
+      var ab = g.abreast || 4, bike = kitHas(g.kit, 'bicycle'), rowG = bike ? 2.6 : 1.9, colG = bike ? 1.4 : 1.15;
+      var rows = Math.ceil(left / ab), L = rows * rowG, adv = g.march ? 1.25 * 50 : 0, half = L / 2 + adv / 2 + 6;
+      // down the middle of the street it is in, as far as the ground is open; else along the open ground
+      var st = streetSpine(ax, ay, half + adv), f, b;
+      function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var kq = cellAt(pts[i][0], pts[i][1]); if (kq < 0 || !G.ok[kq]) break; out.push(pts[i]); } return out; }
+      if (st) { f = open(resample(st.f, 1)); b = open(resample(st.b, 1)); }
+      if (!st || !f.length || !b.length || f.length + b.length < Math.min(L, 24)) { f = walkSpine(ax, ay, lie.axis, half + adv, true); b = walkSpine(ax, ay, lie.axis + Math.PI, half + adv, true); }
+      if (b.length > f.length) { var tmp = f; f = b; b = tmp; }   // a passing column heads the longer way
+      var sp = makeSpine(b.slice(1).reverse().concat(f)), s0 = sp.cum[b.length - 1];   // s0: the anchor
+      if (sp.len < L) { rows = Math.max(1, Math.floor(sp.len / rowG)); L = rows * rowG; }
+      adv = Math.max(0, Math.min(adv, sp.len - L));
+      var head = Math.max(L, Math.min(sp.len - adv, s0 + L / 2 - adv / 2));   // where the head is as the scene opens
+      g.spine = sp; g.adv = adv; g.speed = g.march ? 1.25 : 0;
+      for (var r = 0; r < rows && fi < figs.length; r++) for (var c = 0; c < ab && fi < figs.length; c++) {
+        var mm = { k: figs[fi], s0: head - r * rowG + (g.ragged ? rnd(fi) * 0.8 : 0), lat: (c - (ab - 1) / 2) * colG + (g.ragged ? rnd(fi + 91) * 0.6 : 0),
+          yj: rnd(fi + 7) * (g.ragged ? 0.4 : 0.08), idle: 0.2 };
+        fi++; posOnSpine(g, mm, 0); g.members.push(mm);
+      }
+      // keep the way clear: the ground the column covers, now and as it goes
+      var hw = (ab - 1) / 2 * colG + 0.8;
+      for (var ss = head - L - 1; ss <= head + adv + 1; ss += 1.5) for (var la = -hw; la <= hw; la += 1.2) {
+        var q = spineAt(sp, ss), kk = cellAt(q[0] - q[3] * la, q[1] + q[2] * la); if (kk >= 0) used[kk] = 1;
+      }
+      return fi;
+    }
+    // a line or ranks are drawn up straight, facing out from the place their side holds, else toward
+    // it (along the ground's run if that gives no direction), on the nearest ground where they fit
+    var fx, fy;
+    if (ol > 4) { fx = ox / ol; fy = oy / ol; if (!(defend && g.form === 'line')) { fx = -fx; fy = -fy; } }
+    else { fx = Math.cos(lie.axis); fy = Math.sin(lie.axis); }
+    var ux = -fy, uy = fx, yaw = Math.atan2(fx, -fy), ranks = g.form === 'ranks';
+    var blocks = ranks ? (g.blocks || 1) : 1, per = Math.ceil(left / blocks), colG2 = ranks ? 1.0 : 2.0, gapB = 3.2, rowG2 = ranks ? 1.3 : 1.6;
+    var depth = ranks ? Math.max(2, Math.round(Math.sqrt(per / 2))) : (left > 40 ? 2 : 1), cols = Math.ceil(per / depth);
+    var width = blocks * cols * colG2 + (blocks - 1) * gapB;
+    function slots(cx, cy) {
+      var out = [];
+      for (var bI = 0; bI < blocks; bI++) for (var m = 0; m < per && out.length < left; m++) {
+        var along = -width / 2 + bI * (cols * colG2 + gapB) + (Math.floor(m / depth) + 0.5) * colG2, back = (m % depth) * rowG2;
+        out.push([cx + ux * along - fx * back, cy + uy * along - fy * back]);
+      }
+      return out;
+    }
+    var best = null;
+    for (var tries = 0, ix0 = at; tries < 90 && ix0 < G.order.length; tries++, ix0 += 3) {
+      var kc = G.order[ix0]; if (!free(kc)) continue;
+      var pos = slots(cellX(G, kc), cellY(G, kc)), okN = 0;
+      pos.forEach(function (p) { var kq = cellAt(p[0], p[1]); if (kq >= 0 && free(kq)) okN++; });
+      if (!best || okN > best.ok) best = { ok: okN, pos: pos };
+      if (okN >= pos.length * 0.95) break;
+    }
+    best.pos.forEach(function (p) {
+      var kq = cellAt(p[0], p[1]); if (kq < 0 || !free(kq) || fi >= figs.length) return;   // in a wall or taken: the figure joins the rest below
+      g.members.push({ k: figs[fi++], x: p[0], y: p[1], yaw: yaw + rnd(fi) * 0.08, idle: 0.15 });
+    });
+    g.members.forEach(function (mm) { var kq = cellAt(mm.x, mm.y); if (kq >= 0) used[kq] = 1; });
+    return fi;
   }
   groups.forEach(function (g, gi) {
     g.members = []; g.props = []; g.fires = [];
@@ -939,7 +1107,8 @@ function layoutPlace(id, groups, t) {
         if (v[0] === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: vx, y: vy, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2 });
       }
     });
-    // the people, nearest open ground first
+    // the people: in Reed's formation if the scene's passage gives one, the rest on the nearest open ground
+    if (g.form && fi < figs.length) fi = formUp(g, figs, fi, cur, defend);
     for (; fi < figs.length; fi++) {
       ix = pick(cur, 0); if (ix < 0) break; k = G.order[ix]; take(k, 0);
       var x = cellX(G, k) + (hash(seed + fi * 3.1) - 0.5) * 0.9, y = cellY(G, k) + (hash(seed + fi * 5.7) - 0.5) * 0.9;
@@ -963,18 +1132,20 @@ function stageScene(e, noReed) {
   var idx = seq.indexOf(e), byPlace = {}, briefs = {};
   GROUPS = [];
   function on(p) { return p.from <= idx && (p.to == null || idx < p.to); }
-  // a brief entry is the body already there plus what Reed adds, for this scene: draw it once
-  (S.presence || []).forEach(function (p) { if (p.brief && on(p)) briefs[p.who + '|' + p.place] = 1; });
+  // a brief entry is the body already there plus what Reed adds, for this scene: draw it once (a
+  // column marching past is a body of its own)
+  (S.presence || []).forEach(function (p) { if (p.brief && !p.march && on(p)) briefs[p.who + '|' + p.place] = 1; });
   (S.presence || []).forEach(function (p, pi) {
     if (!on(p) || (!p.brief && briefs[p.who + '|' + p.place])) return;
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
-    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && p.from === idx ? p.form : null, march: !!(p.march && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
     GROUPS.push(g);
     if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
   });
   Object.keys(byPlace).forEach(function (id) {
     // the ones who were there before come first, so they keep their ground from scene to scene
-    var gs = byPlace[id].sort(function (a, b) { return (a.brief - b.brief) || (a.pi - b.pi); });
+    // (and Reed's formations before them, so the others make way)
+    var gs = byPlace[id].sort(function (a, b) { return (!!b.form - !!a.form) || (a.brief - b.brief) || (a.pi - b.pi); });
     layoutPlace(id, gs, e.t);
   });
   if (!noReed && e.witness === 'seen' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {
@@ -1273,6 +1444,18 @@ function patch(x, y, r, bloc) {
 }
 function flushPatches() { patches.count = patchN; patches.instanceMatrix.needsUpdate = true; patches.instanceColor.needsUpdate = true; patchN = 0; }
 
+// a formation's patch: one disc for every dozen, in their order along it
+function formPatches(g, FS) {
+  var m = g.members, n = m.length;
+  for (var i = 0; i < n; i += 12) {
+    var sx = 0, sy = 0, c = 0, j, r = 1;
+    for (j = i; j < Math.min(n, i + 12); j++) { sx += m[j].x; sy += m[j].y; c++; }
+    sx /= c; sy /= c;
+    for (j = i; j < i + c; j++) r = Math.max(r, Math.hypot(m[j].x - sx, m[j].y - sy));
+    patch(sx, sy, r + 1.2 * FS, g.bloc);
+  }
+}
+
 // ---------- drawing them ----------
 var SHIP_Y = -EMB + 0.2;
 function drawPeople(now, FS) {
@@ -1280,14 +1463,21 @@ function drawPeople(now, FS) {
   figUni.uTime.value = t;
   reedGlow.visible = false;
   GROUPS.forEach(function (g) {
-    if (!g.ship && !g.reed && g.members && g.members.length) patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc);
+    var adv = 0, walking = 0;
+    if (g.spine) {   // a column: a passing one advances while the scene lasts, then marks time
+      if (g.speed) { adv = Math.min(g.adv, g.speed * Math.max(0, now - scene0) / 1000 * speed); walking = adv < g.adv ? 1 : 0; }
+      var sx = 0, sy = 0;
+      g.members.forEach(function (mm) { if (mm.s0 != null) posOnSpine(g, mm, adv); sx += mm.x; sy += mm.y; });
+      if (g.members.length) { g.cx = sx / g.members.length; g.cy = sy / g.members.length; }
+    }
+    if (!g.ship && !g.reed && g.members && g.members.length) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
     (g.props || []).forEach(function (pr) {
       put(pr.k, pr.x, pr.ship ? SHIP_Y : 0, -pr.y, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
       if (pr.flag) put('flag', pr.x - Math.sin(pr.yaw) * 1.9 * FS, 2.05 * FS, -pr.y - Math.cos(pr.yaw) * 1.9 * FS, pr.yaw, FS * 0.8, g.seed, 0, 0);   // flying from the car
     });
     (g.members || []).forEach(function (mm, i) {
       var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS;
-      put(mm.k, x, 0, -y, mm.yaw, FS, g.seed + i * 1.7, 0, mm.idle);
+      put(mm.k, x, 0, -y, mm.yaw, FS, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, mm.s0 != null ? walking : 0, mm.idle);   // a column in step, unless Reed says otherwise
       if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i, mm.say);
       if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * FS, 0, -y - Math.sin(mm.yaw) * 0.5 * FS, mm.yaw, FS, 0, 0, 0);
       if (mm.k === 'reed') { reedGlow.position.set(x, 0.8, -y); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
@@ -1714,8 +1904,15 @@ function closeFrame(e) {
   if (dir.lengthSq() < 1) dir.set(0, 0, 1);
   dir.normalize();
   // in a street the buildings hide the people: look down the street, from higher up
-  var lie = G && groundLie(G, tx, ty, 45);
-  if (lie && lie.open < 0.5 && lie.ratio > 2) {
+  var lie = G && groundLie(G, tx, ty, 45), col = null;
+  GROUPS.forEach(function (g) { if (g.form === 'column' && g.cx != null && g.members.length > 4 && Math.hypot(g.cx - tx, g.cy - ty) < 150 && (!col || g.members.length > col.members.length)) col = g; });
+  var cax = col && new THREE.Vector3(col.members[0].x - col.members[col.members.length - 1].x, 0, -(col.members[0].y - col.members[col.members.length - 1].y));
+  if (cax && cax.lengthSq() > 4) {
+    // a column seen end on is a blob: look at it from about 45° off its line, and from higher
+    cax.normalize(); if (cax.dot(dir) < 0) cax.negate();
+    dir.copy(cax.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.8)); pol = 0.72;
+    target.set(tx * 0.3 + col.cx * 0.7, 0, -(ty * 0.3 + col.cy * 0.7));
+  } else if (lie && lie.open < 0.5 && lie.ratio > 2) {
     var along = new THREE.Vector3(Math.cos(lie.axis), 0, -Math.sin(lie.axis));
     if (along.dot(dir) < 0) along.negate();
     dir.copy(along); pol = 0.78; dist *= 1.1;

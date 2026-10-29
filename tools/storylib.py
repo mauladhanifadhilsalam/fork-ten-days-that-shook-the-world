@@ -36,7 +36,7 @@ FIELDS = {
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
     'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'ack'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'brief', 'ref'],
+    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'brief', 'ref'],
     'gone': ['who', 'place', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
 }
@@ -79,6 +79,7 @@ ENUM = {
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'torch', 'bicycle', 'leaflets'},
+    'form': {'column', 'line', 'ranks'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons'},
 }
@@ -92,6 +93,10 @@ KIT_WORDS = {
     'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
 }
+# How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
+FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching', 'line': r'\ba line\b|\bline of\b|cordon',
+              'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation'}
+MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|filing'
 SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire'
 LIMITS = {'title': 60, 'sum': 350, 'q': 320, 'note': 500, 'why': 300, 'ident': 400}
 ID_RE = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
@@ -471,7 +476,9 @@ def presence_spans(events, actors, places):
     from the bloc of the body to another bloc. That last rule is the text's own implication: Reed
     reports the place taken. A later `present` entry for the same body and place adds to it (its size
     and count replace the old ones, its kit joins the old kit), and a `brief` one shows the sum for
-    one scene only.
+    one scene only, unless it is a column marching past (`march`), which is a body of its own. A
+    formation (`form`, `march`) is the scene's, not the body's: a span keeps it only for the scene
+    that states it, its first.
 
     Returns (spans, misses). A span is {who, place, start, end, ev, how, end_by, end_ev, size?, n?, kit?}
     and is shown in scenes start <= i < end (end None: to the last scene). misses lists
@@ -501,8 +508,14 @@ def presence_spans(events, actors, places):
         sp = {'who': key[0], 'place': key[1], 'start': i, 'end': None, 'ev': eid, 'how': how, 'end_by': None, 'end_ev': None}
         merge(sp, old or {})
         merge(sp, rec)
+        formation(sp, rec)
         spans.append(sp)
         return sp
+
+    def formation(sp, rec):
+        for k in ('form', 'march'):
+            if k in rec:
+                sp[k] = rec[k]
 
     def merge(sp, rec):
         """a later word on the same body adds to what is known: its kit joins the kit already there"""
@@ -519,6 +532,7 @@ def presence_spans(events, actors, places):
         sp = live[key]
         if sp['start'] == i:
             merge(sp, rec)
+            formation(sp, rec)
             return sp
         end(key, i, 'update', eid)
         live[key] = begin(key, i, rec, eid, how, old=sp)
@@ -532,8 +546,8 @@ def presence_spans(events, actors, places):
             if not isinstance(r, dict):
                 continue
             key = (r.get('who'), r.get('place', loc))
-            if r.get('brief'):
-                sp = begin(key, i, r, eid, 'present', old=live.get(key))
+            if r.get('brief'):   # the sum with the body already there; a passing column is a body of its own
+                sp = begin(key, i, r, eid, 'present', old=None if r.get('march') else live.get(key))
                 sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'brief', eid
             elif key in live:
                 update(key, i, r, eid, 'present')

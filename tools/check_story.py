@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST,
+    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
 }
 
@@ -620,6 +620,8 @@ class Checker:
                         self.kit(r['kit'], sup[2], rw)
                     if 'say' in r:
                         self.say(r, sup[0], sup[1], rw)
+                    if 'form' in r or 'march' in r:
+                        self.formation(r, sup[2], rw)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -685,6 +687,21 @@ class Checker:
                 self.F.err('field.type', where, 'say holds the words on each banner')
             elif not self.book.near(sec, pos, t):
                 self.F.err('phrase.not-near', where, f'say {t!r} is not within 1,500 characters of the passage')
+
+    def formation(self, r, text, where):
+        """a column, a line or ranks, and a body on the move: each needs its word in the passage or in
+        the size phrase (itself Reed's, near the passage). On the move means passing: a brief column."""
+        F, words = self.F, text + ' ' + (r.get('size') or '')
+        if 'form' in r:
+            if r['form'] not in L.ENUM['form']:
+                F.err('field.enum', where, f'form {r["form"]!r} is not one of {sorted(L.ENUM["form"])}')
+            elif not re.search(L.FORM_WORDS[r['form']], words, re.I):
+                F.err('form.not-in-text', where, f'form {r["form"]!r}: the passage has no word for it ({L.FORM_WORDS[r["form"]]})')
+        if r.get('march'):
+            if r.get('form') != 'column' or not r.get('brief'):
+                F.err('field.missing', where, 'march (a body passing) needs form: column and brief')
+            if not re.search(L.MARCH_WORDS, words, re.I):
+                F.err('form.not-in-text', where, f'march: the passage has no word for it ({L.MARCH_WORDS})')
 
     def count_n(self, r, where):
         if 'n' in r:

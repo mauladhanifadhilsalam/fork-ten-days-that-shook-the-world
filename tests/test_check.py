@@ -21,7 +21,7 @@ SECTIONS = {
            'November 7th, and on Thursday, November 16th, nothing happened.',
            'Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace where two '
            'shells from the battleship _Avrora_ had struck. Smolny was ablaze with lights. John Reed.',
-           'Sailors went up the Nevsky. A red flag crudely lettered in gold, “Peace! Land!” floated over them.'],
+           'Sailors marched up the Nevsky in a column. A red flag crudely lettered in gold, “Peace! Land!” floated over them.'],
     'App.III.7': ['At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency. '
                   'At 1.35 the Post Office was occupied by the Military Revolutionary Committee of the '
                   'Provisional Government.'],
@@ -87,8 +87,8 @@ def good():
          'dp': 'Wednesday, November 7th', 'sec': 'IV', 'loc': 'duma', 'witness': 'seen', 'title': 'Down the Nevsky',
          'why': 'Before the bell at 10.40.', 'sum': 'Reed walks to the Duma.', 'q': 'We walked down the Nevsky to the Duma',
          'moves': [{'who': 'reed', 'from': 'smolny', 'via': ['nevsky'], 'to': 'duma', 'mode': 'foot', 'rc': 'stated'}],
-         'present': [{'who': 'sailors', 'place': 'nevsky', 'kit': ['flag:1'], 'say': ['Peace! Land!'], 'brief': True,
-                      'ref': {'sec': 'IV', 'q': 'A red flag crudely lettered in gold'}}]},
+         'present': [{'who': 'sailors', 'place': 'nevsky', 'kit': ['flag:1'], 'say': ['Peace! Land!'], 'form': 'column', 'march': True, 'brief': True,
+                      'ref': {'sec': 'IV', 'q': 'Sailors marched up the Nevsky in a column. A red flag crudely lettered in gold'}}]},
         {'id': 'dan-bell', 't': '1917-11-07T22:40', 'tq': 'stated', 'tp': 'It was 10.40 P. M.', 'cal': 'none', 'sec': 'IV', 'loc': 'duma',
          'witness': 'seen', 'title': 'The bell', 'sum': 'Dan rings the bell.', 'q': 'It was 10.40 P. M. when Dan rang the bell.',
          'present': [{'who': 'pg', 'place': 'winter-palace', 'ref': {'sec': 'App.III.7', 'q': 'the Military Revolutionary Committee of the Provisional Government'}}]},
@@ -262,6 +262,11 @@ Breaks.test_say_needs_a_flag = case('field.missing', mutate=lambda d: ev(d, 'ree
 Breaks.test_say_more_than_flags = case('field.range', mutate=lambda d: ev(d, 'reed-walks')['present'][0].update({'say': ['Peace! Land!', 'Peace!']}), only=True)
 Breaks.test_say_not_near = case('phrase.not-near', mutate=lambda d: ev(d, 'reed-walks')['present'][0].update({'say': ['All power to the Soviets!']}), only=True)
 Breaks.test_flag_is_not_a_banner = case('kit.not-in-text', mutate=lambda d: ev(d, 'reed-walks')['present'][0].update({'kit': ['banner:1']}), only=True)
+# formations: each with its word in the passage or the size phrase; a body on the move is a brief column
+Breaks.test_form_not_in_text = case('form.not-in-text', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'ranks'}), only=True)
+Breaks.test_form_enum = case('field.enum', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'square'}), only=True)
+Breaks.test_march_needs_brief = case('field.missing', mutate=lambda d: ev(d, 'reed-walks')['present'][0].pop('brief'), only=True)
+Breaks.test_march_not_in_text = case('form.not-in-text', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'column', 'march': True, 'brief': True}), only=True)
 Breaks.test_tag_shooting = case('tag.shooting', mutate=lambda d: ev(d, 'dan-bell').update({'tags': ['shooting']}), only=True)
 Breaks.test_geo_stage = case('geo.stage', mutate=lambda d: pl(d, 'duma').update({'stage': [59.95, 30.33]}), only=True)
 Breaks.test_stay_kind = case('presence.kind', mutate=lambda d: ev(d, 'reed-walks')['moves'][0].update({'stay': True}), only=True)
@@ -298,6 +303,23 @@ class Presence(unittest.TestCase):
         ev(d, 'reed-walks')['gone'] = [{'who': 'sailors', 'place': 'telegraph-agency', 'ref': {'sec': 'App.III.7', 'q': 'a detachment of soldiers and sailors'}}]
         self.assertIn(('sailors', 'telegraph-agency', 'telegraph-occupied', 'dan-bell', 'gone'), self.spans(d))
         self.assertEqual(errors(d), [])
+
+
+    def test_formation_is_the_scenes(self):
+        # a formation holds only in the span that states it; a column marching past is a body of its own
+        acts = [{'id': 'g', 'kind': 'unit', 'bloc': 'soviet'}]
+        pls = [{'id': 'nevsky', 'kind': 'street'}]
+        evs = [{'id': 'a', 'loc': 'nevsky', 'present': [{'who': 'g', 'kit': ['fire'], 'form': 'line'}]},
+               {'id': 'b', 'loc': 'nevsky', 'present': [{'who': 'g', 'size': 'more of them'}]},
+               {'id': 'c', 'loc': 'nevsky', 'present': [{'who': 'g', 'form': 'column', 'march': True, 'brief': True}]},
+               {'id': 'd', 'loc': 'nevsky', 'present': [{'who': 'g', 'brief': True}]}]
+        sp = L.presence_spans(evs, acts, pls)[0]
+        by = {(s['ev'], s['end_by']): s for s in sp}
+        self.assertEqual(by[('a', 'update')].get('form'), 'line')
+        self.assertNotIn('form', by[('b', None)])                         # carried on, but not its formation
+        self.assertEqual(by[('b', None)].get('kit'), ['fire'])
+        self.assertEqual((by[('c', 'brief')].get('form'), by[('c', 'brief')].get('kit')), ('column', None))   # passing: nothing absorbed
+        self.assertEqual(by[('d', 'brief')].get('kit'), ['fire'])         # an ordinary brief adds to the body there
 
 
 class Parsers(unittest.TestCase):

@@ -222,7 +222,7 @@
  "ctl": [
   {"place": "winter-palace", "state": "besieged", "holder": "provisional-government", "by": "mrc"}],
  "present": [
-  {"who": "garrison", "place": "palace-square", "size": "a cordon of troops", "n": 40}]},
+  {"who": "garrison", "place": "palace-square", "size": "a cordon of troops", "n": 40, "form": "line"}]},
 {"id": "no-more-government", "t": "1917-11-07T12:00", "tq": "stated", "tp": "The noon cannon boomed", "cal": "NS", "dp": "Wednesday, November 7th", "sec": "IV", "p": 97, "loc": "state-bank", "witness": "seen", "actors": ["garrison"],
  "title": "“No more Government”",
  "sum": "Reed rises late. At noon, walking down the Nevsky, he asks the soldiers at the State Bank’s gates whose side they are on.",
@@ -252,7 +252,7 @@
  "ctl": [
   {"place": "mariinsky-palace", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "garrison", "size": "a line of soldiers, rifles ready", "n": 24, "kit": ["armoured", "flag:1", "barricade"], "ref": {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it, newly lettered in red paint: \"S.R.S.D.\" (Soviet Rabotchikh Soldatskikh Deputatov); all the guns trained toward St. Isaac's. A barricade had been heaped up across the mouth of Novaya Ulitza"}},
+  {"who": "garrison", "size": "a line of soldiers, rifles ready", "n": 24, "kit": ["armoured", "flag:1", "barricade"], "form": "line", "ref": {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it, newly lettered in red paint: \"S.R.S.D.\" (Soviet Rabotchikh Soldatskikh Deputatov); all the guns trained toward St. Isaac's. A barricade had been heaped up across the mouth of Novaya Ulitza"}},
   {"who": "sailors", "size": "a crowd of soldiers and sailors", "n": 20, "brief": true, "ref": {"sec": "IV", "q": "Before the door of the Palace was a crowd of soldiers and sailors."}}]},
 {"id": "into-the-winter-palace", "t": "1917-11-07T14:30", "tq": "inferred", "tr": ["1917-11-07T13:30", "1917-11-07T16:00"], "cal": "none", "sec": "IV", "p": 100, "loc": "winter-palace", "witness": "seen", "actors": ["yunkers", "provisional-government"],
  "title": "Inside the besieged palace",
@@ -265,6 +265,7 @@
   {"who": "reed", "from": "mariinsky-palace", "via": ["admiralty", "palace-square"], "to": "winter-palace", "mode": "foot", "rc": "stated"}],
  "present": [
   {"who": "yunkers", "place": "winter-palace", "kit": ["barricade"], "ref": {"sec": "IV", "q": "Except for far-away soldiers who seemed to be carrying wood out of the Palace courtyard and piling it in front of the main gateway, everything was quiet."}},
+  {"who": "garrison", "place": "palace-square", "form": "line", "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}},
   {"who": "crowd", "place": "palace-square", "brief": true, "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}}]},
 {"id": "yunker-sortie", "t": "1917-11-07T15:15", "tq": "inferred", "tr": ["1917-11-07T14:30", "1917-11-07T16:30"], "cal": "none", "sec": "IV", "p": 102, "loc": "winter-palace", "witness": "seen", "actors": ["yunkers"],
  "title": "A sortie through the Red Arch",
@@ -277,7 +278,7 @@
   {"who": "yunkers", "size": "two of the companies", "from": "winter-palace", "via": ["red-arch"], "to": "telephone-exchange", "mode": "march", "rc": "inferred"},
   {"who": "yunkers", "from": "telephone-exchange", "via": ["red-arch"], "to": "winter-palace", "mode": "march", "rc": "inferred"}],
  "present": [
-  {"who": "yunkers", "place": "winter-palace", "size": "three companies of long-coated yunkers", "n": 56, "ref": {"sec": "IV", "q": "looking down on the Square before the Palace, where three companies of long-coated yunkers were drawn up under arms"}},
+  {"who": "yunkers", "place": "winter-palace", "size": "three companies of long-coated yunkers", "n": 56, "form": "ranks", "ref": {"sec": "IV", "q": "looking down on the Square before the Palace, where three companies of long-coated yunkers were drawn up under arms"}},
   {"who": "womens-battalion", "place": "winter-palace", "ref": {"sec": "IV", "q": "The Women's Battalion decided to remain loyal to the Government."}}]},
 {"id": "hotel-france-dinner", "t": "1917-11-07T17:30", "tq": "inferred", "tr": ["1917-11-07T16:30", "1917-11-07T19:00"], "cal": "none", "sec": "IV", "p": 103, "loc": "hotel-france", "witness": "seen",
  "title": "Dinner at the Hotel France",
@@ -524,7 +525,7 @@
  "moves": [
   {"who": "reed", "from": "city-duma", "to": "nevsky", "mode": "foot", "rc": "inferred"}],
  "present": [
-  {"who": "cyclists", "size": "a long double file of cyclists", "n": 30, "kit": ["bicycle"], "brief": true},
+  {"who": "cyclists", "size": "a long double file of cyclists", "n": 30, "kit": ["bicycle"], "form": "column", "brief": true},
   {"who": "crowd", "brief": true, "ref": {"sec": "VI", "q": "They halted, and the crowd pressed in and deluged them with questions."}}]},
 {"id": "riding-school", "t": "1917-11-09T19:00", "tq": "inferred", "tr": ["1917-11-09T17:30", "1917-11-09T21:30"], "cal": "none", "sec": "VI", "p": 165, "loc": "mikhailovsky-manege", "witness": "seen", "actors": ["krylenko", "armoured-cars"],
  "title": "“Will you give it back?”",
@@ -555,7 +556,7 @@
  "moves": [
   {"who": "reed", "from": "peter-paul", "to": "nevsky", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "garrison", "place": "nevsky", "size": "an interminable column of soldiers", "n": 120, "brief": true},
+  {"who": "garrison", "place": "nevsky", "size": "an interminable column of soldiers", "n": 120, "form": "column", "march": true, "brief": true},
   {"who": "engineers-yunkers", "place": "engineers-castle", "ref": {"sec": "VI", "q": "and in the Injinierny Zamok (School of Engineers)"}}]},
 {"id": "krasnoye-selo-bulletin", "t": "1917-11-10T11:00", "tq": "inferred", "tr": ["1917-11-10T08:00", "1917-11-10T16:00"], "cal": "none", "sec": "VII", "p": 178, "loc": "smolny", "witness": "document", "actors": ["muraviov", "mrc"],
  "title": "Bulletin from Krasnoye Selo",
@@ -583,10 +584,12 @@
  "title": "“Peace! Land!”",
  "sum": "On the way to the Tsarskoye Selo station Reed passes young Red Guards marching up the Nevsky under a gold-lettered red flag.",
  "q": "A red flag crudely lettered in gold, “Peace! Land!” floated over them. They were very young.",
+ "also": [
+  {"sec": "VII", "q": "Heads up they tramped in the chill mud, irregular lines of four, without music, without drums."}],
  "moves": [
   {"who": "reed", "from": "smolny", "to": "nevsky", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "red-guards", "place": "nevsky", "size": "irregular lines of four", "n": 40, "kit": ["flag:1"], "say": ["Peace! Land!"], "brief": true},
+  {"who": "red-guards", "place": "nevsky", "size": "irregular lines of four", "n": 40, "kit": ["flag:1"], "say": ["Peace! Land!"], "form": "column", "march": true, "brief": true},
   {"who": "crowd", "place": "nevsky", "brief": true, "ref": {"sec": "VII", "q": "Half-fearful, half-contemptuous, the crowds on the sidewalk watched them pass, in hateful silence"}}]},
 {"id": "tsarskoye-limbo", "t": "1917-11-10T19:00", "tq": "inferred", "tr": ["1917-11-10T17:30", "1917-11-10T21:30"], "cal": "none", "sec": "VII", "p": 186, "loc": "catherine-palace", "witness": "seen", "actors": ["tsarskoye-rifles"],
  "title": "“Holding the city for Kerensky”",
@@ -907,7 +910,7 @@
  "present": [
   {"who": "red-guards", "size": "Red Guards, stumbling along on foot toward the revolutionary front", "n": 40, "brief": true, "ref": {"sec": "IX", "q": "It was thronged with Red Guards, stumbling along on foot toward the revolutionary front, shouting and singing"}},
   {"who": "workers", "size": "Women with spades, some with rifles and bandoleers", "n": 24, "brief": true, "ref": {"sec": "IX", "q": "Women with spades, some with rifles and bandoleers, others wearing the Red Cross on their arm-bands"}},
-  {"who": "garrison", "size": "Squads of soldiers marching out of step", "n": 20, "kit": ["gun", "truck"], "brief": true, "ref": {"sec": "IX", "q": "We passed cannon, jingling southward with their caissons; trucks bound both ways, bristling with armed men"}}]},
+  {"who": "garrison", "size": "Squads of soldiers marching out of step", "n": 20, "kit": ["gun", "truck"], "form": "column", "march": true, "brief": true, "ref": {"sec": "IX", "q": "We passed cannon, jingling southward with their caissons; trucks bound both ways, bristling with armed men"}}]},
 {"id": "pulkovo-crossroads", "t": "1917-11-13T15:15", "tq": "inferred", "tr": ["1917-11-13T14:30", "1917-11-13T16:00"], "cal": "none", "sec": "IX", "p": 227, "loc": "pulkovo", "witness": "seen", "actors": ["red-guards"],
  "title": "The battlefield at Pulkovo",
  "why": "The ambulance’s first halt beyond the Moskovsky Gate.",

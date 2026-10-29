@@ -419,6 +419,23 @@ def size_number(phrase):
     return sum(vals) / len(vals) * (mult if mult > 1 else 1)
 
 
+def formation(sp, quote):
+    """How a formed body is drawn, from Reed's words for it: rows abreast ('a long double file' 2,
+    'lines of four' 4), ragged or not ('irregular', 'out of step', 'shuffled'), and how many companies."""
+    size = (sp.get('size') or '').lower()
+    out = {'form': sp['form']}
+    if sp.get('march'):
+        out['march'] = True
+    if sp['form'] == 'column':
+        out['abreast'] = 2 if 'double file' in size else 1 if re.search(r'single file|\bin file', size) else 4
+    if sp['form'] == 'ranks':
+        m = re.search(r'(\w+) compan', size)
+        out['blocks'] = max(1, min(4, NUMW.get(m.group(1), 1) if m else 1))
+    if re.search(r'irregular|out of step|shuffl|stumbl|straggl', size + ' ' + quote, re.I):
+        out['ragged'] = True
+    return out
+
+
 def figures(who, size=None, n=None):
     """(composition [[type, share]], how many to draw) for a body of people"""
     a = T_actors.get(who, {})
@@ -476,6 +493,10 @@ for sp in spans:
     for k in ('size', 'kit', 'say'):
         if k in sp:
             rec[k] = sp[k]
+    if sp.get('form') and in_tour[sp['start']]:   # drawn in its own scene only
+        e0 = events_all[sp['start']]
+        words = [L.norm(x) for x in L.segments(e0.get('q', ''))] + [L.norm(r['q']) for r in e0.get('also', [])]
+        rec.update(formation(sp, ' '.join(words)))
     presence.append(rec)
 
 events = []
