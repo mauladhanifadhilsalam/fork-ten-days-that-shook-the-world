@@ -457,7 +457,7 @@ SIZE_ADD = [(r"\bwomen\b(?!.s battalion)", 'workerwoman'), (r'child', 'child')]
 DEFAULT_N = {'unit': 24, 'school': 28, 'crowd': 60, 'organ': 14, 'party': 12, 'ship': 1, 'person': 1, 'press': 4, 'foreign': 3}
 NUMW = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
         'eleven': 11, 'twelve': 12, 'fifteen': 15, 'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60,
-        'seventy': 70, 'eighty': 80, 'ninety': 90, 'several': 3, 'few': 3, 'dozen': 12, 'hundreds': 300, 'thousands': 3000}
+        'seventy': 70, 'eighty': 80, 'ninety': 90, 'several': 3, 'few': 3, 'couple': 2, 'pair': 2, 'dozen': 12, 'hundreds': 300, 'thousands': 3000}
 
 
 def size_number(phrase):
@@ -506,9 +506,24 @@ def figures(who, size=None, n=None):
     comp = ACTOR_FIG.get(who) or BLOC_FIG.get(a.get('bloc'), BLOC_FIG['public'])
     if size:
         low = size.lower()
-        hits = [fig for rx, fig in SIZE_FIG if re.search(rx, low)]
+        found = sorted((m.start(), m.end(), fig) for rx, fig in SIZE_FIG for m in [re.search(rx, low)] if m)
+        hits = [f for _, _, f in found]
         if hits and not (who in ACTOR_FIG and set(hits) <= {f for f, _ in ACTOR_FIG[who]}):
-            comp = [(f, 1 / len(hits)) for f in dict.fromkeys(hits)]
+            # each kind in the share Reed's numbers give it ("five or six Red Guards and a couple of
+            # sailors"); a kind with no number of its own takes the one before it ("thousands of
+            # soldiers and Red Guards"), and with no numbers at all the shares are even
+            ws, last = [], 0
+            for st, en, f in found:
+                ws.append(size_number(low[last:st])); last = en
+            known = [w for w in ws if w]
+            fill, filled = (known[0] if known else 1), []
+            for w in ws:
+                fill = w or fill
+                filled.append(fill)
+            tot = {}
+            for (_, _, f), w in zip(found, filled):
+                tot[f] = tot.get(f, 0) + w
+            comp = [(f, w / sum(tot.values())) for f, w in tot.items()]
         extra = [fig for rx, fig in SIZE_ADD if re.search(rx, low) and fig not in {f for f, _ in comp}]
         if extra:
             comp = [(f, w * 0.75) for f, w in comp] + [(f, 0.25 / len(extra)) for f in extra]

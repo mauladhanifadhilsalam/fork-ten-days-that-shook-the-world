@@ -972,6 +972,11 @@ function posOnSpine(g, mm, adv) {   // a member of a column: s0 metres along, la
 function layoutPlace(id, groups, t) {
   var G = openGround(id, false); if (!G) return;
   var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t), st = holdAt(id, t);
+  // the ground where Reed's walk ends here is his, so he does not finish inside a crowd
+  movers.forEach(function (mv) {
+    if (mv.m.who !== 'reed' || !mv.o.pts || !mv.o.pts.length || rootOf(mv.m.to) !== rootOf(id)) return;
+    var q = mv.o.pts[mv.o.pts.length - 1], kr = cellAt(q.x, -q.z); if (kr >= 0) take(kr, 3.5);
+  });
   var siege = st && (st.state === 'besieged' || st.state === 'contested'), gapIx = 0;
   while (gapIx < G.order.length - 1 && G.dist[G.order[gapIx]] * G.R.cs < 24) gapIx++;
   function free(k) { return G.ok[k] && !used[k]; }
@@ -1380,8 +1385,9 @@ function stageScene(e, noReed) {
         if (here.every(function (g) { return g.members.every(function (m) { return Math.abs(m.x - rx) > 2.6 || Math.abs(m.y - ry) > 2.6; }); })) spot = [rx, ry];
       }
       spot = spot || [RG.sx, RG.sy];
-      var look = big ? [big.cx, big.cy] : [RG.cx, RG.cy];
-      if (Math.hypot(look[0] - spot[0], look[1] - spot[1]) < 1) look = [RG.cx, RG.cy];
+      var look = big ? [big.cx, big.cy] : null, bl = outlinesOf(rootOf(e.loc));
+      if (!look && bl.length) { var wl = nearestOn(bl, spot[0], spot[1]); if (wl.d > 0.5) look = [wl.x, wl.y]; }
+      if (!look || Math.hypot(look[0] - spot[0], look[1] - spot[1]) < 1) look = (PL[rootOf(e.loc)] || {}).p || [RG.cx, RG.cy];
       GROUPS.push({ members: [{ k: 'reed', x: spot[0], y: spot[1], yaw: facingYaw(spot[0], spot[1], look[0], look[1]), idle: 0.3 }], props: [], fires: [], bloc: 'observer', label: 'Reed', place: rootOf(e.loc), seed: 3, cx: spot[0], cy: spot[1], r: 3, reed: true });
     }
   }
@@ -1391,8 +1397,22 @@ function stageScene(e, noReed) {
     var G = openGround(g.place, true); if (!G) return;
     g.members = []; g.props = [{ k: 'avrora', x: G.sx, y: G.sy, yaw: Math.atan2(Math.cos(G.axis), -Math.sin(G.axis)), ship: true }]; g.cx = G.sx; g.cy = G.sy; g.r = 60; g.fires = [];
   });
+  linkArrivals(e, idx);
   stageDirty = true;
 }
+// A body that marches in during the scene and that Reed has stand at its destination in the same
+// scene: the marching file is drawn until it arrives, and then the body laid out there takes over
+// ("jammed up suddenly behind the pedestal", "swept into the right hand entrance")
+function linkArrivals(e, idx) {
+  movers.forEach(function (mv) { mv.handover = null; });
+  GROUPS.forEach(function (g) {
+    g.arrival = null;
+    if (g.reed || g.ship || !g.p || g.p.from !== idx) return;
+    var mv = movers.filter(function (v) { return v.o.e === e && v.m.who === g.who && !v.handover && (v.m.to === g.place || rootOf(v.m.to) === rootOf(g.place)); })[0];
+    if (mv) { g.arrival = mv; mv.handover = g; }
+  });
+}
+function arrived(g) { return !g.arrival || g.arrival.f >= 1; }
 var SHORT = { 'red-guards': 'Red Guards', sailors: 'Sailors', garrison: 'Soldiers', yunkers: 'Yunkers', 'vladimir-yunkers': 'Vladimir yunkers',
   'engineers-yunkers': 'Engineering yunkers', 'pavlovsk-yunkers': 'Pavlovsk yunkers', 'womens-battalion': 'Women’s Battalion', 'peter-paul-garrison': 'Peter-Paul garrison',
   avrora: 'The Avrora', mrc: 'Military Revolutionary Committee', 'military-staff': 'The Staff', workers: 'Workers', crowd: 'Crowd', duma: 'The Duma’s militia',
@@ -1462,6 +1482,7 @@ function alongPath(o, d, side) {
   return [x + dz / L * side, -(z - dx / L * side), yaw];   // map coordinates (y north)
 }
 function drawMover(mv, FS, t) {
+  if (mv.handover && mv.f >= 1) return;   // arrived: the body laid out at the place stands for it now
   var o = mv.o, gap = 1.25 * FS, walking = mv.f > 0 && mv.f < 1 ? 1 : 0, lead = mv.f * o.total;
   if (mv.arc) {   // no route: a pennant rides the arc; the body waits at the end
     if (mv.f < 1) {
@@ -1761,6 +1782,10 @@ function armFights() {
       });
     });
     if (!any) { g.fire = null; g.assault = null; }
+    // a body that is no more than its cruising cars' crews ("An armoured automobile went slowly up and
+    // down") rides in them: nobody is left standing at the place, and its label goes with the first car
+    var cars = (g.props || []).filter(function (pr) { return pr.path; });
+    if (g.patrol && !g.form && cars.length && g.members.length <= 2 * cars.length) { g.ride = cars[0]; g.members = []; }
   });
   seedScars(cur);
 }
@@ -1907,7 +1932,7 @@ function battle(t, FS) {
   if (!cur || intro) return;
   var shots = 0;
   GROUPS.forEach(function (g) {
-    if (!g.fire && !g.assault && !g.patrol) return;
+    if ((!g.fire && !g.assault && !g.patrol) || !arrived(g)) return;
     assault(g, t, dt);
     if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path) patrolStep(g, pr, t); }); return; }
     if (g.windows) g.windows.forEach(function (w) {
@@ -2035,6 +2060,7 @@ function drawPeople(now, FS) {
   figUni.uTime.value = t;
   reedGlow.visible = false;
   GROUPS.forEach(function (g) {
+    if (!arrived(g)) return;   // its marchers are still on the way
     var adv = 0, walking = 0;
     if (g.spine) {   // a column: a passing one advances while the scene lasts, then marks time
       if (g.speed) { adv = Math.min(g.adv, g.speed * Math.max(0, now - scene0) / 1000 * speed); walking = adv < g.adv ? 1 : 0; }
@@ -2044,6 +2070,7 @@ function drawPeople(now, FS) {
     }
     if (!g.ship && !g.reed && !g.inside && g.members && g.members.length) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
     (g.props || []).forEach(function (pr) {
+      if (pr === g.ride) patch(pr.x, pr.y, 3.2 * FS, g.bloc);
       var kick = pr.kick ? Math.max(0, 1 - (t - pr.kick) / 0.45) * 0.7 * FS : 0;   // a gun's recoil
       put(pr.k, pr.x - Math.sin(pr.yaw) * kick, pr.ship ? SHIP_Y : 0, -pr.y - Math.cos(pr.yaw) * kick, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
       // flying from the car: one at the back, or two from the turrets ("two red flags flying from the turret")
@@ -2182,12 +2209,13 @@ function placeGroupLabels(w, h, placed) {
   if (labelsOn && camD < 1700 && here && here.p) {
     var cands = [];
     GROUPS.forEach(function (g) {
-      if (g.cx == null || g.reed || Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) >= 900) return;
+      if (g.cx == null || g.reed || !arrived(g) || Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) >= 900) return;
       var lx = g.cx, ly = g.cy;
-      if (g.secs) { var cxm = camera.position.x, cym = -camera.position.z, bs = null; g.secs.forEach(function (q) { var d = Math.hypot(q.x - cxm, q.y - cym); if (!bs || d < bs.d) bs = { d: d, q: q }; }); lx = bs.q.x; ly = bs.q.y; }
+      if (g.ride) { lx = g.ride.x; ly = g.ride.y; }
+      else if (g.secs) { var cxm = camera.position.x, cym = -camera.position.z, bs = null; g.secs.forEach(function (q) { var d = Math.hypot(q.x - cxm, q.y - cym); if (!bs || d < bs.d) bs = { d: d, q: q }; }); lx = bs.q.x; ly = bs.q.y; }
       cands.push({ x: lx, y: ly, h: g.ship ? 42 : 3.0 * FS + 1, t: g.label, b: g.bloc, big: (g.members || []).length + (g.ship ? 50 : 0) });
     });
-    movers.forEach(function (mv) { if (mv.lx != null && mv.m.who !== 'reed') cands.push({ x: mv.lx, y: mv.ly, h: 3.3 * FS + 1, t: mv.label, b: mv.bloc, big: 999 }); });
+    movers.forEach(function (mv) { if (mv.lx != null && mv.m.who !== 'reed' && !(mv.handover && mv.f >= 1)) cands.push({ x: mv.lx, y: mv.ly, h: 3.3 * FS + 1, t: mv.label, b: mv.bloc, big: 999 }); });
     cands.sort(function (a, b) { return b.big - a.big; });
     cands.forEach(function (c) {
       v3.set(c.x, c.h, -c.y).project(camera);
