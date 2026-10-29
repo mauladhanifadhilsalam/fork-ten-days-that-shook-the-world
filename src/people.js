@@ -398,7 +398,7 @@ var PEOPLE = (function (THREE) {
       armoured: armoured('#77746a').geometry(), truck: truck('#5d5b47').geometry(), car: car('#1d1d1f').geometry(),
       gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(),
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
-      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
+      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()

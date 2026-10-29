@@ -78,7 +78,7 @@ ENUM = {
     'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
-    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'torch', 'bicycle', 'leaflets', 'rifles'},
+    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring'},
     'pose': {'fallen', 'prone'},
     'assault': {'repulsed', 'carried'},
@@ -95,28 +95,29 @@ KIT_WORDS = {
     'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
     'rifles': r'heap of rifles|rifles thrown down|rifles stacked|stacked rifles|piles? of rifles|rifles (lay|lying) in',
+    'whiteflag': r'white flag',
 }
 # How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
-FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramping', 'line': r'\ba line\b|\bline of\b|cordon',
+FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramp(ing|ed)|swinging along|swing down|regular tread', 'line': r'\ba line\b|\bline of\b|cordon',
               'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation', 'ring': r'surround|encircl|\bringed\b|hemmed in'}
-MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|filing'
+MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|swing down|filing'
 # The fighting, in the scene whose passage says so: who fires (and from the windows), who lies dead
 # or wounded, who throws himself flat, who runs at the enemy
-POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen',
+POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen|to death|shooting down|shot down',
               'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters'}
 RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'
 REPULSE_WORDS = r'crumpl|\bfell\b|fallen|driven back|repulsed|beaten off|thrown back|mowed|cut down'
-ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into)|swept (in|into)|burst (in|into)|rushed (in|into)|broke (in|into)|forced (their|a) way'
+ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|into)|burst (in|into)|rushed (in|into)|broke (in|into)|swarmed (in|into)|forced (their|a) way'
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
 # a body indoors: the map labels its building and draws no one
-INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard)\b'
+INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices'
 # what a body looks at, or turns its guns on
 FACE_WORDS = r'star(e|ed|es|ing)\b|\bfac(e|ed|es|ing)\b|toward|looking|look(ed)? (at|up|down|out|toward)|watch|trained|turned (to|on|toward)|gaz(e|ed|ing)|pointing|peer|block(ing|ed)? the way|barr(ing|ed) the way|confront'
 WINDOW_WORDS = r'window'
-SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire'
+SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire|withering blast'
 LIMITS = {'title': 60, 'sum': 350, 'q': 320, 'note': 500, 'why': 300, 'ident': 400}
 ID_RE = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 OSM_RE = re.compile(r'^(node|way|relation)/\d+$')

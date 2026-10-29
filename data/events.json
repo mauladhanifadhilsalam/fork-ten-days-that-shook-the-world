@@ -281,29 +281,38 @@
   {"who": "reed", "from": "reed-lodging", "via": ["nevsky"], "to": "state-bank", "mode": "foot", "rc": "stated", "gap": true}],
  "present": [
   {"who": "garrison", "place": "state-bank", "size": "some soldiers with fixed bayonets", "n": 10, "ref": {"sec": "IV", "q": "In front of the State Bank some soldiers with fixed bayonets were standing at the closed gates."}}]},
-{"id": "military-hotel-picketed", "t": "1917-11-07T12:45", "tq": "inferred", "tr": ["1917-11-07T12:15", "1917-11-07T13:30"], "cal": "none", "sec": "IV", "p": 98, "loc": "military-hotel", "witness": "seen", "actors": ["sailors"],
+{"id": "military-hotel-picketed", "t": "1917-11-07T12:45", "tq": "inferred", "tr": ["1917-11-07T12:15", "1917-11-07T13:30"], "cal": "none", "sec": "IV", "p": 98, "loc": "military-hotel", "witness": "seen", "actors": ["sailors"], "tags": ["shooting"],
  "title": "Officers kept in the Military Hotel",
  "why": "After the State Bank and a talk with Gomberg at the Morskaya corner.",
- "sum": "Sailors picket the Military Hotel; the officers in its lobby are not allowed to leave.",
+ "sum": "Sailors picket the Military Hotel; the officers in its lobby are not allowed to leave. Outside a rifle cracks, then a scattered burst of firing, and Reed runs out.",
  "q": "The Military Hotel at the corner of St. Isaac’s Square was picketed by armed sailors.",
+ "also": [
+  {"sec": "IV", "q": "In the lobby were many of the smart young officers, walking up and down or muttering together; the sailors wouldn’t let them leave"},
+  {"sec": "IV", "q": "Suddenly came the sharp crack of a rifle outside, followed by a scattered burst of firing. I ran out."}],
  "moves": [
   {"who": "reed", "from": "state-bank", "via": ["morskaya"], "to": "military-hotel", "mode": "foot", "rc": "inferred"}],
  "present": [
   {"who": "sailors", "size": "armed sailors", "n": 12}]},
-{"id": "council-dispersed", "t": "1917-11-07T13:00", "tq": "inferred", "tr": ["1917-11-07T12:30", "1917-11-07T14:00"], "cal": "none", "sec": "IV", "p": 98, "loc": "mariinsky-palace", "witness": "told", "actors": ["council-of-republic", "sailors"],
+{"id": "council-dispersed", "t": "1917-11-07T13:00", "tq": "inferred", "tr": ["1917-11-07T12:30", "1917-11-07T14:00"], "cal": "none", "sec": "IV", "p": 98, "loc": "mariinsky-palace", "witness": "seen", "actors": ["council-of-republic", "sailors", "garrison"], "tags": ["shooting"],
  "title": "The Council of the Republic dispersed",
  "why": "Straight after the Military Hotel: “I ran out.”",
- "sum": "Reed runs to the Mariinsky Palace at the sound of shots. A sailor tells how they turned the Council out.",
+ "sum": "Something unusual at the Mariinsky Palace: a line of soldiers drawn diagonally across the square stares at the hotel roof (“Shot at us!”), an armoured car at the palace’s western corner trains its guns toward St. Isaac’s, and a barricade closes Novaya Ulitza. A sailor tells how they turned the Council out.",
  "q": "Something unusual was going on around the Marinsky Palace",
  "also": [
-  {"sec": "IV", "q": "“We walked in there,” he said, “and filled all the doors with comrades."}],
+  {"sec": "IV", "q": "“We walked in there,” he said, “and filled all the doors with comrades."},
+  {"sec": "IV", "q": "Diagonally across the wide square was drawn a line of soldiers, rifles ready, staring at the hotel roof."},
+  {"sec": "IV", "q": "“_Provacatzia!_ Shot at us!” snapped one, while another went running toward the door."},
+  {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it"},
+  {"sec": "IV", "q": "A barricade had been heaped up across the mouth of Novaya Ulitza—boxes, barrels, an old bed-spring, a wagon."}],
  "moves": [
   {"who": "reed", "from": "military-hotel", "via": ["st-isaacs-square"], "to": "mariinsky-palace", "mode": "foot", "rc": "inferred"}],
  "ctl": [
   {"place": "mariinsky-palace", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "garrison", "size": "a line of soldiers, rifles ready", "n": 24, "kit": ["armoured", "flag:1", "barricade"], "form": "line", "ref": {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it, newly lettered in red paint: \"S.R.S.D.\" (Soviet Rabotchikh Soldatskikh Deputatov); all the guns trained toward St. Isaac's. A barricade had been heaped up across the mouth of Novaya Ulitza"}},
-  {"who": "sailors", "size": "a crowd of soldiers and sailors", "n": 20, "brief": true, "ref": {"sec": "IV", "q": "Before the door of the Palace was a crowd of soldiers and sailors."}}]},
+  {"who": "garrison", "size": "a knot of soldiers", "n": 10, "kit": ["barricade"], "ref": {"sec": "IV", "q": "A barricade had been heaped up across the mouth of Novaya Ulitza—boxes, barrels, an old bed-spring, a wagon. A pile of lumber barred the end of the Moika quay."}},
+  {"who": "sailors", "size": "a crowd of soldiers and sailors", "n": 20, "brief": true, "ref": {"sec": "IV", "q": "Before the door of the Palace was a crowd of soldiers and sailors."}},
+  {"who": "garrison", "place": "st-isaacs-square", "size": "a line of soldiers, rifles ready", "n": 24, "form": "line", "face": "military-hotel", "ref": {"sec": "IV", "q": "Diagonally across the wide square was drawn a line of soldiers, rifles ready, staring at the hotel roof."}},
+  {"who": "garrison", "place": "mariinsky-west-corner", "size": "a big armoured car", "n": 1, "kit": ["armoured:1", "flag:1"], "face": "st-isaacs-square", "ref": {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it, newly lettered in red paint: “S.R.S.D.” (_Soviet Rabotchikh Soldatskikh Deputatov_); all the guns trained toward St. Isaac’s."}}]},
 {"id": "into-the-winter-palace", "t": "1917-11-07T14:30", "tq": "inferred", "tr": ["1917-11-07T13:30", "1917-11-07T16:00"], "cal": "none", "sec": "IV", "p": 100, "loc": "winter-palace", "witness": "seen", "actors": ["yunkers", "provisional-government"],
  "title": "Inside the besieged palace",
  "why": "After the Mariinsky, before “it was getting late”.",
@@ -316,7 +325,8 @@
  "present": [
   {"who": "yunkers", "place": "winter-palace", "kit": ["barricade"], "ref": {"sec": "IV", "q": "Except for far-away soldiers who seemed to be carrying wood out of the Palace courtyard and piling it in front of the main gateway, everything was quiet."}},
   {"who": "garrison", "place": "palace-square-west", "form": "line", "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}},
-  {"who": "crowd", "place": "palace-square-west", "brief": true, "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}}]},
+  {"who": "crowd", "place": "palace-square-west", "brief": true, "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}},
+  {"who": "womens-battalion", "place": "winter-palace", "inside": true, "ref": {"sec": "IV", "q": "“Yes, they are in the back rooms, where they won’t be hurt if any trouble comes.”"}}]},
 {"id": "yunker-sortie", "t": "1917-11-07T15:15", "tq": "inferred", "tr": ["1917-11-07T14:30", "1917-11-07T16:30"], "cal": "none", "sec": "IV", "p": 102, "loc": "winter-palace", "witness": "seen", "actors": ["yunkers"],
  "title": "A sortie through the Red Arch",
  "why": "Reed watches from a palace window, before dusk.",
@@ -327,8 +337,7 @@
  "moves": [
   {"who": "yunkers", "size": "two of the companies", "from": "winter-palace", "to": "red-arch", "mode": "march", "rc": "inferred"}],
  "present": [
-  {"who": "yunkers", "place": "winter-palace", "size": "three companies of long-coated yunkers", "n": 56, "form": "ranks", "ref": {"sec": "IV", "q": "looking down on the Square before the Palace, where three companies of long-coated yunkers were drawn up under arms"}},
-  {"who": "womens-battalion", "place": "winter-palace", "inside": true, "ref": {"sec": "IV", "q": "“Yes, they are in the back rooms, where they won’t be hurt if any trouble comes.”"}}]},
+  {"who": "yunkers", "place": "winter-palace", "size": "three companies of long-coated yunkers", "n": 56, "form": "ranks", "brief": true, "ref": {"sec": "IV", "q": "looking down on the Square before the Palace, where three companies of long-coated yunkers were drawn up under arms"}}]},
 {"id": "yunker-panic", "t": "1917-11-07T15:35", "tq": "inferred", "tr": ["1917-11-07T15:15", "1917-11-07T16:30"], "cal": "none", "sec": "IV", "loc": "winter-palace", "witness": "seen", "actors": ["yunkers"], "tags": ["shooting"],
  "title": "A burst of rifle-fire",
  "why": "After the sortie and the cadets’ talk at the window; before the yunkers come back.",
@@ -368,39 +377,64 @@
  "moves": [
   {"who": "reed", "from": "hotel-france", "via": ["morskaya"], "to": "red-arch", "mode": "foot", "rc": "stated"}],
  "present": [
-  {"who": "garrison", "size": "a knot of soldiers", "n": 10, "brief": true, "ref": {"sec": "IV", "q": "We walked back up to the Red Arch, where a knot of soldiers was gathered staring at the brightly-lighted Winter Palace"}},
-  {"who": "garrison", "place": "morskaya-nevsky", "size": "Soldiers and sailors", "n": 12, "kit": ["armoured:2"], "brief": true, "ref": {"sec": "IV", "q": "Under this stood a big armored automobile, with racing engine and oil-smoke pouring out of it."}}]},
-{"id": "police-bridge-gun", "t": "1917-11-07T19:30", "tq": "inferred", "tr": ["1917-11-07T18:30", "1917-11-07T21:30"], "cal": "none", "sec": "IV", "p": 103, "loc": "police-bridge", "witness": "seen", "actors": ["garrison"],
+  {"who": "garrison", "size": "a knot of soldiers", "n": 10, "face": "winter-palace", "brief": true, "ref": {"sec": "IV", "q": "We walked back up to the Red Arch, where a knot of soldiers was gathered staring at the brightly-lighted Winter Palace"}},
+  {"who": "garrison", "place": "morskaya-nevsky", "size": "Soldiers and sailors", "n": 12, "kit": ["armoured:1"], "brief": true, "ref": {"sec": "IV", "q": "Under this stood a big armored automobile, with racing engine and oil-smoke pouring out of it."}}]},
+{"id": "committee-says-wait", "t": "1917-11-07T19:15", "tq": "inferred", "tr": ["1917-11-07T18:00", "1917-11-07T21:00"], "cal": "none", "sec": "IV", "p": 103, "loc": "morskaya-nevsky", "witness": "seen", "actors": ["garrison"],
+ "title": "“The Committee says to wait”",
+ "why": "When Reed comes back down from the Red Arch to the Nevsky; before the lumber-piles on the Police Bridge.",
+ "sum": "Back at the Nevsky corner a second armoured car comes round, and a man in its turret yells to go on through and attack. The first car’s driver shouts above the engine that the Committee says to wait: they have artillery behind the wood-piles.",
+ "q": "As we reached the Nevsky again another armoured car came around the corner, and a man poked his head out of the turret-top.",
+ "also": [
+  {"sec": "IV", "q": "“The Committee says to wait. They have got artillery behind the wood-piles in there….”"},
+  {"sec": "IV", "q": "“Come on!” he yelled. “Let’s go on through and attack!”"},
+  {"sec": "IV", "q": "The driver of the other car came over, and shouted so as to be heard above the roaring engine."}],
+ "moves": [
+  {"who": "reed", "from": "red-arch", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "inferred"}],
+ "present": [
+  {"who": "garrison", "size": "Soldiers and sailors", "n": 12, "kit": ["armoured:2"], "brief": true, "ref": {"sec": "IV", "q": "As we reached the Nevsky again another armoured car came around the corner, and a man poked his head out of the turret-top."}}]},
+{"id": "police-bridge-gun", "t": "1917-11-07T19:30", "tq": "inferred", "tr": ["1917-11-07T18:30", "1917-11-07T21:30"], "cal": "none", "sec": "IV", "p": 103, "loc": "police-bridge", "witness": "seen", "actors": ["garrison", "bolsheviki"],
  "title": "A field-gun on the Nevsky",
  "why": "Back on the Nevsky after the Red Arch.",
- "sum": "In the dark the Police Bridge is barricaded with lumber, and soldiers wheel a three-inch field-gun into place before the Stroganov Palace.",
+ "sum": "In the dark the Police Bridge is barricaded with lumber, and soldiers wheel a three-inch field-gun into place before the Stroganov Palace. Up the Nevsky armoured cars go up and down, and at the Mikhailovsky people fight for newspapers.",
  "q": "In the darkness we stumbled over lumber-piles barricading the Police Bridge, and before the Stroganov Palace made out some soldiers wheeling into position a three-inch field-gun.",
+ "also": [
+  {"sec": "IV", "q": "Armoured cars went up and down the street, named after the first Tsars—Oleg, Rurik, Svietoslav—and daubed with huge red letters, “R. S. D. R. P.”"},
+  {"sec": "IV", "q": "At the Mikhailovsky a man appeared with an armful of newspapers, and was immediately stormed by frantic people, offering a rouble, five roubles, ten roubles, tearing at each other like animals."},
+  {"sec": "IV", "q": "Up the Nevsky the whole city seemed to be out promenading."}],
  "moves": [
-  {"who": "reed", "from": "red-arch", "via": ["morskaya-nevsky"], "to": "police-bridge", "mode": "foot", "rc": "inferred"}],
+  {"who": "reed", "from": "morskaya-nevsky", "to": "police-bridge", "mode": "foot", "rc": "inferred"}],
  "present": [
-  {"who": "garrison", "size": "some soldiers", "n": 8, "kit": ["barricade", "gun"]},
+  {"who": "garrison", "size": "Men in various uniforms", "n": 8, "kit": ["barricade"]},
   {"who": "crowd", "place": "nevsky", "size": "immense crowds", "n": 50, "brief": true, "ref": {"sec": "IV", "q": "On every corner immense crowds were massed around a core of hot discussion."}},
-  {"who": "garrison", "place": "nevsky", "size": "Pickets of a dozen soldiers with fixed bayonets", "n": 12, "brief": true, "ref": {"sec": "IV", "q": "Pickets of a dozen soldiers with fixed bayonets lounged at the street-crossings"}}]},
-{"id": "sadovaya-red-spark", "t": "1917-11-07T20:00", "tq": "inferred", "tr": ["1917-11-07T19:00", "1917-11-07T22:00"], "cal": "none", "sec": "IV", "p": 104, "loc": "sadovaya", "witness": "seen", "actors": ["workers"],
+  {"who": "garrison", "place": "nevsky", "size": "Pickets of a dozen soldiers with fixed bayonets", "n": 12, "brief": true, "ref": {"sec": "IV", "q": "Pickets of a dozen soldiers with fixed bayonets lounged at the street-crossings"}},
+  {"who": "garrison", "place": "stroganov-front", "size": "some soldiers", "n": 8, "kit": ["gun"]},
+  {"who": "bolsheviki", "place": "nevsky", "size": "Armoured cars", "n": 3, "kit": ["armoured:3"], "patrol": true, "brief": true, "ref": {"sec": "IV", "q": "Armoured cars went up and down the street, named after the first Tsars—Oleg, Rurik, Svietoslav—and daubed with huge red letters, “R. S. D. R. P.”"}},
+  {"who": "crowd", "place": "mikhailovskaya", "size": "frantic people", "n": 30, "brief": true, "ref": {"sec": "IV", "q": "At the Mikhailovsky a man appeared with an armful of newspapers, and was immediately stormed by frantic people, offering a rouble, five roubles, ten roubles, tearing at each other like animals."}}]},
+{"id": "sadovaya-red-spark", "t": "1917-11-07T20:00", "tq": "inferred", "tr": ["1917-11-07T19:00", "1917-11-07T22:00"], "cal": "none", "sec": "IV", "p": 104, "loc": "sadovaya-nevsky", "witness": "seen", "actors": ["crowd"],
  "title": "A red spark on a roof",
  "why": "The last scene before Smolny.",
  "sum": "Up the Nevsky, two thousand people at the Sadovaya corner stare at a red spark on a roof: “a provocator”, says a peasant.",
  "q": "On the corner of the Sadovaya about two thousand citizens had gathered, staring up at the roof of a tall building, where a tiny red spark glowed and waned.",
+ "also": [
+  {"sec": "IV", "q": "“See!” said a tall peasant, pointing to it. “It is a provocator."}],
  "moves": [
-  {"who": "reed", "from": "police-bridge", "via": ["stroganov-palace", "nevsky"], "to": "sadovaya", "mode": "foot", "rc": "stated"}],
+  {"who": "reed", "from": "police-bridge", "via": ["stroganov-front", "nevsky"], "to": "sadovaya-nevsky", "mode": "foot", "rc": "stated"}],
  "present": [
   {"who": "crowd", "size": "about two thousand citizens", "brief": true}]},
-{"id": "congress-opens", "t": "1917-11-07T22:40", "tq": "stated", "tp": "It was 10.40 P. M.", "cal": "none", "sec": "IV", "p": 106, "loc": "smolny-hall", "witness": "seen", "actors": ["congress", "tsay-ee-kah-old"],
+{"id": "congress-opens", "t": "1917-11-07T22:40", "tq": "stated", "tp": "It was 10.40 P. M.", "cal": "none", "sec": "IV", "p": 106, "loc": "smolny-hall", "witness": "seen", "actors": ["congress", "tsay-ee-kah-old"], "tags": ["shooting"],
  "title": "The Second Congress opens",
- "sum": "Dan rings the bell to open the Second All-Russian Congress of Soviets.",
+ "sum": "Dan rings the bell to open the Second All-Russian Congress of Soviets: his party comrades, he says, are in the Winter Palace under bombardment. Later a new sound is heard in the hall: the dull shock of guns.",
  "q": "It was 10.40 P. M. Dan, a mild-faced, baldish figure in a shapeless military surgeon’s uniform, was ringing the bell.",
+ "also": [
+  {"sec": "IV", "q": "at this very moment our party comrades are in the Winter Palace under bombardment"},
+  {"sec": "IV", "q": "But suddenly a new sound made itself heard, deeper than the tumult of the crowd, persistent, disquieting,—the dull shock of guns."}],
  "moves": [
-  {"who": "reed", "from": "sadovaya", "to": "smolny", "mode": "car", "rc": "none"}],
+  {"who": "reed", "from": "sadovaya-nevsky", "to": "smolny", "mode": "car", "rc": "none"}],
  "present": [
-  {"who": "red-guards", "place": "smolny", "kit": ["fire:2"], "ref": {"sec": "IV", "q": "It was cold, and at the outer gate the Red Guards had built themselves a bon-fire."}},
+  {"who": "red-guards", "place": "smolny-gates", "size": "the Red Guards", "n": 8, "kit": ["fire:1"], "ref": {"sec": "IV", "q": "It was cold, and at the outer gate the Red Guards had built themselves a bon-fire."}},
   {"who": "garrison", "place": "smolny", "size": "the four rapid-fire guns on each side of the doorway", "n": 16, "kit": ["mg:8"], "ref": {"sec": "IV", "q": "The canvas covers had been taken off the four rapid-fire guns on each side of the doorway, and the ammunition-belts hung snakelike from their breeches."}},
   {"who": "garrison", "place": "smolny", "kit": ["armoured:4"], "ref": {"sec": "IV", "q": "A dun herd of armoured cars stood under the trees in the court-yard, engines going."}},
-  {"who": "garrison", "place": "smolny", "kit": ["flag:2"], "ref": {"sec": "IV", "q": "an enormous elephant-coloured armoured automobile, with two red flags flying from the turret, lumbered out with screaming siren"}}]},
+  {"who": "garrison", "place": "smolny", "kit": ["fire:1"], "ref": {"sec": "IV", "q": "At the inner gate, too, there was a blaze, by the light of which the sentries slowly spelled out our passes and looked us up and down."}}]},
 {"id": "bund-leaves-congress", "t": "1917-11-07T23:45", "tq": "inferred", "tr": ["1917-11-07T22:50", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 110, "loc": "smolny-hall", "witness": "seen", "actors": ["bund", "mensheviki", "srs", "congress"],
  "title": "The moderates walk out",
  "why": "Late in the opening session, before the MRC room and the truck.",
@@ -471,7 +505,8 @@
   {"who": "reed", "from": "morskaya-nevsky", "via": ["red-arch"], "to": "palace-square", "mode": "foot", "rc": "stated"},
   {"who": "red-guards", "size": "some hundreds of men", "n": 60, "from": "morskaya-nevsky", "via": ["red-arch"], "to": "palace-square", "mode": "foot", "rc": "stated"}],
  "present": [
-  {"who": "yunkers", "place": "winter-palace", "kit": ["rifles"], "inside": true, "ref": {"sec": "IV", "q": "Over the barricade of firewood we clambered, and leaping down inside gave a triumphant shout as we stumbled on a heap of rifles thrown down by the yunkers who had stood there."}}]},
+  {"who": "yunkers", "place": "winter-palace", "kit": ["rifles"], "inside": true, "ref": {"sec": "IV", "q": "Over the barricade of firewood we clambered, and leaping down inside gave a triumphant shout as we stumbled on a heap of rifles thrown down by the yunkers who had stood there."}},
+  {"who": "red-guards", "place": "palace-square", "size": "some hundreds of men", "n": 60, "brief": true, "ref": {"sec": "IV", "q": "In the open we began to run, stooping low and bunching together, and jammed up suddenly behind the pedestal of the Alexander Column."}}]},
 {"id": "over-the-barricade", "t": "1917-11-08T02:05", "tq": "inferred", "tr": ["1917-11-08T00:45", "1917-11-08T03:00"], "cal": "none", "sec": "IV", "loc": "winter-palace", "witness": "seen", "actors": ["red-guards", "garrison", "yunkers"],
  "title": "Over the barricade",
  "why": "“After a few minutes huddling there” behind the Alexander Column; before the looting in the cellar of the East wing.",
@@ -485,7 +520,9 @@
   {"who": "red-guards", "size": "the first two or three hundred men were Red Guards", "n": 60, "from": "palace-square", "to": "winter-palace", "mode": "foot", "rc": "stated", "stay": true},
   {"who": "reed", "from": "palace-square", "to": "winter-palace", "mode": "foot", "rc": "stated"}],
  "ctl": [
-  {"place": "winter-palace", "state": "held", "holder": "mrc"}]},
+  {"place": "winter-palace", "state": "held", "holder": "mrc"}],
+ "present": [
+  {"who": "red-guards", "place": "winter-palace", "size": "the first two or three hundred men were Red Guards", "n": 60, "assault": "carried", "brief": true, "ref": {"sec": "IV", "q": "Carried along by the eager wave of men we were swept into the right hand entrance, opening into a great bare vaulted room, the cellar of the East wing"}}]},
 {"id": "looting-stopped", "t": "1917-11-08T02:20", "tq": "inferred", "tr": ["1917-11-08T01:00", "1917-11-08T03:00"], "cal": "none", "sec": "IV", "p": 115, "loc": "winter-palace", "witness": "seen", "actors": ["red-guards", "yunkers"],
  "title": "“Property of the People!”",
  "why": "Just after the entry.",
@@ -524,8 +561,9 @@
  "present": [
   {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}],
  "gone": [
-  {"who": "garrison", "place": "police-bridge", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}},
-  {"who": "garrison", "place": "kazan-cathedral-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}}]},
+  {"who": "garrison", "place": "kazan-cathedral-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}},
+  {"who": "garrison", "place": "police-bridge", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone, and the only signs of war were Red Guards and soldiers squatting around fires"}},
+  {"who": "garrison", "place": "stroganov-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}}]},
 {"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "city-duma", "witness": "seen", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
  "title": "The Committee for Salvation is formed",
  "why": "Reed walks from the palace to the Duma “after three”.",
@@ -754,43 +792,55 @@
   {"who": "reed", "from": "tsarskoye-station-city", "to": "tsarskoye-station", "mode": "rail", "rc": "stated"},
   {"who": "reed", "from": "tsarskoye-station", "to": "tsarskoye-soviet", "mode": "foot", "rc": "none"},
   {"who": "reed", "from": "tsarskoye-soviet", "to": "catherine-palace", "mode": "foot", "rc": "inferred"}]},
-{"id": "warsaw-cannonade", "t": "1917-11-10T22:00", "tq": "inferred", "tr": ["1917-11-10T20:30", "1917-11-10T23:30"], "cal": "none", "sec": "VII", "p": 187, "loc": "warsaw-station", "witness": "reported", "actors": ["krasnov-cossacks"],
- "title": "Cannon heard at the Warsaw Station",
- "why": "The evening Reed came back from Tsarskoye.",
- "sum": "From the Warsaw Station, the railway toward Gatchina, a far-off cannonade can be heard.",
- "q": "From the Warsaw Railway station could be heard far-off cannonade."},
 {"id": "back-in-town-nov10", "t": "1917-11-10T22:30", "tq": "inferred", "tr": ["1917-11-10T21:00", "1917-11-10T23:30"], "cal": "none", "sec": "VII", "p": 187, "loc": "nevsky", "witness": "seen",
- "title": "Cannonade heard in town",
+ "title": "Back in town",
  "why": "After the train back from Tsarskoye.",
- "sum": "Back in Petrograd, crowds surge up and down the Nevsky; from the Warsaw Station a distant cannonade can be heard.",
+ "sum": "Back in town, Reed finds excited throngs moving in tides up and down the Nevsky.",
  "q": "Back in town excited throngs were moving in tides up and down the Nevsky.",
- "also": [
-  {"sec": "VII", "q": "From the Warsaw Railway station could be heard far-off cannonade."}],
  "moves": [
   {"who": "reed", "from": "catherine-palace", "to": "tsarskoye-station", "mode": "foot", "rc": "none"},
   {"who": "reed", "from": "tsarskoye-station", "to": "tsarskoye-station-city", "mode": "rail", "rc": "stated"},
-  {"who": "reed", "from": "tsarskoye-station-city", "to": "nevsky", "mode": "unknown", "rc": "none"}]},
-{"id": "state-of-siege", "t": "1917-11-10T23:30", "tq": "inferred", "tr": ["1917-11-10T20:00", "1917-11-11T00:30"], "cal": "none", "sec": "VII", "p": 188, "loc": "city-duma", "witness": "document", "actors": ["mrc"],
+  {"who": "reed", "from": "tsarskoye-station-city", "to": "nevsky", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "crowd", "size": "excited throngs", "brief": true}]},
+{"id": "warsaw-cannonade", "t": "1917-11-10T22:45", "tq": "inferred", "tr": ["1917-11-10T20:30", "1917-11-10T23:30"], "cal": "none", "sec": "VII", "p": 187, "loc": "warsaw-station", "witness": "reported", "actors": ["krasnov-cossacks"],
+ "title": "Cannon heard at the Warsaw Station",
+ "why": "Reed gives it just after “Back in town”, before he goes to the Duma; no clock time.",
+ "sum": "From the Warsaw Railway station a far-off cannonade can be heard.",
+ "q": "From the Warsaw Railway station could be heard far-off cannonade."},
+{"id": "state-of-siege", "t": "1917-11-10T23:30", "tq": "inferred", "tr": ["1917-11-10T20:00", "1917-11-11T00:30"], "cal": "none", "sec": "VII", "p": 188, "loc": "city-duma", "witness": "document", "actors": ["mrc", "red-guards"],
  "title": "A state of siege",
  "why": "Posted in the street as Reed leaves the Duma, the night of the 10th, just before “As we went home”.",
- "sum": "Podvoisky’s order declares Petrograd and its suburbs in a state of siege and forbids meetings in the open air.",
+ "sum": "As Reed leaves the Duma a company of Red Guards marches down the dark, deserted street with a dozen prisoners. Podvoisky’s order declares Petrograd and its suburbs in a state of siege and forbids meetings in the open air.",
  "q": "are declared in a state of siege. All assemblies or meetings in the streets, and generally in the open air, are forbidden until further orders.",
  "also": [
-  {"sec": "VII", "q": "As we left the Duma a company of Red Guards"}],
+  {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners"}],
  "moves": [
   {"who": "reed", "from": "nevsky", "to": "city-duma", "mode": "foot", "rc": "none"},
-  {"who": "reed", "from": "city-duma", "to": "reed-lodging", "mode": "unknown", "rc": "none"}]},
-{"id": "telephone-exchange-yunkers", "t": "1917-11-11T03:00", "tq": "approx", "tr": ["1917-11-11T01:00", "1917-11-11T05:30"], "tp": "In the small hours of the morning", "cal": "none", "sec": "VII", "p": 188, "loc": "telephone-exchange", "witness": "reported", "actors": ["yunkers", "antonov", "committee-for-salvation", "semionovsky"], "tags": ["shooting"],
+  {"who": "reed", "from": "city-duma", "to": "reed-lodging", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "red-guards", "place": "duma-nevsky", "size": "a company of Red Guards", "form": "column", "march": true, "brief": true, "ref": {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners"}}]},
+{"id": "telephone-exchange-yunkers", "t": "1917-11-11T03:00", "tq": "approx", "tr": ["1917-11-11T01:00", "1917-11-11T05:30"], "tp": "In the small hours of the morning", "cal": "none", "sec": "VII", "p": 188, "loc": "telephone-exchange", "witness": "reported", "actors": ["yunkers", "antonov", "committee-for-salvation", "semionovsky"],
  "title": "Yunkers take the Telephone Exchange",
  "sum": "Before the guard changes, yunkers disguised as Semionovsky soldiers take the Telephone Exchange with the Bolshevik password, and capture Antonov.",
  "q": "In the small hours of the morning a company of yunkers, disguised as soldiers of the Semionovsky Regiment, presented themselves at the Telephone Exchange just before the hour of changing guard.",
  "also": [
-  {"sec": "VII", "q": "A few minutes later Antonov appeared, making a round of inspection. Him they captured and locked in a small room."},
-  {"sec": "VII", "q": "When the relief came it was met by a blast of rifle-fire, several being killed."}],
+  {"sec": "VII", "q": "They had the Bolshevik password, and took charge without arousing suspicion."},
+  {"sec": "VII", "q": "A few minutes later Antonov appeared, making a round of inspection. Him they captured and locked in a small room."}],
  "ctl": [
   {"place": "telephone-exchange", "state": "held", "holder": "yunkers"}],
  "present": [
-  {"who": "yunkers", "size": "a company of yunkers", "n": 30}]},
+  {"who": "yunkers", "size": "disguised as soldiers of the Semionovsky Regiment", "n": 30}]},
+{"id": "relief-fired-on", "t": "1917-11-11T03:20", "tq": "inferred", "tr": ["1917-11-11T01:00", "1917-11-11T05:30"], "cal": "none", "sec": "VII", "p": 188, "loc": "telephone-exchange", "witness": "reported", "actors": ["yunkers", "exchange-relief"], "tags": ["shooting"],
+ "title": "A blast of rifle-fire",
+ "why": "At the change of guard, after the yunkers had taken charge and, “a few minutes later”, captured Antonov.",
+ "sum": "When the relief comes to the Telephone Exchange, now in the yunkers’ hands, it is met by a blast of rifle-fire; several are killed. Counter-revolution has begun.",
+ "q": "When the relief came it was met by a blast of rifle-fire, several being killed.",
+ "also": [
+  {"sec": "VII", "q": "Counter-revolution had begun"}],
+ "present": [
+  {"who": "yunkers", "fire": true, "at": "exchange-relief"},
+  {"who": "exchange-relief", "size": "several being killed", "n": 4, "pose": "fallen", "brief": true}]},
 {"id": "cossacks-enter-tsarskoye", "t": "1917-11-11T06:30", "tq": "inferred", "tr": ["1917-11-11T05:00", "1917-11-11T09:00"], "cal": "NS", "dp": "Sunday the 11th", "sec": "VIII", "p": 191, "loc": "tsarskoye-selo", "witness": "reported", "actors": ["kerensky", "krasnov"],
  "title": "The Cossacks enter Tsarskoye Selo",
  "why": "“Next morning”; Kerensky’s seven o’clock ultimatum to the Rifles comes from inside the town.",
@@ -811,11 +861,13 @@
  "title": "Ultimatum to the Vladimir school",
  "sum": "A patrol of soldiers, sailors and Red Guards gives the Vladimir yunkers twenty minutes to lay down their arms; they refuse.",
  "q": "At seven in the morning the Vladimir yunker school was visited by a patrol of soldiers, sailors and Red Guards, who gave the yunkers twenty minutes to lay down their arms.",
- "ctl": [
-  {"place": "vladimir-school", "state": "besieged", "holder": "vladimir-yunkers", "by": "mrc"}],
+ "also": [
+  {"sec": "VIII", "q": "The ultimatum was rejected."}],
  "present": [
   {"who": "vladimir-yunkers", "size": "the yunkers", "n": 40},
-  {"who": "red-guards", "size": "a patrol of soldiers, sailors and Red Guards", "n": 24}]},
+  {"who": "red-guards", "size": "a patrol of soldiers, sailors and Red Guards", "n": 24, "brief": true}],
+ "gone": [
+  {"who": "sailors", "place": "military-hotel", "ref": {"sec": "VIII", "q": "At dawn the Military Hotel and the Telegraph Agency had been taken by large forces of _yunkers,_"}}]},
 {"id": "yunkers-take-hotel-agency", "t": "1917-11-11T07:55", "tq": "approx", "tr": ["1917-11-11T07:15", "1917-11-11T08:45"], "tp": "At dawn", "cal": "none", "sec": "VIII", "p": 191, "loc": "military-hotel", "witness": "reported", "actors": ["yunkers", "committee-for-salvation"], "tags": ["shooting"],
  "title": "The yunkers strike in the city",
  "sum": "Petrograd wakes to rifle-fire: at dawn large forces of yunkers take the Military Hotel and the Telegraph Agency.",
@@ -834,18 +886,26 @@
  "sum": "An hour after the ultimatum the Vladimir yunkers try to march out and are driven back by fire from the corner of the Grebetskaya and the Bolshoy Prospekt.",
  "q": "An hour later the yunkers got ready to march, but were driven back by a violent fusillade from the corner of the Grebetskaya and the Bolshoy Prospekt.",
  "present": [
-  {"who": "red-guards", "place": "vladimir-school", "kit": ["armoured:2"], "ref": {"sec": "VIII", "q": "Soviet troops surrounded the building and opened fire, two armoured cars cruising back and forth with machine guns raking it."}}]},
-{"id": "hotel-agency-recaptured", "t": "1917-11-11T10:00", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T13:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "military-hotel", "witness": "reported", "actors": ["red-guards", "sailors"],
+  {"who": "red-guards", "place": "grebetskaya-corner", "size": "Soviet troops", "fire": true, "at": "vladimir-yunkers"}]},
+{"id": "vladimir-surrounded", "t": "1917-11-11T08:30", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T11:30"], "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["red-guards", "vladimir-yunkers", "petrograd-cossacks"], "tags": ["shooting"],
+ "title": "The school surrounded",
+ "why": "After the yunkers are driven back at eight; before the field-pieces arrive at half-past eleven.",
+ "sum": "Soviet troops surround the Vladimir school and open fire, two armoured cars cruising back and forth raking it with machine guns. The yunkers telephone for help; the Cossacks dare not come, for a large body of sailors with two cannon commands their barracks.",
+ "q": "Soviet troops surrounded the building and opened fire, two armoured cars cruising back and forth with machine guns raking it.",
+ "also": [
+  {"sec": "VIII", "q": "The _yunkers_ telephoned for help. The Cossacks replied that they dare not come, because a large body of sailors with two cannon commanded their barracks."}],
+ "ctl": [
+  {"place": "vladimir-school", "state": "besieged", "holder": "vladimir-yunkers", "by": "mrc"}],
+ "present": [
+  {"who": "red-guards", "place": "vladimir-school", "size": "Soviet troops", "n": 48, "kit": ["armoured:2"], "form": "ring", "fire": true, "at": "vladimir-school", "patrol": true}]},
+{"id": "hotel-agency-recaptured", "t": "1917-11-11T10:00", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T13:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "military-hotel", "witness": "reported", "actors": ["yunkers"],
  "title": "Bloodily recaptured",
  "why": "Reed gives no hour, only the order of events.",
  "sum": "The Military Hotel and the Telegraph Agency are retaken from the yunkers.",
  "q": "and bloodily recaptured.",
  "ctl": [
   {"place": "military-hotel", "state": "held", "holder": "mrc"},
-  {"place": "telegraph-agency", "state": "held", "holder": "mrc"}],
- "present": [
-  {"who": "red-guards", "ref": {"sec": "VIII", "q": "More than a hundred Red Guards and soldiers had fallen"}},
-  {"who": "sailors", "ref": {"sec": "VIII", "q": "The Telephone Station was besieged by sailors"}}]},
+  {"place": "telegraph-agency", "state": "held", "holder": "mrc"}]},
 {"id": "telephone-besieged", "t": "1917-11-11T10:30", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T14:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "telephone-exchange", "witness": "reported", "actors": ["sailors", "yunkers"], "tags": ["shooting"],
  "title": "The Telephone Station besieged",
  "why": "Reed’s account of the morning.",
@@ -854,45 +914,83 @@
  "also": [
   {"sec": "VIII", "q": "or sheltered themselves at the corner of the Gorokhovaya and of St. Isaac's Square, shooting at anything that moved"}],
  "ctl": [
-  {"place": "telephone-exchange", "state": "besieged", "holder": "yunkers", "by": "mrc"}],
+  {"place": "telephone-exchange", "state": "besieged", "holder": "yunkers", "by": "sailors"}],
  "present": [
-  {"who": "sailors", "size": "barricades of barrels, boxes and tin sheets", "n": 30, "kit": ["barricade"]}]},
+  {"who": "sailors", "size": "barricades of barrels, boxes and tin sheets", "n": 30, "kit": ["barricade"], "fire": true, "at": "telephone-exchange"},
+  {"who": "sailors", "place": "gorokhovaya-corner", "fire": true, "at": "telephone-exchange", "ref": {"sec": "VIII", "q": "or sheltered themselves at the corner of the Gorokhovaya and of St. Isaac’s Square, shooting at anything that moved"}},
+  {"who": "yunkers", "size": "their dashing young defenders, the yunkers", "ref": {"sec": "VIII", "q": "Romantic had been their experience passing up cartridges and dressing the wounds of their dashing young defenders, the _yunkers,_"}}]},
 {"id": "williams-red-cross-car", "t": "1917-11-11T11:00", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T14:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "telephone-exchange", "witness": "told", "by": "williams", "actors": ["williams", "yunkers"],
  "title": "A Red Cross car",
  "why": "During the siege, before the storming in the afternoon.",
  "sum": "Williams, inside the Exchange, rides out in a Red Cross car “ostensibly full of wounded”, which goes by devious ways to the yunkers’ headquarters.",
  "q": "Albert Rhys Williams was in the Telephone Exchange. He went out with the Red Cross automobile, which was ostensibly full of wounded.",
+ "also": [
+  {"sec": "VIII", "q": "After circulating about the city, the car went by devious ways to the Mikhailovsky _yunker_ school, headquarters of the counter-revolution."}],
  "present": [
-  {"who": "yunkers", "place": "telephone-exchange", "kit": ["car"], "ref": {"sec": "VIII", "q": "Occasionally an automobile passed in and out, flying the Red Cross flag."}}]},
-{"id": "field-guns-vladimir", "t": "1917-11-11T11:30", "tq": "stated", "tp": "At half-past eleven", "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["vladimir-yunkers", "red-guards", "petrograd-cossacks"], "tags": ["shooting"],
+  {"who": "yunkers", "place": "telephone-exchange", "kit": ["car"], "brief": true, "ref": {"sec": "VIII", "q": "Occasionally an automobile passed in and out, flying the Red Cross flag."}}]},
+{"id": "field-guns-vladimir", "t": "1917-11-11T11:30", "tq": "stated", "tp": "At half-past eleven", "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["vladimir-yunkers", "red-guards", "mrc"], "tags": ["shooting"],
  "title": "Field-guns at the Vladimir school",
- "sum": "Three field-pieces arrive; the yunkers shoot down two Soviet envoys under a white flag, and the bombardment begins.",
+ "sum": "Three field-pieces arrive. Another demand to surrender is met by the yunkers shooting down two of the Soviet delegates under the white flag.",
  "q": "At half-past eleven three field-pieces arrived.",
  "also": [
-  {"sec": "VIII", "q": "Now began a real bombardment."}],
+  {"sec": "VIII", "q": "Another demand to surrender was met by the _yunkers_ shooting down two of the Soviet delegates under the white flag."}],
  "present": [
-  {"who": "red-guards", "place": "vladimir-school", "kit": ["gun:3"], "ref": {"sec": "VIII", "q": "At half-past eleven three field-pieces arrived."}}]},
+  {"who": "red-guards", "place": "vladimir-school", "kit": ["gun:3"], "ref": {"sec": "VIII", "q": "At half-past eleven three field-pieces arrived."}},
+  {"who": "red-guards", "place": "vladimir-school", "form": "ring", "ref": {"sec": "VIII", "q": "Soviet troops surrounded the building and opened fire, two armoured cars cruising back and forth with machine guns raking it."}},
+  {"who": "vladimir-yunkers", "fire": true, "at": "mrc", "ref": {"sec": "VIII", "q": "Another demand to surrender was met by the _yunkers_ shooting down two of the Soviet delegates under the white flag."}},
+  {"who": "mrc", "place": "vladimir-school", "size": "two of the Soviet delegates", "n": 2, "pose": "fallen", "brief": true, "ref": {"sec": "VIII", "q": "Another demand to surrender was met by the _yunkers_ shooting down two of the Soviet delegates under the white flag."}}]},
 {"id": "armoured-car-st-isaacs", "t": "1917-11-11T12:00", "tq": "inferred", "tr": ["1917-11-11T09:00", "1917-11-11T15:00"], "cal": "none", "sec": "VIII", "loc": "gogol-corner", "witness": "told", "by": "bryant", "actors": ["bryant", "yunkers", "sailors"], "tags": ["shooting"],
  "title": "Seven dead in an archway",
  "why": "During the day’s street fighting; no hour given.",
- "sum": "A yunker armoured car from the Admiralty stalls at the corner of the Gogolia and fires into the crowd; sailors swarm it with bayonets.",
+ "sum": "A yunker armoured car rolling up from the Admiralty stalls at the corner of the Gogolia. Sailors ambushed behind wood-piles open fire; its machine-gun sprays the wood-piles and the crowd, and seven people are shot dead in an archway. The sailors rush it and thrust their bayonets into its loop-holes.",
  "q": "In the archway where Miss Bryant stood seven people were shot dead, among them two little boys.",
  "also": [
-  {"sec": "VIII", "q": "As Louise Bryant was going along St. Isaac’s Square one came rolling up from the Admiralty, on its way to the Telephone Exchange."}],
+  {"sec": "VIII", "q": "Five or six armoured cars, belonging to the disbanded British Armoured Car Division, were in their hands. As Louise Bryant was going along St. Isaac’s Square one came rolling up from the Admiralty, on its way to the Telephone Exchange."},
+  {"sec": "VIII", "q": "At the corner of the Gogolia, right in front of her, the engine stalled. Some sailors ambushed behind wood-piles began shooting. The machine-gun in the turret of the thing slewed around and spat a hail of bullets indiscriminately into the wood-piles and the crowd."},
+  {"sec": "VIII", "q": "Suddenly, with a shout, the sailors leaped up and rushed into the flaming open; closing around the monster, they thrust their bayonets into the loop-holes, again and again, yelling"}],
  "moves": [
   {"who": "yunkers", "from": "admiralty", "via": ["st-isaacs-square"], "to": "gogol-corner", "mode": "armoured", "rc": "stated"}],
  "present": [
-  {"who": "sailors", "place": "gogol-corner", "size": "Some sailors", "n": 10, "kit": ["barricade"], "brief": true, "ref": {"sec": "VIII", "q": "Some sailors ambushed behind wood-piles began shooting."}}]},
+  {"who": "sailors", "place": "gogol-corner", "size": "Some sailors", "n": 10, "kit": ["barricade"], "fire": true, "brief": true, "ref": {"sec": "VIII", "q": "Some sailors ambushed behind wood-piles began shooting."}},
+  {"who": "yunkers", "place": "gogol-corner", "size": "The chauffeur", "n": 1, "kit": ["armoured:1"], "fire": true, "brief": true},
+  {"who": "crowd", "place": "gogol-corner", "size": "seven people were shot dead, among them two little boys", "n": 7, "pose": "fallen", "brief": true}]},
+{"id": "vladimir-bombardment", "t": "1917-11-11T13:00", "tq": "inferred", "tr": ["1917-11-11T11:30", "1917-11-11T14:30"], "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["red-guards", "vladimir-yunkers"], "tags": ["shooting"],
+ "title": "A real bombardment",
+ "why": "After the demand to surrender that followed the guns at half-past eleven; before the white flag at half-past two.",
+ "sum": "A real bombardment begins, and great holes are torn in the school’s walls. The yunkers defend themselves desperately; shouting waves of Red Guards crumple under their fire. Frenzied by their heaps of dead, the Soviet troops open a tornado of steel and flame that their own officers cannot stop.",
+ "q": "Now began a real bombardment. Great holes were torn in the walls of the school.",
+ "also": [
+  {"sec": "VIII", "q": "The _yunkers_ defended themselves desperately; shouting waves of Red Guards, assaulting, crumpled under the withering blast"},
+  {"sec": "VIII", "q": "Frenzied by defeat and their heaps of dead, the Soviet troops opened a tornado of steel and flame against the battered building."},
+  {"sec": "VIII", "q": "Their own officers could not stop the terrible bombardment."}],
+ "present": [
+  {"who": "red-guards", "place": "vladimir-school", "size": "shouting waves of Red Guards", "fire": true, "at": "vladimir-school", "assault": "repulsed"},
+  {"who": "red-guards", "place": "vladimir-school", "form": "ring", "ref": {"sec": "VIII", "q": "Soviet troops surrounded the building and opened fire, two armoured cars cruising back and forth with machine guns raking it."}},
+  {"who": "vladimir-yunkers", "fire": true, "at": "red-guards"},
+  {"who": "garrison", "place": "vladimir-school", "size": "their heaps of dead", "n": 20, "pose": "fallen", "brief": true, "ref": {"sec": "VIII", "q": "Frenzied by defeat and their heaps of dead, the Soviet troops opened a tornado of steel and flame against the battered building."}}]},
 {"id": "vladimir-surrenders", "t": "1917-11-11T14:30", "tq": "stated", "tp": "At half-past two", "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["vladimir-yunkers", "red-guards"],
  "title": "The Vladimir school stormed",
- "sum": "The yunkers hoist a white flag; thousands pour in through windows and holes in the wall. Five yunkers are killed, about two hundred marched to Peter-Paul.",
+ "sum": "At half-past two the yunkers hoist a white flag. With a rush and a shout thousands of soldiers and Red Guards pour through windows, doors and holes in the wall, and before it can be stopped five yunkers are beaten and stabbed to death.",
  "q": ["At half-past two the yunkers hoisted a white flag", "With a rush and a shout thousands of soldiers and Red Guards poured through windows, doors and holes in the wall."],
- "moves": [
-  {"who": "vladimir-yunkers", "size": "about two hundred", "from": "vladimir-school", "to": "peter-paul", "mode": "foot", "rc": "none"}],
+ "also": [
+  {"sec": "VIII", "q": "Before it could be stopped five _yunkers_ were beaten and stabbed to death."}],
  "ctl": [
   {"place": "vladimir-school", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "red-guards", "place": "vladimir-school", "size": "thousands of soldiers and Red Guards", "n": 80, "ref": {"sec": "VIII", "q": "With a rush and a shout thousands of soldiers and Red Guards poured through windows, doors and holes in the wall."}}]},
+  {"who": "red-guards", "place": "vladimir-school", "size": "thousands of soldiers and Red Guards", "n": 80, "assault": "carried", "ref": {"sec": "VIII", "q": "With a rush and a shout thousands of soldiers and Red Guards poured through windows, doors and holes in the wall."}},
+  {"who": "red-guards", "place": "vladimir-school", "form": "ring", "ref": {"sec": "VIII", "q": "Soviet troops surrounded the building and opened fire, two armoured cars cruising back and forth with machine guns raking it."}},
+  {"who": "vladimir-yunkers", "place": "vladimir-school", "kit": ["whiteflag"], "ref": {"sec": "VIII", "q": "At half-past two the _yunkers_ hoisted a white flag"}},
+  {"who": "yunkers", "place": "vladimir-school", "size": "five yunkers", "n": 5, "pose": "fallen", "brief": true, "ref": {"sec": "VIII", "q": "Before it could be stopped five _yunkers_ were beaten and stabbed to death."}}]},
+{"id": "vladimir-prisoners", "t": "1917-11-11T15:00", "tq": "inferred", "tr": ["1917-11-11T14:30", "1917-11-11T16:30"], "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["vladimir-yunkers"],
+ "title": "To Peter-Paul under escort",
+ "why": "After the storming at half-past two; before the victors march on the Injinierny Zamok “two hours later”.",
+ "sum": "The rest of the Vladimir yunkers, about two hundred, are taken to Peter-Paul under escort in small groups; on the way a mob sets upon one party and kills eight more. More than a hundred Red Guards and soldiers have fallen.",
+ "q": "The rest, about two hundred, were taken to Peter-Paul under escort, in small groups so as to avoid notice.",
+ "also": [
+  {"sec": "VIII", "q": "On the way a mob set upon one party, killing eight more _yunkers_"},
+  {"sec": "VIII", "q": "More than a hundred Red Guards and soldiers had fallen"}],
+ "moves": [
+  {"who": "vladimir-yunkers", "size": "about two hundred", "from": "vladimir-school", "to": "peter-paul", "mode": "foot", "rc": "none"}]},
 {"id": "telephone-exchange-retaken", "t": "1917-11-11T15:30", "tq": "inferred", "tr": ["1917-11-11T12:30", "1917-11-11T17:00"], "cal": "none", "sec": "VIII", "p": 193, "loc": "telephone-exchange", "witness": "told", "by": "williams", "actors": ["williams", "antonov", "sailors", "yunkers"],
  "title": "The Exchange stormed",
  "why": "“Until afternoon”.",
@@ -903,22 +1001,31 @@
  "ctl": [
   {"place": "telephone-exchange", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "sailors", "kit": ["armoured"], "ref": {"sec": "VIII", "q": "The Telephone Exchange held out until afternoon, when a Bolshevik armoured car appeared, and the sailors stormed the place."}}]},
+  {"who": "sailors", "kit": ["armoured"], "assault": "carried", "brief": true, "ref": {"sec": "VIII", "q": "The Telephone Exchange held out until afternoon, when a Bolshevik armoured car appeared, and the sailors stormed the place."}}],
+ "gone": [
+  {"who": "sailors", "place": "gorokhovaya-corner", "ref": {"sec": "VIII", "q": "The Telephone Exchange held out until afternoon, when a Bolshevik armoured car appeared, and the sailors stormed the place."}}]},
 {"id": "engineers-castle-falls", "t": "1917-11-11T16:30", "tq": "inferred", "tr": ["1917-11-11T16:00", "1917-11-11T18:00"], "cal": "none", "sec": "VIII", "p": 193, "loc": "engineers-castle", "witness": "reported", "actors": ["engineers-yunkers", "pavlovsk-yunkers", "red-guards"],
  "title": "The last schools give up",
  "why": "“Two hours later” than the Vladimir surrender at half-past two.",
- "sum": "Two hours after the Vladimir school, the victors march on the Engineers’ Castle; the other schools surrender without a fight, and their yunkers go to Peter-Paul and Cronstadt.",
+ "sum": "Two hours after the Vladimir school the victors march toward the Engineers’ Castle, and a dozen Duma members set out to hand them the Committee for Salvation’s latest proclamation. The other schools surrender without resistance; their yunkers are sent unharmed to Peter-Paul and Cronstadt.",
  "q": ["Two hours later the Duma got a telephone message that the victors were marching toward the Injinierny Zamok", "All the other schools surrendered without resistance"],
  "also": [
-  {"sec": "VIII", "q": "the yunkers were sent unharmed to Peter-Paul and Cronstadt"}],
+  {"sec": "VIII", "q": "the yunkers were sent unharmed to Peter-Paul and Cronstadt"},
+  {"sec": "VIII", "q": "A dozen members immediately set out to distribute among them armfuls of the latest proclamation of the Committee for Salvation."}],
  "moves": [
-  {"who": "yunkers", "from": "engineers-castle", "to": "kronstadt", "mode": "unknown", "rc": "none"}],
+  {"who": "yunkers", "from": "engineers-castle", "to": "kronstadt", "mode": "unknown", "rc": "none"},
+  {"who": "red-guards", "size": "the victors", "n": 30, "from": "vladimir-school", "to": "engineers-castle", "mode": "march", "rc": "none"},
+  {"who": "yunkers", "from": "engineers-castle", "to": "peter-paul", "mode": "unknown", "rc": "none"},
+  {"who": "duma", "size": "A dozen members", "n": 12, "from": "city-duma", "to": "engineers-castle", "mode": "unknown", "rc": "none", "kit": ["leaflets"]}],
  "ctl": [
   {"place": "engineers-castle", "state": "held", "holder": "mrc"},
   {"place": "pavlovsk-school", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "red-guards", "size": "the victors", "n": 30, "ref": {"sec": "VIII", "q": "More than a hundred Red Guards and soldiers had fallen"}}]},
-{"id": "kazan-debate-nov11", "t": "1917-11-11T16:50", "tq": "approx", "tr": ["1917-11-11T16:15", "1917-11-11T17:30"], "tp": "Dusk was already falling", "cal": "none", "sec": "VIII", "p": 195, "loc": "kazan-cathedral", "witness": "seen", "actors": ["workers"],
+  {"who": "red-guards", "size": "the victors", "n": 30}],
+ "gone": [
+  {"who": "red-guards", "place": "vladimir-school"},
+  {"who": "red-guards", "place": "grebetskaya-corner"}]},
+{"id": "kazan-debate-nov11", "t": "1917-11-11T16:50", "tq": "approx", "tr": ["1917-11-11T16:15", "1917-11-11T17:30"], "tp": "Dusk was already falling", "cal": "none", "sec": "VIII", "p": 195, "loc": "kazan-cathedral", "witness": "seen", "actors": ["crowd"],
  "title": "Debate at the Kazan Cathedral",
  "sum": "At dusk on the almost empty Nevsky a crowd argues before the Kazan Cathedral: “To hell with Kerensky!”",
  "q": "On the almost deserted Nevsky, swept by a bitter wind, a crowd had gathered before the Kazan Cathedral, continuing the endless debate",
@@ -933,24 +1040,41 @@
  "q": "The Committee for Salvation had been outlawed.",
  "moves": [
   {"who": "reed", "from": "kazan-cathedral", "via": ["city-duma"], "to": "smolny", "mode": "unknown", "rc": "none"}]},
+{"id": "duma-bulletin-board", "t": "1917-11-11T21:15", "tq": "inferred", "tr": ["1917-11-11T20:00", "1917-11-12T02:00"], "cal": "none", "sec": "VIII", "p": 199, "loc": "city-duma", "witness": "seen", "actors": ["duma", "committee-for-salvation"],
+ "title": "The list of the dead",
+ "why": "After Smolny (“Down-town again”); before Reed goes home in the small hours.",
+ "sum": "Down-town again: the Duma is brilliantly lit and great crowds pour in. In the lower hall, amid wailing, the throng surges before a bulletin board listing yunkers killed in the day’s fighting; the telephone girls are testifying.",
+ "q": "Down-town again. The Duma brilliantly illuminated and great crowds pouring in.",
+ "also": [
+  {"sec": "VIII", "q": "In the lower hall wailing and cries of grief; the throng surged back and forth before the bulletin board, where was posted a list of _yunkers_ killed in the day’s fighting"},
+  {"sec": "VIII", "q": "The telephone girls were testifying."}],
+ "moves": [
+  {"who": "reed", "from": "smolny", "to": "city-duma", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "crowd", "size": "great crowds pouring in", "brief": true}]},
 {"id": "lenin-regiments", "t": "1917-11-11T22:00", "tq": "stated", "tp": "At ten in the evening", "cal": "none", "sec": "VIII", "p": 201, "loc": "smolny", "witness": "reported", "actors": ["lenin", "garrison"],
  "title": "Lenin and the regiments",
  "sum": "Lenin addresses delegates of the city regiments, who vote to fight and elect a staff of five.",
  "q": "At ten in the evening Lenin addressed a meeting of delegates from the city regiments, who voted overwhelmingly to fight."},
 {"id": "regiments-march-out", "t": "1917-11-12T03:00", "tq": "approx", "tr": ["1917-11-12T01:00", "1917-11-12T05:00"], "tp": "in the small hours of the morning", "cal": "none", "sec": "VIII", "p": 201, "loc": "nevsky", "witness": "seen", "actors": ["garrison"],
  "title": "The regiments march out",
- "sum": "In the small hours the regiments leave their barracks for the front; Reed, going home, watches them pass.",
+ "sum": "In the small hours the regiments leave their barracks in full battle array; going home, Reed sees them pass through the deserted streets, swinging along with the regular tread of veterans, bayonets in perfect alignment.",
  "q": "Going home I saw them pass, swinging along with the regular tread of veterans, bayonets in perfect alignment, through the deserted streets of the conquered city",
+ "also": [
+  {"sec": "VIII", "q": "A Committee of five soldiers was elected to serve as General Staff, and in the small hours of the morning the regiments left their barracks in full battle array"}],
  "moves": [
-  {"who": "reed", "from": "smolny", "via": ["nevsky"], "to": "reed-lodging", "mode": "unknown", "rc": "none"},
-  {"who": "garrison", "size": "the regiments left their barracks in full battle array", "n": 100, "from": "nevsky", "to": "pulkovo", "mode": "march", "rc": "none"}]},
+  {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "reed-lodging", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "garrison", "size": "the regiments", "form": "column", "march": true, "brief": true, "ref": {"sec": "VIII", "q": "Going home I saw them pass, swinging along with the regular tread of veterans, bayonets in perfect alignment, through the deserted streets of the conquered city"}}]},
 {"id": "schreider-neutral", "t": "1917-11-12T13:00", "tq": "inferred", "tr": ["1917-11-12T11:00", "1917-11-12T16:00"], "cal": "none", "sec": "VIII", "p": 202, "loc": "city-duma", "witness": "seen", "actors": ["schreider", "duma", "polkovnikov"],
  "title": "“We are perfectly neutral”",
  "why": "The day session, before dusk.",
  "sum": "Mayor Schreider tells the Duma it is neutral, and that he kept the telephones to Smolny working while the yunkers held the Exchange.",
  "q": "We are perfectly neutral. When the Telephone Exchange was occupied by the yunkers Colonel Polkovnikov ordered the telephones to Smolny disconnected",
  "moves": [
-  {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}],
+ "gone": [
+  {"who": "red-guards", "place": "nevsky", "ref": {"sec": "VIII", "q": "The city had again settled down to normal—shop-shutters up, lights shining"}}]},
 {"id": "pulkovo-battle", "t": "1917-11-12T15:00", "tq": "stated", "tp": "by 3 P.M.", "cal": "NS", "dp": "the 12th of November", "sec": "App.IX.1", "p": 236, "loc": "pulkovo", "witness": "document", "actors": ["pulkovo-detachment", "krasnov-cossacks"],
  "title": "The battle of Pulkovo",
  "sum": "The MRC bulletin: by three in the afternoon the artillery fire reaches its height and the Cossacks are completely demoralised.",
@@ -961,12 +1085,15 @@
   {"place": "pulkovo", "state": "contested"}]},
 {"id": "nevsky-86-plotters", "t": "1917-11-12T16:45", "tq": "approx", "tr": ["1917-11-12T16:15", "1917-11-12T18:00"], "tp": "By this time it was dusk", "cal": "none", "sec": "VIII", "p": 203, "loc": "nevsky-86", "witness": "seen", "actors": ["committee-for-salvation", "polkovnikov"],
  "title": "The Committee for Salvation in hiding",
- "sum": "A friend takes Reed to apartment 229 at Nevsky 86, where the hunted Committee for Salvation meets; Colonel Polkovnikov writes orders on the toilet.",
+ "sum": "A friend takes Reed to apartment 229 at Nevsky 86, where the hunted Committee for Salvation is hiding; through the portières Reed glimpses Colonel Polkovnikov on the toilet, writing on a pad.",
  "q": "At Number 86 Nevsky we went through a passage into a courtyard, surrounded by tall apartment buildings.",
  "also": [
   {"sec": "VIII", "q": "a heavily-built officer in a colonel’s uniform sat on the toilet, writing something on a pad held in his lap."}],
  "moves": [
-  {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "nevsky-86", "mode": "foot", "rc": "stated"}]},
+  {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "nevsky-86", "mode": "foot", "rc": "inferred"}],
+ "present": [
+  {"who": "crowd", "place": "nevsky", "size": "great crowds of people", "n": 60, "brief": true, "ref": {"sec": "VIII", "q": "on the streets great crowds of people slowly moving up and down and arguing"}},
+  {"who": "committee-for-salvation", "place": "nevsky-86", "inside": true, "ref": {"sec": "VIII", "q": "There was a sound of scuffling; an inside door slammed; then the front door opened a crack and a woman’s face appeared."}}]},
 {"id": "trotzky-report-nov12", "t": "1917-11-12T20:00", "tq": "inferred", "tr": ["1917-11-12T18:00", "1917-11-12T23:00"], "cal": "none", "sec": "VIII", "p": 206, "loc": "smolny-hall", "witness": "seen", "actors": ["trotzky", "petrograd-soviet"],
  "title": "“Falling back from Krasnoye Selo”",
  "why": "After dusk at Nevsky 86, by streetcar to Smolny.",
@@ -1001,13 +1128,13 @@
 {"id": "sailors-train-moscow", "t": "1917-11-13T03:30", "tq": "inferred", "tr": ["1917-11-13T03:00", "1917-11-13T05:00"], "cal": "none", "sec": "VIII", "p": 208, "loc": "nicolai-station", "witness": "seen", "actors": ["vikzhel", "sailors"],
  "title": "A train for the sailors",
  "why": "Straight after the telegram, by car across Znamensky Square.",
- "sum": "At the Nicolai Station Vikzhel’s men refuse to carry sailors to Moscow, until a few railwaymen open a door: “This way, comrades!”",
+ "sum": "At the Nicolai Station a member of the Vikzhel refuses to carry the massed sailors to Moscow, until a few railwaymen open another door: “This way, comrades!”",
  "q": "“This way, comrades!” cried one. “We will take you to Moscow—or Vladivostok, if you like! Long live the Revolution!”",
  "moves": [
   {"who": "reed", "from": "smolny", "via": ["znamensky-square"], "to": "nicolai-station", "mode": "car", "rc": "stated"},
-  {"who": "sailors", "from": "nicolai-station", "to": "moscow-station", "mode": "rail", "rc": "none"}],
+  {"who": "reed", "from": "nicolai-station", "to": "reed-lodging", "mode": "car", "rc": "none"}],
  "present": [
-  {"who": "sailors", "size": "All the seething Square", "n": 50, "brief": true, "ref": {"sec": "VIII", "q": "All the seething Square roared at him; the sailors began to surge forward."}}]},
+  {"who": "sailors", "size": "Several thousand sailors", "n": 150, "brief": true, "ref": {"sec": "VIII", "q": "Several thousand sailors were massed there, bristling with rifles."}}]},
 {"id": "slutskaya-killed", "t": "1917-11-13T07:00", "tq": "inferred", "tr": ["1917-11-13T00:00", "1917-11-13T11:00"], "cal": "none", "sec": "IX", "p": 227, "loc": "pulkovo", "witness": "told", "actors": ["slutskaya"],
  "title": "Vera Slutskaya killed",
  "why": "The driver, that afternoon: “early this morning”.",
@@ -1018,7 +1145,10 @@
  "sum": "Early in the morning, walking up to Smolny, Reed sees the first snow: “Good for the health!” says the soldier at the door.",
  "q": "Going up the long wooden sidewalk from the outer gate I saw the first thin, hesitating snow-flakes fluttering down from the grey, windless sky.",
  "moves": [
-  {"who": "reed", "from": "nicolai-station", "to": "smolny", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "reed-lodging", "to": "smolny-gates", "mode": "unknown", "rc": "none"},
+  {"who": "reed", "from": "smolny-gates", "to": "smolny", "mode": "foot", "rc": "stated"}],
+ "present": [
+  {"who": "workers", "place": "smolny", "size": "workers and soldiers, spattered and caked with mud", "inside": true, "ref": {"sec": "IX", "q": "Inside, the long, gloomy halls and bleak rooms seemed deserted. No one moved in all the enormous pile. A deep, uneasy sound came to my ears, and looking around, I noticed that everywhere on the floor, along the walls, men were sleeping."}}]},
 {"id": "order-number-one", "t": "1917-11-13T09:38", "tq": "doc", "tp": "38 minutes past 9 a. m.", "cal": "NS", "dp": "November 13, 1917", "sec": "IX", "p": 217, "loc": "pulkovo", "witness": "document", "actors": ["muraviov", "pulkovo-detachment"],
  "title": "Order Number I",
  "sum": "Muraviov’s order to the Pulkovo detachment: the enemy is routed and falling back on Pavlovsk II and Gatchina; advanced units hold the north-east edge of Tsarskoye Selo and Alexandrovskaya station.",
@@ -1046,20 +1176,23 @@
  "sum": "The ambulance stops for lunch with the committee of the 6th Reserve Engineers’ Battalion in a barracks courtyard on the Kirochnaya.",
  "q": "On the Kirotchnaya we turned into an immense courtyard surrounded by military buildings",
  "moves": [
-  {"who": "reed", "from": "smolny", "to": "kirochnaya-barracks", "mode": "car", "rc": "stated"}]},
+  {"who": "reed", "from": "smolny", "to": "kirochnaya-barracks", "mode": "car", "rc": "inferred"}]},
 {"id": "road-to-the-front", "t": "1917-11-13T14:30", "tq": "inferred", "tr": ["1917-11-13T13:30", "1917-11-13T15:30"], "cal": "none", "sec": "IX", "p": 226, "loc": "moskovsky-gate", "witness": "seen", "actors": ["red-guards", "workers"],
  "title": "The road to the front",
  "why": "After lunch, on the way to Pulkovo.",
  "sum": "Down the Liteiny and the Zagorodny and under the Moskovsky Gate; the highway is thronged with Red Guards going out and coming back.",
  "q": "It was thronged with Red Guards, stumbling along on foot toward the revolutionary front, shouting and singing; and others, greyfaced and muddy, coming back.",
  "also": [
-  {"sec": "IX", "q": "Straight down the Liteiny we rattled, and along the Zagorodny Prospekt."}],
+  {"sec": "IX", "q": "Straight down the Liteiny we rattled, and along the Zagorodny Prospekt."},
+  {"sec": "IX", "q": "Passing under the huge grey stone archway of the Moskovsky Gate, covered with golden hieroglyphics, ponderous Imperial eagles and the names of Tsars, we sped out on the wide straight highway, grey with the first light fall of snow."}],
  "moves": [
-  {"who": "reed", "from": "kirochnaya-barracks", "via": ["liteiny", "zagorodny"], "to": "moskovsky-gate", "mode": "car", "rc": "stated"}],
+  {"who": "reed", "with": ["garrison"], "from": "kirochnaya-barracks", "via": ["liteiny", "zagorodny"], "to": "moskovsky-gate", "mode": "car", "rc": "stated"}],
  "present": [
-  {"who": "red-guards", "size": "Red Guards, stumbling along on foot toward the revolutionary front", "n": 40, "brief": true, "ref": {"sec": "IX", "q": "It was thronged with Red Guards, stumbling along on foot toward the revolutionary front, shouting and singing"}},
-  {"who": "workers", "size": "Women with spades, some with rifles and bandoleers", "n": 24, "brief": true, "ref": {"sec": "IX", "q": "Women with spades, some with rifles and bandoleers, others wearing the Red Cross on their arm-bands"}},
-  {"who": "garrison", "size": "Squads of soldiers marching out of step", "n": 20, "kit": ["gun", "truck"], "form": "column", "march": true, "brief": true, "ref": {"sec": "IX", "q": "We passed cannon, jingling southward with their caissons; trucks bound both ways, bristling with armed men"}}]},
+  {"who": "red-guards", "place": "moskovsky-highway", "size": "Red Guards, stumbling along on foot toward the revolutionary front", "n": 40, "face": "pulkovo", "brief": true, "ref": {"sec": "IX", "q": "It was thronged with Red Guards, stumbling along on foot toward the revolutionary front, shouting and singing"}},
+  {"who": "workers", "place": "moskovsky-highway", "size": "Women with spades, some with rifles and bandoleers", "n": 24, "brief": true, "ref": {"sec": "IX", "q": "Women with spades, some with rifles and bandoleers, others wearing the Red Cross on their arm-bands"}},
+  {"who": "garrison", "place": "moskovsky-highway", "size": "Squads of soldiers marching out of step", "n": 20, "form": "column", "march": true, "brief": true, "ref": {"sec": "IX", "q": "Squads of soldiers marching out of step, with an affectionate jeer for the Red Guards; sailors, grim-looking; children with bundles of food for their fathers and mothers; all these, coming and going, trudged through the whitened mud that covered the cobbles of the highway inches deep."}},
+  {"who": "unknown-soldiers", "place": "moskovsky-highway", "size": "trucks bound both ways, bristling with armed men", "n": 8, "kit": ["gun", "truck"], "brief": true, "ref": {"sec": "IX", "q": "We passed cannon, jingling southward with their caissons; trucks bound both ways, bristling with armed men"}},
+  {"who": "sailors", "place": "moskovsky-highway", "size": "sailors, grim-looking", "n": 10, "brief": true, "ref": {"sec": "IX", "q": "Squads of soldiers marching out of step, with an affectionate jeer for the Red Guards; sailors, grim-looking; children with bundles of food for their fathers and mothers; all these, coming and going, trudged through the whitened mud that covered the cobbles of the highway inches deep."}}]},
 {"id": "pulkovo-crossroads", "t": "1917-11-13T15:15", "tq": "inferred", "tr": ["1917-11-13T14:30", "1917-11-13T16:00"], "cal": "none", "sec": "IX", "p": 227, "loc": "pulkovo", "witness": "seen", "actors": ["red-guards"],
  "title": "The battlefield at Pulkovo",
  "why": "The ambulance’s first halt beyond the Moskovsky Gate.",
@@ -1147,18 +1280,22 @@
  "sum": "For a week the MRC and the railwaymen have held the Nicolai Railroad and sent train after train of sailors and Red Guards toward Moscow.",
  "q": "For the past week the Petrograd Military Revolutionary Committee, aided by the rank and file of the Railway Workers, had seized control of the Nicolai Railroad, and hurled trainload after trainload of sailors and Red Guards southwest",
  "moves": [
-  {"who": "sailors", "with": ["red-guards"], "size": "trainload after trainload of sailors and Red Guards", "from": "nicolai-station", "to": "moscow-station", "mode": "rail", "rc": "none"}]},
+  {"who": "sailors", "with": ["red-guards"], "size": "trainload after trainload of sailors and Red Guards", "from": "nicolai-station", "to": "moscow-station", "mode": "rail", "rc": "none"}],
+ "ctl": [
+  {"place": "nicolai-station", "state": "held", "holder": "mrc"}],
+ "present": [
+  {"who": "sailors", "size": "trainload after trainload of sailors and Red Guards", "n": 40, "brief": true, "ref": {"sec": "X", "q": "hurled trainload after trainload of sailors and Red Guards southwest"}}]},
 {"id": "zagorodny-homecoming", "t": "1917-11-16T18:00", "tq": "approx", "tr": ["1917-11-16T16:30", "1917-11-16T21:00"], "tp": "On the evening of November 16th", "cal": "NS", "dp": "the evening of November 16th", "sec": "X", "p": 239, "loc": "zagorodny", "witness": "seen", "actors": ["red-guards"],
- "title": "The Red Guards come home",
- "sum": "Two thousand Red Guards march down the Zagorodny Prospekt behind a band playing the Marseillaise, home from defending Red Petrograd.",
+ "title": "Red Guards march to welcome their brothers",
+ "sum": "Two thousand Red Guards march down the Zagorodny Prospekt behind a band playing the Marseillaise, to welcome home their brothers who had defended Red Petrograd.",
  "q": "On the evening of November 16th I watched two thousand Red Guards swing down the Zagorodny Prospekt behind a military band playing the Marseillaise",
  "also": [
   {"sec": "X", "q": "with blood-red flags over the dark ranks of workmen"}],
  "moves": [
-  {"who": "reed", "from": "reed-lodging", "to": "zagorodny", "mode": "unknown", "rc": "none"},
-  {"who": "red-guards", "size": "two thousand Red Guards", "from": "moskovsky-gate", "to": "zagorodny", "mode": "march", "rc": "stated", "kit": ["flag"]}],
+  {"who": "reed", "from": "reed-lodging", "to": "zagorodny", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "crowd", "size": "silent crowds of bourgeois", "n": 40, "brief": true, "ref": {"sec": "X", "q": "between silent crowds of bourgeois, contemptuous but fearful"}}]},
+  {"who": "crowd", "size": "silent crowds of bourgeois", "n": 40, "brief": true, "ref": {"sec": "X", "q": "between silent crowds of bourgeois, contemptuous but fearful"}},
+  {"who": "red-guards", "size": "two thousand Red Guards", "kit": ["flag"], "form": "column", "march": true, "brief": true, "ref": {"sec": "X", "q": "I watched two thousand Red Guards swing down the Zagorodny Prospekt behind a military band playing the _Marseillaise_—and how appropriate it sounded—with blood-red flags over the dark ranks of workmen"}}]},
 {"id": "press-decree-night", "t": "1917-11-17T22:00", "tq": "inferred", "tr": ["1917-11-17T18:00", "1917-11-18T04:00"], "cal": "NS", "dp": "the night of November 17th", "sec": "XI", "p": 258, "loc": "smolny-hall", "witness": "reported", "actors": ["tsay-ee-kah", "left-srs", "bolsheviki", "lenin", "sovnarkom"],
  "title": "The press decree crisis",
  "why": "“The night of November 17th”.",
@@ -1177,7 +1314,9 @@
  "sum": "About seven in the evening Reed’s train pulls out of the Nicolai Station, drawn by a weak wood-burning engine, with soldiers on the roof and debates in the corridors.",
  "q": "About seven o’clock in the evening we drew out of the station, an immense long train drawn by a weak little locomotive burning wood",
  "moves": [
-  {"who": "reed", "from": "uncle-toms-cabin", "to": "nicolai-station", "mode": "unknown", "rc": "none", "gap": true}]},
+  {"who": "reed", "from": "uncle-toms-cabin", "to": "nicolai-station", "mode": "unknown", "rc": "none", "gap": true}],
+ "present": [
+  {"who": "unknown-soldiers", "size": "a mob of shabby soldiers, all carrying huge sacks of eatables", "n": 40, "brief": true, "ref": {"sec": "X", "q": "a mob of shabby soldiers, all carrying huge sacks of eatables, stormed the doors, smashed the windows, and poured into all the compartments, filling up the aisles and even climbing onto the roof"}}]},
 {"id": "hotel-national", "t": "1917-11-20T18:00", "tq": "inferred", "tr": ["1917-11-18T16:00", "1917-11-26T22:00"], "cal": "none", "sec": "X", "p": 244, "loc": "hotel-national", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"],
  "title": "Rooms at the Hotel National",
  "why": "After a night and the next day on the train (“all night long”, then “until dark”): the evening after the departure.",
@@ -1246,9 +1385,11 @@
  "sum": "The Congress meets in extraordinary session in a holiday mood. Reed dates it “Thursday, November 16th”, an Old Style date (= 29 Nov), just after a New Style “November 28th”.",
  "q": "Late in the afternoon of Thursday, November 16th, the Congress met in extraordinary session.",
  "also": [
-  {"sec": "XII", "q": "There was a holiday feeling in the air; on every face was a smile"}],
+  {"sec": "XII", "q": "There was a holiday feeling in the air; on every face was a smile"},
+  {"sec": "XII", "q": "At the end Ustinov announced the arrival rival of a delegation from Smolny, accompanied by representatives of the Red Army, greeted with a rising ovation."}],
  "moves": [
-  {"who": "reed", "from": "reed-lodging", "to": "fontanka-6", "mode": "unknown", "rc": "none", "gap": true}]},
+  {"who": "reed", "from": "reed-lodging", "to": "fontanka-6", "mode": "unknown", "rc": "none", "gap": true},
+  {"who": "smolny-delegation", "size": "a delegation from Smolny, accompanied by representatives of the Red Army", "from": "smolny", "to": "fontanka-6", "mode": "unknown", "rc": "none"}]},
 {"id": "torch-procession", "t": "1917-11-29T18:30", "tq": "approx", "tr": ["1917-11-29T17:00", "1917-11-29T20:00"], "tp": "It was already dark", "cal": "none", "sec": "XII", "p": 306, "loc": "fontanka-6", "witness": "seen", "actors": ["peasants-congress", "pavlovsky"],
  "title": "The torchlit march to Smolny",
  "sum": "Out of the building in the dark: the Pavlovsky Regiment’s band plays the Marseillaise, banners unfurl, and the peasants march with torches down the bank of the Fontanka to Smolny.",
@@ -1257,8 +1398,23 @@
   {"sec": "XII", "q": "Along the bank of the canal were drawn up in full marching order the soldiers of the Pavlovsky Regiment, with their band, which broke into the Marseillaise."},
   {"sec": "XII", "q": "So the great procession wound through the city, growing and unfurling ever new red banners lettered in gold."}],
  "moves": [
-  {"who": "peasants-congress", "with": ["pavlovsky"], "size": "the throng", "n": 90, "from": "fontanka-6", "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["torch", "banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]},
-  {"who": "reed", "from": "fontanka-6", "to": "smolny", "mode": "foot", "rc": "inferred"}]},
+  {"who": "peasants-congress", "size": "the throng", "n": 90, "from": "fontanka-6", "via": ["smolny-gates"], "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["torch", "banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]},
+  {"who": "reed", "from": "fontanka-6", "via": ["smolny-gates"], "to": "smolny", "mode": "foot", "rc": "inferred"}],
+ "present": [
+  {"who": "pavlovsky", "size": "the soldiers of the Pavlovsky Regiment", "n": 48, "form": "ranks", "brief": true, "ref": {"sec": "XII", "q": "Along the bank of the canal were drawn up in full marching order the soldiers of the Pavlovsky Regiment, with their band, which broke into the Marseillaise."}},
+  {"who": "crowd", "size": "crowds that stood in astonished silence", "n": 40, "brief": true, "ref": {"sec": "XII", "q": "between crowds that stood in astonished silence"}}]},
+{"id": "procession-at-smolny", "t": "1917-11-29T19:45", "tq": "inferred", "tr": ["1917-11-29T18:30", "1917-11-29T21:00"], "cal": "none", "sec": "XII", "loc": "smolny", "witness": "seen", "actors": ["peasants-congress", "petrograd-soviet", "red-guards"],
+ "title": "On the steps of Smolny",
+ "why": "The procession’s arrival, after its march from Fontanka 6 (“So the great procession wound through the city”) and before the hall, where the Tsay-ee-kah “was waiting”: some 3.7 km at a procession’s pace from about half past six.",
+ "sum": "Near Smolny the Red Guard lines both sides of the street. On the steps about a hundred Workers’ and Soldiers’ Deputies, massed with their banner, rush down to embrace the peasants, and the procession pours in through the great door.",
+ "q": "On the steps of Smolny about a hundred Workers’ and Soldiers’ Deputies were massed, with their banner, dark against the blaze of light streaming out between the arches.",
+ "also": [
+  {"sec": "XII", "q": "Near Smolny the Red Guard was lined up on both sides of the street, wild with delight."},
+  {"sec": "XII", "q": "Like a wave they rushed down, clasping the peasants in their arms and kissing them; and the procession poured in through the great door and up the stairs, with a noise like thunder"}],
+ "present": [
+  {"who": "red-guards", "place": "smolny-gates", "size": "the Red Guard", "n": 40, "brief": true, "ref": {"sec": "XII", "q": "Near Smolny the Red Guard was lined up on both sides of the street, wild with delight."}},
+  {"who": "petrograd-soviet", "size": "about a hundred Workers’ and Soldiers’ Deputies", "kit": ["banner:1"], "brief": true},
+  {"who": "peasants-congress", "size": "the great procession", "n": 90, "kit": ["banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"], "brief": true, "ref": {"sec": "XII", "q": "So the great procession wound through the city, growing and unfurling ever new red banners lettered in gold."}}]},
 {"id": "banners-intertwined", "t": "1917-11-29T21:00", "tq": "inferred", "tr": ["1917-11-29T19:00", "1917-11-29T23:59"], "cal": "none", "sec": "XII", "p": 307, "loc": "smolny-hall", "witness": "seen", "actors": ["peasants-congress", "tsay-ee-kah", "left-srs"],
  "title": "Two banners on one wall",
  "why": "On the procession’s arrival.",

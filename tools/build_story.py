@@ -453,7 +453,7 @@ BLOC_FIG = {
 SIZE_FIG = [(r'sailor', 'sailor'), (r'soldier|troops|regiment|infantry', 'soldier'), (r'red guard', 'redguard'),
             (r'yunker', 'yunker'), (r'cossack', 'cossack'), (r'workmen|workers', 'worker'), (r'peasant', 'peasant'),
             (r'officer', 'officer'), (r'student', 'intelligent'), (r'bourgeois|fifth avenue|fur coat|shop-keeper|clerk', 'bourgeois')]
-SIZE_ADD = [(r"\bwomen\b(?!.s battalion)", 'workerwoman'), (r'child', 'child')]
+SIZE_ADD = [(r"\bwomen\b(?!.s battalion)", 'workerwoman'), (r'child|little boys?|small boys?|little girls?|small girls?', 'child')]
 DEFAULT_N = {'unit': 24, 'school': 28, 'crowd': 60, 'organ': 14, 'party': 12, 'ship': 1, 'person': 1, 'press': 4, 'foreign': 3}
 NUMW = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
         'eleven': 11, 'twelve': 12, 'fifteen': 15, 'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60,
@@ -524,6 +524,8 @@ def figures(who, size=None, n=None):
             for (_, _, f), w in zip(found, filled):
                 tot[f] = tot.get(f, 0) + w
             comp = [(f, w / sum(tot.values())) for f, w in tot.items()]
+        if re.match(r"\s*(the |some |many |a few )?women\b(?!.s battalion)", low):   # "Women with spades", "women of the slums"
+            comp = [('workerwoman', 1.0)]
         extra = [fig for rx, fig in SIZE_ADD if re.search(rx, low) and fig not in {f for f, _ in comp}]
         if extra:
             comp = [(f, w * 0.75) for f, w in comp] + [(f, 0.25 / len(extra)) for f in extra]
