@@ -10,11 +10,13 @@ A 3D map of John Reed's *Ten Days That Shook the World* (1919): Reed's own path 
 ## The map
 
 - **An introduction for readers who have not read the book.** The first visit opens with three cards over the city: what happened in Petrograd in 1917 and why the dates are "October"; who the sides are, in their map colours; and who Reed was and how he wrote. "Skip the introduction" goes straight to the map, and "About this map" replays it. The first two cards are background in our own words, not data, and nothing on the map rests on them; where they touch Reed's ground (the timetable of the night of 6–7 November, the Committee for Salvation) they say what he says.
-- **138 scenes, on a timeline of real dates.** Each card gives the date and the time and how the time is known, the place, how Reed knew (he was there, he was told, it was reported, or it is a document he prints), his words, and the moves and changes of control in the scene. Tall ticks on the timeline are scenes Reed saw.
+- **A tour of Petrograd: 112 of Reed's 138 scenes.** The scenes he sets at the front (Pulkovo, Tsarskoye Selo, Gatchina) and in Moscow stay in the data and in every check, but are not toured; a move that leaves the city is drawn as an arc, and the camera keeps to the city.
+- **Scenes on a timeline of real dates.** Each card gives the date and the time and how the time is known, the place, how Reed knew (he was there, he was told, it was reported, or it is a document he prints), his words, and the moves and changes of control in the scene. Tall ticks on the timeline are scenes Reed saw.
+- **The people of each scene, and who is still there.** Soldiers in the grey-brown greatcoat with the rolled coat over the shoulder, yunkers with "the red shoulder-straps of the yunker-schools", sailors in pea coats with cartridge belts crossed on the chest, Red Guards in workmen's clothes with an arm band, Cossacks, townspeople and peasant delegates; armoured cars ("elephant-coloured", in Reed's word), trucks, field guns, Maxims, cabs, trams, barricades, bonfires, banners and torches; the Avrora at anchor in the Neva. All are low-poly models built in code (`src/people.js`). Every body stands where Reed puts it, and stays until his text removes it: it marches off, is disarmed, or the building it holds falls to the other side. So the yunkers are still in front of the Winter Palace, behind their firewood, until the Red Guards pour through the Red Arch. Each body stands on a patch of its side's colour; the card lists who is on the scene, in Reed's words. Bodies that move march their route in column, and on a long route the camera keeps pace. Fires burn after dark, and muzzle flashes and smoke appear only where Reed reports firing.
 - **Reed's walks along the streets he names.** Routes with `rc: "stated"` are solid, routes we inferred are dashed, and moves Reed gives no route for (or that go by train or leave the city) are arcs. Reed is ink by day and pale by night; every other mover takes its bloc's colour.
 - **Who holds what.** The 21 buildings that are Reed's places stand out of the city, and the ones Reed reports as held take the holder's colour on the roof, as he reports it at that moment. A besieged building pulses in the besieger's colour.
 - **A sky for each scene** on the 1917 Petrograd clock (about UTC+3:01), and the city turns white after Reed's first snow on 13 November.
-- **The front and Moscow.** The detailed city runs from the Petrograd Side to Smolny. Pulkovo, Tsarskoye Selo and Gatchina are pins on a gridded plain; Moscow and the far stations, as decided, are text only, with a card that says which way and how far.
+- **The city's edge.** The detailed city runs from the Petrograd Side to Smolny. The southern gates and the factories beyond it are pins on a gridded plain.
 - Drag to pan, right-drag or two fingers to rotate, scroll or pinch to zoom. ←/→ step through scenes, space plays. `index.html#storming` opens a scene.
 
 ## What is here
@@ -24,9 +26,10 @@ docs/assessment.md     the critical assessment: verdict, what the book gives, Re
 docs/schema.md         field reference for the data files
 data/meta.json         text and PDF pins, calendar rule, clock, map zones, move speeds, timeline days
 data/sources.json      the sources actually consulted
-data/actors.json       64 factions, bodies, units, people and crowds, with stance over time
-data/places.json       75 places in the city, at the front, off-map, and in Moscow (text only)
-data/events.json       138 scenes: time and its quality, verbatim quote, witness type, moves, control changes
+data/actors.json       65 factions, bodies, units, people and crowds, with stance over time
+data/places.json       76 places in the city, at the front, off-map, and in Moscow (not toured)
+data/events.json       138 scenes: time and its quality, verbatim quote, witness type, moves, control changes,
+                       and who is present or gone (72 presence spans)
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf
 tools/fmt_story.py     writes the canonical layout; --check, --pages
@@ -37,10 +40,12 @@ tests/test_check.py    one failing fixture per error code, plus mutation tests o
 tools/mapconf.py       the 3D extent, the projection, and the bridges that did not stand in 1917
 tools/fetch_osm.py     OSM API tiles over the city core, plus every water relation they touch -> cache/
 tools/build_map.py     land, water, parks, bridges, buildings (Reed's apart), streets, rail; the street graph
-tools/build_story.py   the data -> what the page draws: places in metres, street routes, control timelines
+tools/build_story.py   the data -> what the page draws: the Petrograd tour, places in metres, street routes,
+                       control timelines, presence spans and the figures each body is drawn with
 tools/bundle.py        packs build/*.json into src/app.html -> index.html (+ a CSP pinned to the script)
 tools/build.sh         the whole pipeline; --bundle only re-packs the page
 src/app.html           the page
+src/people.js          the low-poly people, vehicles, kit and the Avrora (inlined by bundle.py)
 build/map.json         the built city (committed, so the page can be rebuilt without OSM)
 build/story.json       the built story
 index.html             the built page
@@ -67,6 +72,8 @@ Places carry three separate things:
 - how precise it is (`acc`, metres).
 
 A surviving building is tied to its OSM element, and `check_story.py --osm` tests that the pin lies inside the footprint.
+
+Who stands where between scenes (`present`, `gone`, and a move's `stay`) is Reed's too: each body is named in the scene's quote or in a passage it cites, and every piece of kit drawn with it (a fire, a barricade, machine guns, a field gun, an armoured car, a banner) has its word in that passage. The figures drawn are not a head count. See [docs/schema.md](docs/schema.md), "Presence".
 
 Read [docs/assessment.md](docs/assessment.md) §4 and §10 before relying on any of it.
 

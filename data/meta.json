@@ -90,7 +90,8 @@
      "background",
      "flashback",
      "moscow",
-     "rumour"
+     "rumour",
+     "shooting"
    ],
    "note": "A seed dataset for a 3D map of Reed's book, not of the revolution. It follows Reed authoritatively: what he says happened, where, when, and how he knew it."
  },
@@ -105,8 +106,8 @@
   {"d": "1917-11-10", "os": "1917-10-28", "label": "10 Nov", "name": "The revolutionary front"},
   {"d": "1917-11-11", "os": "1917-10-29", "label": "11 Nov", "name": "The yunker rising"},
   {"d": "1917-11-12", "os": "1917-10-30", "label": "12 Nov", "name": "Pulkovo"},
-  {"d": "1917-11-13", "os": "1917-10-31", "label": "13 Nov", "name": "Tsarskoye Selo"},
-  {"d": "1917-11-14", "os": "1917-11-01", "label": "14–16 Nov", "name": "Gatchina, and the march home"},
+  {"d": "1917-11-13", "os": "1917-10-31", "label": "13 Nov", "name": "Tsarskoye Selo", "city": "First snow; out to the front"},
+  {"d": "1917-11-14", "os": "1917-11-01", "label": "14–16 Nov", "name": "Gatchina, and the march home", "city": "The Red Guards come home"},
   {"d": "1917-11-17", "os": "1917-11-04", "label": "17–27 Nov", "name": "The conquest of power"},
   {"d": "1917-11-28", "os": "1917-11-15", "label": "28 Nov – 2 Dec", "name": "The Peasants' Congress"}]
 }

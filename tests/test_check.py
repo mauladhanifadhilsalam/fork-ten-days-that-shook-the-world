@@ -46,7 +46,7 @@ def good():
         'zones': {'city': [59.83, 30.15, 60.03, 30.55], 'front': [59.5, 29.95, 59.85, 30.75], 'moscow': [55.55, 37.35, 55.95, 37.85]},
         'speed_kmh': {'foot': 6, 'march': 5, 'cavalry': 12, 'cab': 15, 'tram': 15, 'car': 45, 'truck': 30, 'armoured': 25, 'rail': 45, 'ship': 20, 'air': 150, 'unknown': 45},
         'blocs': {'soviet': 'for', 'government': 'the deposed government'},
-        'tags': ['background']},
+        'tags': ['background', 'shooting']},
         'days': [{'d': '1917-11-07', 'os': '1917-10-25', 'label': '7 Nov', 'name': 'The rising'}]}
     sources = [{'id': 'ref1917', 'kind': 'reference', 'cite': 'A reference work on Petrograd in 1917'},
                {'id': 'tzdb', 'kind': 'data', 'cite': 'IANA tz database'}]
@@ -55,6 +55,7 @@ def good():
         {'id': 'mrc', 'kind': 'organ', 'bloc': 'soviet', 'name': 'Military Revolutionary Committee', 'reed': ['Military Revolutionary Committee'],
          'stance': [{'from': '1917-11-06', 's': 'support', 'ref': {'sec': 'App.III.7', 'q': 'At 1.35 the Post Office was occupied'}}]},
         {'id': 'pg', 'kind': 'organ', 'bloc': 'government', 'name': 'Provisional Government', 'reed': ['Provisional Government']},
+        {'id': 'sailors', 'kind': 'unit', 'bloc': 'soviet', 'name': 'Sailors', 'reed': ['sailors']},
     ]
     g = {'m': 'hand', 'on': '2026-10-29'}
     places = [
@@ -78,14 +79,16 @@ def good():
         {'id': 'telegraph-occupied', 't': '1917-11-07T01:00', 'tq': 'stated', 'tp': 'At 1 A. M.', 'cal': 'none', 'sec': 'App.III.7',
          'loc': 'telegraph-agency', 'witness': 'reported', 'title': 'The Telegraph Agency occupied', 'sum': 'A detachment takes it.',
          'q': 'At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency.',
-         'moves': [{'who': 'mrc', 'size': 'a detachment of soldiers and sailors', 'from': 'smolny', 'to': 'telegraph-agency', 'mode': 'unknown', 'rc': 'none'}],
-         'ctl': [{'place': 'telegraph-agency', 'state': 'held', 'holder': 'mrc'}]},
+         'moves': [{'who': 'mrc', 'size': 'a detachment of soldiers and sailors', 'from': 'smolny', 'to': 'telegraph-agency', 'mode': 'unknown', 'rc': 'none', 'stay': True}],
+         'ctl': [{'place': 'telegraph-agency', 'state': 'held', 'holder': 'mrc'}],
+         'present': [{'who': 'sailors', 'size': 'a detachment of soldiers and sailors', 'n': 20}]},
         {'id': 'reed-walks', 't': '1917-11-07T20:30', 'tq': 'inferred', 'tr': ['1917-11-07T20:00', '1917-11-07T21:00'], 'cal': 'NS',
          'dp': 'Wednesday, November 7th', 'sec': 'IV', 'loc': 'duma', 'witness': 'seen', 'title': 'Down the Nevsky',
          'why': 'Before the bell at 10.40.', 'sum': 'Reed walks to the Duma.', 'q': 'We walked down the Nevsky to the Duma',
          'moves': [{'who': 'reed', 'from': 'smolny', 'via': ['nevsky'], 'to': 'duma', 'mode': 'foot', 'rc': 'stated'}]},
         {'id': 'dan-bell', 't': '1917-11-07T22:40', 'tq': 'stated', 'tp': 'It was 10.40 P. M.', 'cal': 'none', 'sec': 'IV', 'loc': 'duma',
-         'witness': 'seen', 'title': 'The bell', 'sum': 'Dan rings the bell.', 'q': 'It was 10.40 P. M. when Dan rang the bell.'},
+         'witness': 'seen', 'title': 'The bell', 'sum': 'Dan rings the bell.', 'q': 'It was 10.40 P. M. when Dan rang the bell.',
+         'present': [{'who': 'pg', 'place': 'winter-palace', 'ref': {'sec': 'App.III.7', 'q': 'the Military Revolutionary Committee of the Provisional Government'}}]},
         {'id': 'cornice', 't': '1917-11-08T03:05', 'tq': 'inferred', 'tr': ['1917-11-08T03:00', '1917-11-08T03:40'], 'cal': 'none',
          'sec': 'IV', 'loc': 'winter-palace', 'witness': 'seen', 'title': 'Broken stucco', 'why': 'After the palace fell.',
          'sum': 'Stucco on the pavement.',
@@ -227,6 +230,44 @@ for code, kw in CASES.items():
 Breaks.test_ref_unknown_place_src = case('ref.unknown', mutate=_set(lambda d: pl(d, 'duma'), 'src', ['nobody']), only=True)
 Breaks.test_event_without_a_quote = case('field.missing', mutate=_del(lambda d: ev(d, 'dan-bell'), 'q'), only=True)
 Breaks.test_no_fact_checks = case('field.unknown', mutate=_set(lambda d: ev(d, 'cornice'), 'check', []), only=True)
+# presence: who stays where between scenes
+Breaks.test_presence_kind = case('presence.kind', mutate=lambda d: ev(d, 'dan-bell')['present'].append({'who': 'reed'}), only=True)
+Breaks.test_presence_unnamed = case('presence.unnamed', mutate=lambda d: ev(d, 'dan-bell')['present'].append({'who': 'mrc'}), only=True)
+Breaks.test_presence_unlocated = case('presence.unlocated', mutate=lambda d: (pl(d, 'nevsky').update({'ll': None, 'conf': 'unlocated'}), pl(d, 'nevsky').pop('acc'),
+                                                                           ev(d, 'dan-bell')['present'].append({'who': 'mrc', 'place': 'nevsky', 'ref': {'sec': 'App.III.7', 'q': 'At 1.35 the Post Office was occupied by the Military Revolutionary Committee'}})), only=True)
+Breaks.test_presence_not_there = case('presence.not-there', mutate=lambda d: ev(d, 'holtzman').update({'gone': [{'who': 'pg', 'place': 'winter-palace', 'ref': {'sec': 'App.III.7', 'q': 'the Military Revolutionary Committee of the Provisional Government'}}]}), only=True)
+Breaks.test_kit_not_in_text = case('kit.not-in-text', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'kit': ['torch']}), only=True)
+Breaks.test_kit_enum = case('field.enum', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'kit': ['cannonball']}), only=True)
+Breaks.test_n_needs_size = case('field.missing', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].pop('size'), only=True)
+Breaks.test_n_range = case('field.range', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'n': 500}), only=True)
+Breaks.test_tag_shooting = case('tag.shooting', mutate=lambda d: ev(d, 'dan-bell').update({'tags': ['shooting']}), only=True)
+Breaks.test_geo_stage = case('geo.stage', mutate=lambda d: pl(d, 'duma').update({'stage': [59.95, 30.33]}), only=True)
+Breaks.test_stay_kind = case('presence.kind', mutate=lambda d: ev(d, 'reed-walks')['moves'][0].update({'stay': True}), only=True)
+
+
+class Presence(unittest.TestCase):
+    def spans(self, d):
+        evs = L.sort_table('events', d['events'])
+        return [(s['who'], s['place'], evs[s['start']]['id'] if s['start'] < len(evs) else None,
+                 evs[s['end']]['id'] if s['end'] is not None and s['end'] < len(evs) else s['end'], s['end_by'])
+                for s in L.presence_spans(evs, d['actors'], d['places'])[0]]
+
+    def test_fixture_spans(self):
+        got = self.spans(good())
+        # the sailors stay; the detachment that moved in stays from the next scene; the government's
+        # people leave the palace after the scene in which it falls to the other side
+        self.assertIn(('sailors', 'telegraph-agency', 'telegraph-occupied', None, None), got)
+        self.assertIn(('mrc', 'telegraph-agency', 'reed-walks', None, None), got)
+        self.assertIn(('pg', 'winter-palace', 'dan-bell', 'holtzman', 'control'), got)
+
+    def test_brief_and_gone(self):
+        d = good()
+        ev(d, 'telegraph-occupied')['present'][0]['brief'] = True
+        self.assertIn(('sailors', 'telegraph-agency', 'telegraph-occupied', 'reed-walks', 'brief'), self.spans(d))
+        d = good()
+        ev(d, 'reed-walks')['gone'] = [{'who': 'sailors', 'place': 'telegraph-agency', 'ref': {'sec': 'App.III.7', 'q': 'a detachment of soldiers and sailors'}}]
+        self.assertIn(('sailors', 'telegraph-agency', 'telegraph-occupied', 'dan-bell', 'gone'), self.spans(d))
+        self.assertEqual(errors(d), [])
 
 
 class Parsers(unittest.TestCase):

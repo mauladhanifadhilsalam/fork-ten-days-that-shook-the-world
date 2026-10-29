@@ -11,8 +11,15 @@ Routes. A move's points are its `from`, its `via` and its `to`.
   Raskolnikov Wandering's.
 - rail, ship, a mode Reed does not give, rc "none", or anything leaving the core: straight lines
   through the points. The page draws those as arcs, so nobody mistakes them for a street route.
+
+The tour is Petrograd's: scenes Reed sets at the front, in Moscow or further off stay in the data
+(and in the checks) but are left out of the page. Moves that leave the city are still drawn.
+
+Presence. Who stands where between scenes comes from storylib.presence_spans; here each span gets
+what the page needs to draw it: which figures, how many, and what kit. Those are display rules, not
+data: the body (a unit, a crowd, a ship) and Reed's phrase for its size decide the figures.
 """
-import sys, os, json, math, heapq, pickle
+import sys, os, re, json, math, heapq, pickle
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import storylib as L
 from mapconf import P
@@ -278,6 +285,9 @@ for p in T['places']:
     xy = P(*p['ll']) if p.get('ll') else None
     rec = {k: p[k] for k in ('name', 'kind', 'zone', 'conf', 'acc', 'exists', 'ru', 'addr1917', 'addr_now', 'ident', 'today', 'note', 'in') if k in p}
     rec['reed'] = p['reed'][0]
+    if p.get('stage'):
+        sx, sy = P(*p['stage'])
+        rec['stage'] = [round(sx, 1), round(sy, 1)]
     if xy:
         dist = math.hypot(*xy) / 1000
         rec['p'] = [round(xy[0], 1), round(xy[1], 1)]
@@ -351,8 +361,122 @@ def shape(m):
     return [[round(a, 1), round(b, 1)] for a, b in full], 'street'
 
 
+# ---------- figures ----------
+# what each body is drawn as: figure types and their shares (the page models each type)
+ACTOR_FIG = {
+    'red-guards': [('redguard', 1)], 'sailors': [('sailor', 1)], 'cyclists': [('cyclist', 1)],
+    'garrison': [('soldier', 1)], 'pavlovsky': [('soldier', 1)], 'semionovsky': [('soldier', 1)],
+    'peter-paul-garrison': [('soldier', 1)], 'tsarskoye-rifles': [('soldier', 1)],
+    'pulkovo-detachment': [('redguard', .4), ('sailor', .3), ('soldier', .3)],
+    'petrograd-cossacks': [('cossack', 1)], 'krasnov-cossacks': [('cossack', 1)], 'armoured-cars': [('soldier', 1)],
+    'womens-battalion': [('womansoldier', 1)],
+    'yunkers': [('yunker', 1)], 'vladimir-yunkers': [('yunker', 1)], 'engineers-yunkers': [('yunker', 1)],
+    'pavlovsk-yunkers': [('yunker', 1)],
+    'workers': [('worker', .5), ('workerwoman', .35), ('child', .15)],
+    'duma-procession': [('bourgeois', .5), ('bourgeoiswoman', .2), ('intelligent', .3)],
+    'peasants-congress': [('peasant', .75), ('soldier', .25)],
+}
+BLOC_FIG = {
+    'soviet': [('soldier', .35), ('sailor', .25), ('redguard', .25), ('worker', .15)],
+    'government': [('officer', .5), ('bourgeois', .5)],
+    'opposition': [('bourgeois', .5), ('intelligent', .4), ('bourgeoiswoman', .1)],
+    'neutral': [('soldier', 1)],
+    'public': [('worker', .3), ('workerwoman', .25), ('bourgeois', .2), ('bourgeoiswoman', .1), ('intelligent', .1), ('child', .05)],
+}
+# Reed's own words for a body, when he gives them, override the default figures: the specific words
+# name who they are; the generic ones (women, children) only add to the mix
+SIZE_FIG = [(r'sailor', 'sailor'), (r'soldier|troops|regiment|infantry', 'soldier'), (r'red guard', 'redguard'),
+            (r'yunker', 'yunker'), (r'cossack', 'cossack'), (r'workmen|workers', 'worker'), (r'peasant', 'peasant'),
+            (r'officer', 'officer'), (r'student', 'intelligent'), (r'bourgeois|fifth avenue|fur coat|shop-keeper|clerk', 'bourgeois')]
+SIZE_ADD = [(r"\bwomen\b(?!.s battalion)", 'workerwoman'), (r'child', 'child')]
+DEFAULT_N = {'unit': 24, 'school': 28, 'crowd': 60, 'organ': 14, 'party': 12, 'ship': 1, 'person': 1, 'press': 4, 'foreign': 3}
+NUMW = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+        'eleven': 11, 'twelve': 12, 'fifteen': 15, 'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60,
+        'seventy': 70, 'eighty': 80, 'ninety': 90, 'several': 3, 'few': 3, 'dozen': 12, 'hundreds': 300, 'thousands': 3000}
+
+
+def size_number(phrase):
+    """'about two thousand citizens' -> 2000; 'two or three hundred' -> 250; 'five or six' -> 5.5; None if no number"""
+    p = phrase.lower().replace('-', ' ')
+    vals, cur, mult = [], None, 1
+    for w in re.findall(r"[a-z]+|\d+", p):
+        if w.isdigit():
+            cur = int(w)
+            vals.append(cur)
+        elif w in NUMW:
+            vals.append(NUMW[w])
+        elif w in ('hundred', 'thousand'):
+            m = 100 if w == 'hundred' else 1000
+            if vals:
+                vals = [v * m if v < m else v for v in vals]
+            else:
+                vals = [m]
+        elif w in ('company', 'companies'):
+            mult = 100
+    if not vals:
+        return None
+    return sum(vals) / len(vals) * (mult if mult > 1 else 1)
+
+
+def figures(who, size=None, n=None):
+    """(composition [[type, share]], how many to draw) for a body of people"""
+    a = T_actors.get(who, {})
+    comp = ACTOR_FIG.get(who) or BLOC_FIG.get(a.get('bloc'), BLOC_FIG['public'])
+    if size:
+        low = size.lower()
+        hits = [fig for rx, fig in SIZE_FIG if re.search(rx, low)]
+        if hits and not (who in ACTOR_FIG and set(hits) <= {f for f, _ in ACTOR_FIG[who]}):
+            comp = [(f, 1 / len(hits)) for f in dict.fromkeys(hits)]
+        extra = [fig for rx, fig in SIZE_ADD if re.search(rx, low) and fig not in {f for f, _ in comp}]
+        if extra:
+            comp = [(f, w * 0.75) for f, w in comp] + [(f, 0.25 / len(extra)) for f in extra]
+    if n is None:
+        num = size_number(size) if size else None
+        n = round(min(150, max(4, 3.2 * math.sqrt(num)))) if num else DEFAULT_N.get(a.get('kind'), 12)
+    return [[f, round(w, 3)] for f, w in comp], n
+
+
+T_actors = {a['id']: a for a in T['actors']}
+events_all = L.sort_table('events', T['events'])
+spans, _ = L.presence_spans(events_all, T['actors'], T['places'])
+in_tour = [T_places[e['loc']]['zone'] == 'city' for e in events_all]
+tour_ix = {}   # full index -> tour index
+for i, ok in enumerate(in_tour):
+    if ok:
+        tour_ix[i] = len(tour_ix)
+
+
+def to_tour(i):
+    """the first tour scene at or after full index i (None past the end)"""
+    if i is None:
+        return None
+    for j in range(i, len(events_all)):
+        if j in tour_ix:
+            return tour_ix[j]
+    return None
+
+
+presence = []
+for sp in spans:
+    pl = T_places.get(sp['place'], {})
+    if pl.get('zone') != 'city' or not pl.get('ll'):
+        continue
+    a, b = to_tour(sp['start']), to_tour(sp['end'])
+    if a is None or (b is not None and b <= a):
+        continue
+    kind = T_actors.get(sp['who'], {}).get('kind')
+    rec = {'who': sp['who'], 'place': sp['place'], 'from': a, 'to': b, 'ev': sp['ev']}
+    if kind == 'ship':
+        rec['ship'] = True
+    else:
+        rec['fig'], rec['n'] = figures(sp['who'], sp.get('size'), sp.get('n'))
+    for k in ('size', 'kit'):
+        if k in sp:
+            rec[k] = sp[k]
+    presence.append(rec)
+
 events = []
-for e in T['events']:
+for e in [e for e, ok in zip(events_all, in_tour) if ok]:
     rec = {k: e[k] for k in ('id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags', 'title', 'why', 'sum') if k in e}
     rec['q'] = ' … '.join(L.segments(e['q']))
     if e.get('also'):
@@ -361,7 +485,12 @@ for e in T['events']:
         rec['doc'] = e['doc']
     mv = []
     for m in e.get('moves', []):
-        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap') if k in m}
+        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit') if k in m}
+        if T_actors.get(m['who'], {}).get('kind') not in ('person', 'ship'):
+            r['fig'], r['n'] = figures(m['who'], m.get('size'), m.get('n'))
+        wf = [list(figures(w)) for w in m.get('with', []) if T_actors.get(w, {}).get('kind') not in ('person', 'ship')]
+        if wf:
+            r['wfig'] = wf
         line, kind = shape(m)
         r['line'], r['draw'] = line, kind
         if line:
@@ -372,6 +501,7 @@ for e in T['events']:
     if e.get('ctl'):
         rec['ctl'] = e['ctl']
     events.append(rec)
+print(f"tour: {len(events)} of {len(events_all)} scenes (Petrograd only); presence spans {len(presence)} of {len(spans)}")
 
 # ---------- control timelines ----------
 control = {}
@@ -396,7 +526,8 @@ story = {
     'meta': {'title': meta['meta']['title'], 'clock': {k: v['offset_min'] for k, v in meta['meta']['clock'].items()},
              'blocs': meta['meta']['blocs'], 'pdf': meta['meta'].get('pdf', {}).get('url'),
              'text': meta['meta']['text']['url']},
-    'days': meta['days'], 'places': PL, 'actors': actors, 'events': events, 'control': control,
+    'days': [{k: (d.get('city') or d['name']) if k == 'name' else d[k] for k in ('d', 'os', 'label', 'name')} for d in meta['days']],
+    'places': PL, 'actors': actors, 'events': events, 'control': control, 'presence': presence,
 }
 os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
 with open(OUT, 'w', encoding='utf-8') as f:

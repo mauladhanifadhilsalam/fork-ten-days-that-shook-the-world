@@ -60,7 +60,8 @@ TYPES = {
     'p': INT, 'loc': STR, 'witness': STR, 'tags': LIST, 'why': STR, 'sum': STR, 'also': LIST, 'doc': DICT,
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
-    'd': STR, 'os': STR, 'label': STR, 'actors': LIST,
+    'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
+    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL,
 }
 
 
@@ -80,8 +81,8 @@ def fields(F, rec, kind, where):
             ok = isinstance(v, str) or (isinstance(v, list) and v and all(isinstance(x, str) for x in v))
         elif k == 'q':
             ok = isinstance(v, str)
-        elif k == 'll':
-            ok = v is None or (isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v))
+        elif k in ('ll', 'stage'):
+            ok = (v is None and k == 'll') or (isinstance(v, list) and len(v) == 2 and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v))
         elif k == 'exists':
             ok = v is None or isinstance(v, bool)
         elif want is INT:
@@ -357,6 +358,13 @@ class Checker:
                     F.err('field.missing', w, 'a located place needs acc (metres)')
                 elif p.get('conf') == 'conjectural' and p['acc'] < 50:
                     F.warn('geo.acc-small', w, f'conjectural pin with acc {p["acc"]} m; is it really that precise?')
+            if 'stage' in p and isinstance(p['stage'], list) and len(p['stage']) == 2:
+                if not ll:
+                    F.err('geo.stage', w, 'stage (where its figures stand) needs a located place')
+                elif L.dist_m(ll, p['stage']) > 400:
+                    F.err('geo.stage', w, f'stage is {L.dist_m(ll, p["stage"]):.0f} m from the pin; keep it within 400 m')
+                if any(len(repr(float(x)).split('.')[-1]) > 6 for x in p['stage']):
+                    F.err('geo.precision', w, 'stage takes at most 6 decimals')
             if p.get('conf') in ('identified', 'conjectural') and not p.get('ident'):
                 F.err('field.missing', w, f'conf {p["conf"]!r} needs ident (how the place was identified)')
             if 'in' in p:
@@ -410,6 +418,7 @@ class Checker:
             self.event(e, tags)
         self.tracks()
         self.control()
+        self.presence()
         for k, table in (('source', self.S), ('actor', self.A), ('place', self.P)):
             for i in table:
                 if not used[k][i]:
@@ -558,6 +567,49 @@ class Checker:
                 F.err('phrase.not-near', mw, f'size {m["size"]!r} is not within 1,500 characters of the quote')
             if 'ack' in m and not m['ack'].strip():
                 F.err('field.type', mw, 'ack explains the anomaly')
+            self.count_n(m, mw)
+            if 'kit' in m and pos is not None:
+                self.kit(m['kit'], self.scene_text(e), mw)
+            if m.get('stay'):
+                to = self.P.get(m.get('to'), {})
+                if to and not to.get('ll'):
+                    F.err('presence.unlocated', mw, f'stay: {m.get("to")} has no position')
+                elif to.get('zone') == 'offmap':
+                    F.err('presence.unlocated', mw, f'stay: {m.get("to")} is off the map')
+                if self.A.get(m.get('who'), {}).get('kind') not in L.PRESENT_KINDS:
+                    F.err('presence.kind', mw, f'stay: a {self.A.get(m.get("who"), {}).get("kind")} does not stay; only bodies of people and ships do')
+
+        # presence: who is there from this scene on, and who is gone after it
+        for key in ('present', 'gone'):
+            for i, r in enumerate(e.get(key, [])):
+                rw = f'{w}.{key}[{i}]'
+                if not fields(F, r, 'presence' if key == 'present' else 'gone', rw):
+                    continue
+                a = self.A.get(r.get('who'))
+                if a is None:
+                    F.err('ref.unknown', rw, f'no actor {r.get("who")!r}')
+                elif a.get('kind') not in L.PRESENT_KINDS:
+                    F.err('presence.kind', rw, f'a {a.get("kind")} is not drawn as a standing body; only {sorted(L.PRESENT_KINDS)}')
+                used['actor'][r.get('who')] += 1
+                pid = r.get('place', e.get('loc'))
+                if pid not in self.P:
+                    F.err('ref.unknown', rw, f'no place {pid!r}')
+                elif not self.P[pid].get('ll'):
+                    F.err('presence.unlocated', rw, f'{pid} has no position')
+                used['place'][pid] += 1
+                sup = self.support(e, r, rw, pos)
+                if sup is None:
+                    continue
+                if a is not None:
+                    self.named(a, sup, rw)
+                if key == 'present':
+                    if 'size' in r and sup[1] is not None and not self.book.near(sup[0], sup[1], r['size']):
+                        F.err('phrase.not-near', rw, f'size {r["size"]!r} is not within 1,500 characters of the quote')
+                    self.count_n(r, rw)
+                    if 'kit' in r:
+                        self.kit(r['kit'], sup[2], rw)
+        if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
+            F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
         # control
         for i, c in enumerate(e.get('ctl', [])):
@@ -571,6 +623,56 @@ class Checker:
                 F.err('ctl.kind', cw, f'a {pl.get("kind")} cannot be held')
             used['place'][c.get('place')] += 1
             self.control_state(c, cw)
+
+    def scene_text(self, e):
+        """The scene's own words: its quote and its other passages, normalised and joined."""
+        parts = [L.norm(x) for x in L.segments(e.get('q', '')) if isinstance(x, str)]
+        parts += [L.norm(r['q']) for r in e.get('also', []) if isinstance(r, dict) and isinstance(r.get('q'), str)]
+        return ' '.join(parts)
+
+    def support(self, e, r, where, pos):
+        """What backs a presence: its own passage (ref), or else the scene's quotes.
+        Returns (section, position of the passage, its text), or None if the passage is broken."""
+        ref = r.get('ref')
+        if ref is None:
+            return (e.get('sec'), pos, self.scene_text(e)) if pos is not None else None
+        if not fields(self.F, ref, 'ref', where + '.ref') or not isinstance(ref.get('q'), str):
+            return None
+        at = self.quote_ok(ref.get('sec'), ref['q'], where + '.ref')
+        return None if at is None else (ref['sec'], at, L.norm(ref['q']))
+
+    def named(self, a, sup, where):
+        """The body must be in the passage, or within 1,500 characters of it, under one of Reed's spellings."""
+        sec, at, text = sup
+        names = [L.norm(n).lower() for n in a.get('reed', []) if isinstance(n, str)]
+        if any(n in text.lower() for n in names):
+            return
+        t = self.book.secs.get(sec, '').lower()
+        if at is not None and any(n in t[max(0, at - 1500): at + 1500] for n in names):
+            return
+        self.F.err('presence.unnamed', where, f'Reed does not name {a.get("id")} near this passage (as {", ".join(a.get("reed", []))})')
+
+    def kit(self, kit, text, where):
+        for k in kit:
+            name, n = L.kit_item(k) if isinstance(k, str) else (None, None)
+            if name not in L.KIT_WORDS:
+                self.F.err('field.enum', where, f'kit {k!r} is not one of {sorted(L.ENUM["kit"])} (optionally with :count)')
+            elif not re.search(L.KIT_WORDS[name], text, re.I):
+                self.F.err('kit.not-in-text', where, f'kit {name!r}: the passage has no word for it ({L.KIT_WORDS[name]})')
+
+    def count_n(self, r, where):
+        if 'n' in r:
+            if 'size' not in r:
+                self.F.err('field.missing', where, 'n (how many to draw) needs size, the phrase it reads')
+            elif isinstance(r['n'], int) and not 1 <= r['n'] <= 400:
+                self.F.err('field.range', where, 'n is between 1 and 400')
+
+    def presence(self):
+        """Who stays where between scenes (storylib.presence_spans). A `gone` must find someone."""
+        spans, misses = L.presence_spans(self.events, self.actors, self.places)
+        self.spans = spans
+        for eid, who, pid in misses:
+            self.F.err('presence.not-there', f'events/{eid}', f'gone: {who} is not at {pid} at this point')
 
     def date_phrase(self, dp, cal, t, w):
         F = self.F
@@ -930,6 +1032,13 @@ def report(C, F):
     for k in sorted(cov, key=lambda x: order.index(x) if x in order else 999):
         print(f'| {k} | {cov[k][0]} | {cov[k][1]} |')
 
+    print('\n## Presence: who stays where between scenes\n')
+    print('| who | place | from | until | ended by |\n|---|---|---|---|---|')
+    ids = [e.get('id') for e in C.events]
+    for sp in getattr(C, 'spans', []):
+        until = ids[sp['end']] if sp['end'] is not None and sp['end'] < len(ids) else ('the end' if sp['end'] is None else 'the last scene')
+        print(f"| {sp['who']} | {sp['place']} | {ids[sp['start']] if sp['start'] < len(ids) else '-'} | {until} | {sp['end_by'] or ''}{' (' + sp['end_ev'] + ')' if sp['end_ev'] else ''} |")
+
     print('\n## Control timelines\n')
     for pid, tl in sorted(C.timelines.items()):
         steps = []
@@ -988,8 +1097,9 @@ def main():
         report(C, F)
     moves = sum(len(e.get('moves', [])) for e in C.events if isinstance(e, dict))
     tls = len(getattr(C, 'timelines', {}))
+    pres = len(getattr(C, 'spans', []))
     print(f'checked {len(C.sources)} sources, {len(C.actors)} actors, {len(C.places)} places, {len(C.events)} events '
-          f'({moves} moves, {tls} control timelines): {n_err} errors, {n_warn} warnings')
+          f'({moves} moves, {tls} control timelines, {pres} presences): {n_err} errors, {n_warn} warnings')
     sys.exit(1 if n_err or (a.strict and n_warn) else 0)
 
 

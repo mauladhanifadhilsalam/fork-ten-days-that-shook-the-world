@@ -21,20 +21,22 @@ TABLES = ['sources', 'actors', 'places', 'events']   # plus meta.json, which has
 # Field order here is the canonical order on disk. PROSE fields get a line of their own.
 FIELDS = {
     'meta': ['title', 'text', 'pdf', 'calendar', 'clock', 'range', 'zones', 'speed_kmh', 'blocs', 'tags', 'note'],
-    'day': ['d', 'os', 'label', 'name'],
+    'day': ['d', 'os', 'label', 'name', 'city'],
     'source': ['id', 'kind', 'url', 'cite', 'note'],
     'actor': ['id', 'kind', 'bloc', 'track', 'part_of', 'seat', 'wd', 'name', 'reed', 'ru', 'stance', 'note'],
     'stance': ['from', 's', 'ev', 'ref', 'note'],
-    'place': ['id', 'kind', 'zone', 'in', 'll', 'acc', 'conf', 'exists', 'osm', 'site_osm', 'wd', 'src', 'geo', 'ctl0',
+    'place': ['id', 'kind', 'zone', 'in', 'll', 'acc', 'stage', 'conf', 'exists', 'osm', 'site_osm', 'wd', 'src', 'geo', 'ctl0',
               'name', 'reed', 'ru', 'addr1917', 'addr_now', 'ident', 'today', 'note'],
     'geo': ['m', 'at', 'q', 'osm_v', 'on', 'src', 'note'],
     'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
     'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags',
-              'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl'],
+              'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
-    'move': ['who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'ack'],
+    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'ack'],
     'ctl': ['place', 'state', 'holder', 'by'],
+    'presence': ['who', 'place', 'size', 'n', 'kit', 'brief', 'ref'],
+    'gone': ['who', 'place', 'ref'],
 }
 REQUIRED = {
     'day': ['d', 'os', 'label', 'name'],
@@ -49,10 +51,12 @@ REQUIRED = {
     'doc': ['at', 't', 'tp', 'cal', 'q'],
     'move': ['who', 'from', 'to', 'mode', 'rc'],
     'ctl': ['place', 'state'],
+    'presence': ['who'],
+    'gone': ['who'],
 }
 PROSE = {'cite', 'name', 'note', 'title', 'why', 'sum', 'q', 'ident', 'today', 'ru', 'reed',
          'addr1917', 'addr_now'}
-NESTED_LIST = {'stance', 'also', 'moves', 'ctl'}   # one line per item
+NESTED_LIST = {'stance', 'also', 'moves', 'ctl', 'present', 'gone'}   # one line per item
 NESTED_ONE = {'geo', 'ctl0', 'doc'}                         # one line for the whole object
 
 ENUM = {
@@ -71,8 +75,19 @@ ENUM = {
     'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
+    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'torch', 'bicycle', 'leaflets'},
 }
 HOLDABLE = {'building', 'complex', 'square', 'bridge', 'station', 'district', 'town', 'area'}
+# Who can stand somewhere between scenes: bodies of people, and ships; not single persons
+PRESENT_KINDS = {'unit', 'school', 'crowd', 'ship', 'organ', 'party'}
+# Every piece of kit must be in Reed's words for the scene; these are the words that count
+KIT_WORDS = {
+    'fire': r'fire|blaze', 'barricade': r'barricad|wood-pile|lumber|breastwork|piling', 'mg': r'machine.gun|rapid.fir',
+    'gun': r'cannon|field-gun|field-piece|batter(y|ies)|artillery|three-inch', 'armoured': r'armou?red', 'truck': r'truck|lorr',
+    'car': r'automobile|motor|\bcars?\b', 'banner': r'banner|flag', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
+    'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
+}
+SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire'
 LIMITS = {'title': 60, 'sum': 350, 'q': 320, 'note': 500, 'why': 300, 'ident': 400}
 ID_RE = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 OSM_RE = re.compile(r'^(node|way|relation)/\d+$')
@@ -127,7 +142,7 @@ def _order(rec, kind):
 
 
 def _sub(kind_of, key):
-    return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl',
+    return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl', 'present': 'presence', 'gone': 'gone',
             'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc'}.get(key)
 
 
@@ -405,6 +420,118 @@ def seg_dist(p, a, b):
 
 def ring_dist(pt, ring):
     return min(seg_dist(pt, a, b) for a, b in zip(ring, ring[1:] + ring[:1]))
+
+
+# ---------- presence ----------
+def kit_item(k):
+    """'mg:8' -> ('mg', 8); 'fire' -> ('fire', None)"""
+    name, _, n = k.partition(':')
+    return name, (int(n) if n.isdigit() else None)
+
+
+def presence_spans(events, actors, places):
+    """Who stays where between scenes. `events` is the time-sorted list.
+
+    A span starts with a `present` entry (in that scene) or a move with `stay` (from the next scene,
+    since in its own scene the body is still on the move). It ends after the scene of a `gone` entry,
+    after its own scene if `brief`, or when control of the place (or of a place it lies in) passes
+    from the bloc of the body to another bloc. That last rule is the text's own implication: Reed
+    reports the place taken. A later `present` entry for the same body and place adds to it (its size
+    and count replace the old ones, its kit joins the old kit), and a `brief` one shows the sum for
+    one scene only.
+
+    Returns (spans, misses). A span is {who, place, start, end, ev, how, end_by, end_ev, size?, n?, kit?}
+    and is shown in scenes start <= i < end (end None: to the last scene). misses lists
+    (event id, who, place) for `gone` entries that found nobody there."""
+    A = {a.get('id'): a for a in actors if isinstance(a, dict)}
+    Pl = {p.get('id'): p for p in places if isinstance(p, dict)}
+
+    def bloc(a):
+        return A.get(a, {}).get('bloc')
+
+    inside = {}   # place -> the places it lies in, through `in`
+    for pid, p in Pl.items():
+        out, x = [], p.get('in')
+        while x and x not in out and x != pid:
+            out.append(x)
+            x = Pl.get(x, {}).get('in')
+        inside[pid] = out
+    holder = {pid: bloc(p['ctl0']['holder']) for pid, p in Pl.items()
+              if isinstance(p.get('ctl0'), dict) and p['ctl0'].get('holder')}
+    spans, live, misses = [], {}, []
+
+    def end(key, i, why, eid):
+        sp = live.pop(key)
+        sp['end'], sp['end_by'], sp['end_ev'] = i, why, eid
+
+    def begin(key, i, rec, eid, how, old=None):
+        sp = {'who': key[0], 'place': key[1], 'start': i, 'end': None, 'ev': eid, 'how': how, 'end_by': None, 'end_ev': None}
+        merge(sp, old or {})
+        merge(sp, rec)
+        spans.append(sp)
+        return sp
+
+    def merge(sp, rec):
+        """a later word on the same body adds to what is known: its kit joins the kit already there"""
+        for k in ('size', 'n'):
+            if k in rec:
+                sp[k] = rec[k]
+        if rec.get('kit'):
+            kit = {kit_item(k)[0]: k for k in sp.get('kit', [])}
+            kit.update({kit_item(k)[0]: k for k in rec['kit']})
+            sp['kit'] = list(kit.values())
+
+    def update(key, i, rec, eid, how):
+        """the same body at the same place again: within one scene, add to it; later, a new span"""
+        sp = live[key]
+        if sp['start'] == i:
+            merge(sp, rec)
+            return sp
+        end(key, i, 'update', eid)
+        live[key] = begin(key, i, rec, eid, how, old=sp)
+        return live[key]
+
+    for i, e in enumerate(events):
+        if not isinstance(e, dict):
+            continue
+        loc, eid = e.get('loc'), e.get('id')
+        for r in e.get('present', []):
+            if not isinstance(r, dict):
+                continue
+            key = (r.get('who'), r.get('place', loc))
+            if r.get('brief'):
+                sp = begin(key, i, r, eid, 'present', old=live.get(key))
+                sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'brief', eid
+            elif key in live:
+                update(key, i, r, eid, 'present')
+            else:
+                live[key] = begin(key, i, r, eid, 'present')
+        for r in e.get('gone', []):
+            if not isinstance(r, dict):
+                continue
+            key = (r.get('who'), r.get('place', loc))
+            if key in live:
+                end(key, i + 1, 'gone', eid)
+            else:
+                misses.append((eid, key[0], key[1]))
+        for c in e.get('ctl', []):
+            if not isinstance(c, dict):
+                continue
+            pid, old = c.get('place'), holder.get(c.get('place'))
+            new = bloc(c['holder']) if c.get('holder') else None
+            if c.get('state') == 'held' and old and new and new != old:
+                for key in [k for k in live if (k[1] == pid or pid in inside.get(k[1], [])) and bloc(k[0]) == old]:
+                    end(key, i + 1, 'control', eid)
+            if new:
+                holder[pid] = new
+        for m in e.get('moves', []):
+            if isinstance(m, dict) and m.get('stay'):
+                key = (m.get('who'), m.get('to'))
+                if key in live:
+                    update(key, i + 1, m, eid, 'stay')
+                else:
+                    live[key] = begin(key, i + 1, m, eid, 'stay')
+    return spans, misses
 
 
 # ---------- sun ----------

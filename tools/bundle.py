@@ -1,7 +1,7 @@
 """Pack the map geometry and the story into the page template.
 
 usage: python3 -I tools/bundle.py build/map.json build/story.json src/app.html OUT_DIR
-writes OUT_DIR/index.html (the full document), OUT_DIR/artifact.html (the same page as a fragment,
+The models in src/people.js (next to app.html) are inlined into the page's script. Writes OUT_DIR/index.html (the full document), OUT_DIR/artifact.html (the same page as a fragment,
 for a Claude artifact, whose host adds the document skeleton) and OUT_DIR/csp.txt (a
 Content-Security-Policy that pins the inline app script by hash). Adapted from Raskolnikov
 Wandering's bundle.py.
@@ -44,7 +44,11 @@ for e in st['events']:
         if m.get('line'):
             m['line'] = ring(m['line'])
 data = json.dumps({'map': packed, 'story': st}, ensure_ascii=False, separators=(',', ':')).replace('</', '<\\/')
-body = tpl.replace('__DATA__', data)
+# the models (src/people.js) go inside the page's one script, where app.html marks the spot
+with open(os.path.join(os.path.dirname(sys.argv[3]), 'people.js'), encoding='utf-8') as f:
+    people = f.read()
+assert tpl.count('/*__PEOPLE__*/') == 1, 'app.html needs one /*__PEOPLE__*/ marker'
+body = tpl.replace('/*__PEOPLE__*/', people).replace('__DATA__', data)
 head, rest = body.split('<!--/head-->', 1)
 full = ('<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'

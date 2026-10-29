@@ -144,13 +144,13 @@
  "ru": "Временный совет Российской республики"},
 {"id": "duma", "kind": "organ", "bloc": "opposition", "seat": "city-duma",
  "name": "Petrograd City Duma (the municipal council)",
- "reed": ["City Duma"],
+ "reed": ["City Duma", "Duma"],
  "ru": "Петроградская городская дума",
  "stance": [
   {"from": "1917-11-08T00:45", "s": "oppose", "ev": "duma-march"}]},
 {"id": "military-staff", "kind": "organ", "bloc": "government", "seat": "general-staff",
  "name": "Petrograd Military District Staff",
- "reed": ["Petrograd Staff"],
+ "reed": ["Petrograd Staff", "Staff of the Military District"],
  "ru": "Штаб Петроградского военного округа"},
 {"id": "moscow-public-safety", "kind": "organ", "bloc": "opposition",
  "name": "Moscow Committee of Public Safety",
@@ -214,7 +214,7 @@
  "ru": "самокатчики"},
 {"id": "garrison", "kind": "unit", "bloc": "soviet",
  "name": "Petrograd garrison",
- "reed": ["garrison"],
+ "reed": ["garrison", "soldiers"],
  "ru": "Петроградский гарнизон",
  "stance": [
   {"from": "1917-11-11T22:00", "s": "support", "ev": "lenin-regiments"}]},
@@ -245,7 +245,7 @@
  "ru": "Пулковский отряд"},
 {"id": "red-guards", "kind": "unit", "bloc": "soviet",
  "name": "Red Guards",
- "reed": ["Red Guards"],
+ "reed": ["Red Guards", "Red Guard"],
  "ru": "Красная гвардия",
  "stance": [
   {"from": "1917-09-01", "s": "support", "ref": {"sec": "Notes", "q": "full of Revolutionary zeal"}}]},
@@ -288,6 +288,10 @@
  "name": "Cruiser Aurora",
  "reed": ["Avrora"],
  "ru": "крейсер «Аврора»"},
+{"id": "crowd", "kind": "crowd", "bloc": "public",
+ "name": "Crowds in the streets",
+ "reed": ["crowd", "citizens"],
+ "note": "Reed’s onlookers, passers-by and street crowds, drawn as townspeople; his words for them decide who they are."},
 {"id": "duma-procession", "kind": "crowd", "bloc": "opposition",
  "name": "The Duma’s procession to the Winter Palace",
  "reed": ["Going to die in the Winter Palace"],
@@ -295,6 +299,6 @@
  "note": "Councillors, Mensheviki and SRs from the Congress, and the Mayor, who set out to share the ministers’ fate on the night of 7 Nov."},
 {"id": "workers", "kind": "crowd", "bloc": "soviet",
  "name": "Petrograd workers",
- "reed": ["workers"],
+ "reed": ["workers", "workmen", "women of the slums"],
  "ru": "петроградские рабочие"}
 ]

@@ -132,6 +132,9 @@ blockquote.doc::before, blockquote.doc::after { content: none; }
 .lbl.conj .n { border-style: dashed; }
 .lbl.night .n { background: rgba(20,22,32,.8); color: #efe8d6; border-color: rgba(239,232,214,.25); }
 .lbl.cur.night .n { background: #efe8d6; color: var(--ink); }
+.lbl.grp .in { padding-bottom: 3px; }
+.lbl.grp .n { font: 10.5px/1.15 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--ink); background: rgba(238,233,222,.9); border: 1px solid var(--rule); border-left: 3px solid var(--bc, #1a1714); padding: 2px 5px 1px 4px; }
+.lbl.grp.night .n { background: rgba(20,22,32,.82); color: #efe8d6; border-color: rgba(239,232,214,.22); border-left-color: var(--bc, #efe8d6); }
 
 /* ---------- off the map ---------- */
 #offmap { position: absolute; right: calc(var(--panel-w) + 32px + env(safe-area-inset-right, 0px)); top: 40%; max-width: 300px; background: var(--paper-glass); border: 1px solid var(--ink); padding: 14px 16px; font-size: 14px; }
@@ -296,6 +299,15 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <p><span class="ln solid"></span> streets Reed names &nbsp; <span class="ln dash"></span> a route we inferred along today’s streets &nbsp; <span class="ln dot"></span> an arc: Reed gives no route, or it leaves the city, or it went by train.</p>
       <p>Buildings Reed reports as held are tinted by who holds them at that moment: <span class="sw" style="background:var(--b-soviet)"></span>for the insurrection, <span class="sw" style="background:var(--b-government)"></span>the Provisional Government, <span class="sw" style="background:var(--b-opposition)"></span>the opposition (Duma, Committee for Salvation), <span class="sw" style="background:var(--b-neutral)"></span>neutral.</p>
 
+      <h3>The people</h3>
+      <ul>
+        <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
+        <li>Each body stands on a patch of its side’s colour. Defenders of a building face out; everybody else faces in.</li>
+        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as 140, a crowd as 60. Uniforms follow photographs of Petrograd in 1917: the soldier’s grey-brown greatcoat, the yunkers’ red shoulder-straps, the sailors’ crossed cartridge belts, the Red Guard’s armband.</li>
+        <li>Fires burn after dark. Muzzle flashes and smoke appear only in scenes where Reed reports firing.</li>
+        <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
+      </ul>
+
       <h3>Time</h3>
       <ul>
         <li>Dates are New Style, as Reed writes them: “I have adopted in this book our Calendar throughout.” Where a document he prints uses the Old Style, the card says so.</li>
@@ -307,7 +319,8 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <h3>The map</h3>
       <ul>
         <li>The base map is today’s OpenStreetMap, capped at six storeys. Bridges built after 1917 (Betancourt, Alexander Nevsky) are removed.</li>
-        <li>The detailed city runs from the Petrograd Side to Smolny. Places beyond it, like the southern gates, the front at Pulkovo, Tsarskoye Selo and Gatchina, are pins on the plain; Moscow and the far stations get a card.</li>
+        <li>The tour stays in Petrograd. Reed’s scenes at the front (Pulkovo, Tsarskoye Selo, Gatchina) and in Moscow are in the data and its checks, but not on this map; a move that leaves the city is drawn as an arc toward where it went, and the camera keeps to the city.</li>
+        <li>The detailed city runs from the Petrograd Side to Smolny. The southern gates and the factories beyond it are pins on the plain.</li>
         <li>Reed never says where he lodged, so his walks from home start nowhere on the map.</li>
       </ul>
 
@@ -381,6 +394,7 @@ if (!window.THREE || !THREE.MapControls || !THREE.Line2) {
   loadMsg.textContent = 'The 3D library did not load. Check the connection and reload the page.';
   return;
 }
+/*__PEOPLE__*/
 var DATA = JSON.parse($('data').textContent);
 var M = DATA.map, S = DATA.story;
 var PL = S.places, AC = S.actors, EV = S.events, CTL = S.control, DAYS = S.days;
@@ -419,7 +433,7 @@ scene.fog = fog;
 var camera = new THREE.PerspectiveCamera(38, 1, 4, 400000);
 var controls = new THREE.MapControls(camera, canvas);
 controls.enableDamping = true; controls.dampingFactor = 0.09;
-controls.screenSpacePanning = false; controls.maxPolarAngle = 1.32; controls.minDistance = 45; controls.maxDistance = 90000;
+controls.screenSpacePanning = false; controls.maxPolarAngle = 1.36; controls.minDistance = 14; controls.maxDistance = 90000;
 controls.zoomSpeed = 0.9;
 
 // world: x east, z south, y up
@@ -700,37 +714,504 @@ function styleRoutes() {
   });
 }
 
-// ---------- movers ----------
-// Reed is a small figure; every other mover is a cone (a person) or a knot of cones (a unit, a
-// crowd, a party) in its bloc's colour.
-function figure(coatHex) {
-  var g = new THREE.Group();
-  var coat = new THREE.MeshLambertMaterial({ color: coatHex }), skin = new THREE.MeshLambertMaterial({ color: 0xd9b48f });
-  var body = new THREE.Mesh(new THREE.ConeGeometry(2.6, 8.5, 12), coat); body.position.y = 4.25; g.add(body);
-  var head = new THREE.Mesh(new THREE.SphereGeometry(1.25, 12, 10), skin); head.position.y = 9.5; g.add(head);
-  var cap = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.35, 0.9, 12), coat); cap.position.y = 10.6; g.add(cap);
-  g.traverse(function (o) { if (o.isMesh) o.castShadow = true; });
-  return g;
+// ---------- people ----------
+// Everyone on the map is drawn with the low-poly models of src/people.js: one instanced mesh per
+// model, rewritten when the scene changes, when the camera zooms (figures grow with distance, so a
+// crowd still reads from across the city) and every frame while anyone walks.
+var PK = PEOPLE.build(), figUni = { uTime: { value: 0 } }, figMat = PEOPLE.material(figUni);
+var INST = {}, instList = [];
+function inst(key) {
+  if (INST[key]) return INST[key];
+  var isFig = !!PK.fig[key], geo = (isFig ? PK.fig[key] : PK.kit[key]).clone();
+  var cap = isFig ? (/^(soldier|redguard|worker|sailor)/.test(key) ? 1400 : 700) : key === 'avrora' ? 2 : 90;
+  var anim = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
+  anim.setUsage(THREE.DynamicDrawUsage); geo.setAttribute('aAnim', anim);
+  var mesh = new THREE.InstancedMesh(geo, figMat, cap);
+  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = !PHONE;
+  scene.add(mesh);
+  var o = { key: key, mesh: mesh, cap: cap, n: 0, anim: anim };
+  instList.push(o); INST[key] = o; return o;
 }
+var _m4 = new THREE.Matrix4(), _q4 = new THREE.Quaternion(), _p4 = new THREE.Vector3(), _s4 = new THREE.Vector3(), _up = new THREE.Vector3(0, 1, 0);
+function put(key, x, y, z, yaw, sc, ph, walk, idle) {
+  var o = inst(key); if (o.n >= o.cap) return;
+  _q4.setFromAxisAngle(_up, yaw); _m4.compose(_p4.set(x, y, z), _q4, _s4.set(sc, sc, sc));
+  o.mesh.setMatrixAt(o.n, _m4);
+  var a = o.anim.array, i = o.n * 3; a[i] = ph; a[i + 1] = walk || 0; a[i + 2] = idle || 0; o.n++;
+}
+function flushInst() { instList.forEach(function (o) { o.mesh.count = o.n; o.mesh.instanceMatrix.needsUpdate = true; o.anim.needsUpdate = true; o.n = 0; }); }
+
+// ---------- open ground ----------
+// Where people can stand around a place: a small raster of the plan (buildings and water closed,
+// bridges open), searched outward from the open ground nearest the place. A crowd so fills the
+// square or the street in front of a building, never its inside or a courtyard shut within it.
+var BGRID = null, WATER = null, BRIDGES = null, GROUND = {};
+function prepGround() {
+  BGRID = {};
+  function add(r) {
+    var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+    for (var i = 0; i < r.length; i += 2) { x0 = Math.min(x0, r[i]); x1 = Math.max(x1, r[i]); y0 = Math.min(y0, r[i + 1]); y1 = Math.max(y1, r[i + 1]); }
+    var rec = { r: r, b: [x0, y0, x1, y1] };
+    for (var gx = Math.floor(x0 / 100); gx <= Math.floor(x1 / 100); gx++) for (var gy = Math.floor(y0 / 100); gy <= Math.floor(y1 / 100); gy++) (BGRID[gx + ',' + gy] = BGRID[gx + ',' + gy] || []).push(rec);
+  }
+  M.b.forEach(function (b) { add(ring(b[2])); });
+  M.key.forEach(function (b) { add(ring(b[3])); });
+  WATER = M.water.map(function (p) { return p.map(ring); });
+  BRIDGES = M.br.map(function (p) { return ring(p[0]); });
+}
+function fillRing(R, r, v) {   // cells whose centres lie inside ring r (even-odd) take the value v
+  var n = r.length / 2, ya = 1e9, yb = -1e9, xs = [];
+  for (var i = 0; i < n; i++) { ya = Math.min(ya, r[2 * i + 1]); yb = Math.max(yb, r[2 * i + 1]); }
+  var j0 = Math.max(0, Math.floor((ya - R.y0) / R.cs)), j1 = Math.min(R.h - 1, Math.ceil((yb - R.y0) / R.cs));
+  for (var j = j0; j <= j1; j++) {
+    var y = R.y0 + (j + 0.5) * R.cs; xs.length = 0;
+    for (var a = 0, b = n - 1; a < n; b = a++) {
+      var y1 = r[2 * a + 1], y2 = r[2 * b + 1];
+      if ((y1 > y) !== (y2 > y)) xs.push(r[2 * a] + (y - y1) / (y2 - y1) * (r[2 * b] - r[2 * a]));
+    }
+    xs.sort(function (p, q) { return p - q; });
+    for (var k = 0; k + 1 < xs.length; k += 2) {
+      var i0 = Math.max(0, Math.ceil((xs[k] - R.x0) / R.cs - 0.5)), i1 = Math.min(R.w - 1, Math.floor((xs[k + 1] - R.x0) / R.cs - 0.5));
+      for (var c = i0; c <= i1; c++) R.a[j * R.w + c] = v;
+    }
+  }
+}
+function raster(cx, cy, half, cs) {
+  var w = Math.ceil(2 * half / cs), R = { x0: cx - half, y0: cy - half, cs: cs, w: w, h: w, a: new Uint8Array(w * w) };
+  var bb = [R.x0, R.y0, R.x0 + w * cs, R.y0 + w * cs], seen = new Set();
+  WATER.forEach(function (p) { if (p[0].length < 6) return; fillRing(R, p[0], 2); for (var h = 1; h < p.length; h++) if (p[h].length >= 6) fillRing(R, p[h], 0); });
+  BRIDGES.forEach(function (r) { if (r.length >= 6) fillRing(R, r, 0); });
+  for (var gx = Math.floor(bb[0] / 100); gx <= Math.floor(bb[2] / 100); gx++) for (var gy = Math.floor(bb[1] / 100); gy <= Math.floor(bb[3] / 100); gy++)
+    (BGRID[gx + ',' + gy] || []).forEach(function (rec) {
+      var b = rec.b;
+      if (seen.has(rec) || b[2] < bb[0] || b[0] > bb[2] || b[3] < bb[1] || b[1] > bb[3]) return;
+      seen.add(rec); fillRing(R, rec.r, 1);
+    });
+  return R;
+}
+// open ground around a place, nearest first along the ground (Dijkstra over the raster's open
+// cells that connect to its edge). water: the same over the river, for ships.
+function openGround(id, water) {
+  var key = id + (water ? '~w' : '');
+  if (GROUND[key]) return GROUND[key];
+  var l = PL[id]; if (!l || !l.p) return null;
+  var c = l.stage || l.p, R = raster(c[0], c[1], 150, 1.8), W = R.w, H = R.h, A = R.a, want = water ? 2 : 0;
+  var ok = new Uint8Array(W * H), q = new Int32Array(W * H), qh = 0, qt = 0, k, x, y;
+  function seed(i) { if (A[i] === want && !ok[i]) { ok[i] = 1; q[qt++] = i; } }
+  for (k = 0; k < W; k++) { seed(k); seed((H - 1) * W + k); }
+  for (k = 0; k < H; k++) { seed(k * W); seed(k * W + W - 1); }
+  while (qh < qt) {
+    k = q[qh++]; x = k % W; y = (k / W) | 0;
+    if (x > 0) seed(k - 1); if (x < W - 1) seed(k + 1); if (y > 0) seed(k - W); if (y < H - 1) seed(k + W);
+  }
+  var ci = (c[0] - R.x0) / R.cs, cj = (c[1] - R.y0) / R.cs, start = -1, bd = 1e18;
+  for (k = 0; k < W * H; k++) if (ok[k]) { var dx = k % W - ci, dy = ((k / W) | 0) - cj, d2 = dx * dx + dy * dy; if (d2 < bd) { bd = d2; start = k; } }
+  if (start < 0) return (GROUND[key] = null);
+  // Dijkstra, 8 neighbours: octagons of open ground spreading from the start, around walls
+  var dist = new Float32Array(W * H).fill(1e9), order = [], heap = [[0, start]];
+  dist[start] = 0;
+  var NB = [[1, 0, 1], [-1, 0, 1], [0, 1, 1], [0, -1, 1], [1, 1, 1.414], [1, -1, 1.414], [-1, 1, 1.414], [-1, -1, 1.414]];
+  while (heap.length && order.length < 2600) {
+    var top = heapPop(heap), d = top[0], u = top[1];
+    if (d > dist[u]) continue;
+    order.push(u);
+    var ux = u % W, uy = (u / W) | 0;
+    for (var n = 0; n < 8; n++) {
+      var vx = ux + NB[n][0], vy = uy + NB[n][1];
+      if (vx < 0 || vy < 0 || vx >= W || vy >= H) continue;
+      var v = vy * W + vx, nd = d + NB[n][2];
+      if (ok[v] && nd < dist[v]) { dist[v] = nd; heapPush(heap, [nd, v]); }
+    }
+  }
+  var g = { R: R, ok: ok, order: order, dist: dist, cx: c[0], cy: c[1], sx: R.x0 + (start % W + 0.5) * R.cs, sy: R.y0 + (((start / W) | 0) + 0.5) * R.cs };
+  if (water) {   // the river's long axis, for a ship's heading
+    var mx = 0, my = 0, sxx = 0, syy = 0, sxy = 0, m = Math.min(order.length, 900);
+    for (k = 0; k < m; k++) { mx += cellX(g, order[k]); my += cellY(g, order[k]); }
+    mx /= m; my /= m;
+    for (k = 0; k < m; k++) { var ex = cellX(g, order[k]) - mx, ey = cellY(g, order[k]) - my; sxx += ex * ex; syy += ey * ey; sxy += ex * ey; }
+    g.axis = 0.5 * Math.atan2(2 * sxy, sxx - syy);
+  }
+  return (GROUND[key] = g);
+}
+function cellX(g, k) { return g.R.x0 + (k % g.R.w + 0.5) * g.R.cs; }
+function cellY(g, k) { return g.R.y0 + (((k / g.R.w) | 0) + 0.5) * g.R.cs; }
+function heapPush(h, it) { h.push(it); var i = h.length - 1; while (i > 0) { var p = (i - 1) >> 1; if (h[p][0] <= h[i][0]) break; var t = h[p]; h[p] = h[i]; h[i] = t; i = p; } }
+function heapPop(h) {
+  var top = h[0], last = h.pop();
+  if (h.length) { h[0] = last; var i = 0; for (;;) { var l = 2 * i + 1, r = l + 1, m = i; if (l < h.length && h[l][0] < h[m][0]) m = l; if (r < h.length && h[r][0] < h[m][0]) m = r; if (m === i) break; var t = h[m]; h[m] = h[i]; h[i] = t; i = m; } }
+  return top;
+}
+
+// ---------- who is on the scene ----------
+// A group is a body of people (and its kit) standing at a place: the presences Reed's text
+// keeps there (story.presence), laid out on the open ground, with the defenders of a held
+// building facing outward and everybody else facing it.
+var PERSON_FIG = { soviet: 'intelligent', government: 'officer', opposition: 'bourgeois2', observer: 'reed', foreign: 'bourgeois2', neutral: 'intelligent', public: 'worker' };
+var GROUPS = [], stageDirty = true, lastFS = 0;
+function members(fig, n, seed) {
+  // the composition as a list of model keys, shares rounded so small groups keep their mix
+  var out = [], acc = 0;
+  for (var i = 0; i < n; i++) {
+    var r = hash(seed * 13.7 + i * 1.9), s = 0, t = fig[fig.length - 1][0];
+    for (var j = 0; j < fig.length; j++) { s += fig[j][1]; if (r < s) { t = fig[j][0]; break; } }
+    var v = PK.variants[t]; out.push(v ? v[Math.floor(hash(seed + i * 7.3) * v.length)] : t);
+  }
+  return out;
+}
+function holderBloc(id, t) { var s = holdAt(id, t); return s && s.holder ? blocOf(s.holder) : null; }
+function facingYaw(x, y, tx, ty) { return Math.atan2(tx - x, -(ty - y)); }   // world z is -y
+function layoutPlace(id, groups, t) {
+  var G = openGround(id, false); if (!G) return;
+  var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t), st = holdAt(id, t);
+  var siege = st && (st.state === 'besieged' || st.state === 'contested'), gapIx = 0;
+  while (gapIx < G.order.length - 1 && G.dist[G.order[gapIx]] * G.R.cs < 24) gapIx++;
+  function free(k) { return G.ok[k] && !used[k]; }
+  function clear(k, r) {   // the cells within r metres of k are open and unused
+    var rc = Math.ceil(r / G.R.cs), kx = k % W, ky = (k / W) | 0;
+    for (var dy = -rc; dy <= rc; dy++) for (var dx = -rc; dx <= rc; dx++) {
+      var x = kx + dx, y = ky + dy; if (x < 0 || y < 0 || x >= W || y >= G.R.h) return false;
+      if (dx * dx + dy * dy <= rc * rc && !free(y * W + x)) return false;
+    }
+    return true;
+  }
+  function take(k, r) {
+    var rc = Math.ceil((r || 0) / G.R.cs), kx = k % W, ky = (k / W) | 0;
+    for (var dy = -rc; dy <= rc; dy++) for (var dx = -rc; dx <= rc; dx++) { var x = kx + dx, y = ky + dy; if (x >= 0 && y >= 0 && x < W && y < G.R.h) used[y * W + x] = 1; }
+  }
+  function pick(from, r, minI) {   // the first cell in ground order, from index `from`, with room r
+    for (var i = Math.max(from, minI || 0); i < G.order.length; i++) { var k = G.order[i]; if (free(k) && (!r || clear(k, r))) return i; }
+    return -1;
+  }
+  groups.forEach(function (g, gi) {
+    g.members = []; g.props = []; g.fires = [];
+    var defend = owner && g.bloc === owner && !g.brief, seed = g.seed;
+    // under siege the besiegers keep their distance, down the street or across the square
+    var cur = siege && owner && g.bloc !== owner ? gapIx : 0;
+    function yawAt(x, y) { var a = facingYaw(x, y, G.cx, G.cy); return (defend ? a + Math.PI : a) + (hash(seed + x * 0.37 + y) - 0.5) * 0.7; }
+    var figs = members(g.fig, g.n, seed), fi = 0, kit = g.kit || [];
+    function kitN(name, dflt) { for (var i = 0; i < kit.length; i++) { var p = kit[i].split(':'); if (p[0] === name) return p[1] ? +p[1] : dflt; } return 0; }
+    // machine guns and fires close in front of the place; vehicles and guns where there is room
+    var nMg = kitN('mg', 2), nFire = kitN('fire', 1), nGun = kitN('gun', 1), nArm = kitN('armoured', 1), nTruck = kitN('truck', 1), nCar = kitN('car', 1);
+    var i, ix, k;
+    for (i = 0; i < nMg; i++) {
+      ix = pick(cur + i * 3, 0.9); if (ix < 0) break; k = G.order[ix]; take(k, 0.9);
+      var mx = cellX(G, k), my = cellY(G, k), my2 = yawAt(mx, my);
+      g.props.push({ k: 'mg', x: mx, y: my, yaw: my2 });
+      if (fi < figs.length) g.members.push({ k: figs[fi++], x: mx, y: my, ox: -Math.sin(my2) * 0.8, oy: Math.cos(my2) * 0.8, yaw: my2, idle: 0.2 });
+    }
+    for (i = 0; i < nFire; i++) {
+      ix = pick(cur + 6 + i * 40, 3.2); if (ix < 0) break; k = G.order[ix]; take(k, 3.2);
+      var fx = cellX(G, k), fy = cellY(G, k); g.fires.push([fx, fy]); g.props.push({ k: 'logs', x: fx, y: fy, yaw: 0 });
+      for (var a = 0; a < 7 && fi < figs.length; a++) {
+        var an = a / 7 * Math.PI * 2 + hash(seed + a) * 0.4, ox = Math.cos(an) * 1.25, oy = Math.sin(an) * 1.25;
+        g.members.push({ k: figs[fi++], x: fx, y: fy, ox: ox, oy: oy, yaw: facingYaw(ox, oy, 0, 0), idle: 0.5 });
+      }
+    }
+    [['gun', nGun, 2.2], ['armoured', nArm, 3.4], ['truck', nTruck, 3.6], ['car', nCar, 2.8]].forEach(function (v) {
+      for (var j = 0; j < v[1]; j++) {
+        var at = pick(cur + 18 + j * 25, v[2]); if (at < 0) return;
+        var kk = G.order[at]; take(kk, v[2]);
+        var vx = cellX(G, kk), vy = cellY(G, kk), yaw = v[0] === 'gun' ? yawAt(vx, vy) : facingYaw(vx, vy, G.cx, G.cy) + Math.PI / 2 + (hash(seed + j) - 0.5);
+        g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw });
+        if (v[0] === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: vx, y: vy, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2 });
+      }
+    });
+    // the people, nearest open ground first
+    for (; fi < figs.length; fi++) {
+      ix = pick(cur, 0); if (ix < 0) break; k = G.order[ix]; take(k, 0);
+      var x = cellX(G, k) + (hash(seed + fi * 3.1) - 0.5) * 0.9, y = cellY(G, k) + (hash(seed + fi * 5.7) - 0.5) * 0.9;
+      g.members.push({ k: figs[fi], x: x, y: y, yaw: yawAt(x, y), idle: g.brief ? 0.8 : 0.35 });
+    }
+    // barricades in front of the body, across the way in
+    var nBar = kitN('barricade', 2);
+    for (i = 0; i < nBar; i++) {
+      ix = pick(cur + 10 + i * 30, 1.5); if (ix < 0) break; k = G.order[ix]; take(k, 3);
+      var bx = cellX(G, k), by = cellY(G, k);
+      g.props.push({ k: i % 2 ? 'barricade2' : 'barricade', x: bx, y: by, yaw: facingYaw(bx, by, G.cx, G.cy) });
+    }
+    // flags and banners in a few hands, torches in every other hand, a bicycle for each cyclist
+    carryKit(g.members, kit);
+    var sx = 0, sy = 0; g.members.forEach(function (mm) { sx += mm.x; sy += mm.y; });
+    g.cx = g.members.length ? sx / g.members.length : G.sx; g.cy = g.members.length ? sy / g.members.length : G.sy;
+    var r = 4; g.members.forEach(function (mm) { r = Math.max(r, Math.hypot(mm.x - g.cx, mm.y - g.cy)); }); g.r = r;
+  });
+}
+function stageScene(e, noReed) {
+  var idx = seq.indexOf(e), byPlace = {};
+  GROUPS = [];
+  (S.presence || []).forEach(function (p, pi) {
+    if (p.from > idx || (p.to != null && idx >= p.to)) return;
+    var l = PL[p.place]; if (!l || !l.p || l.far) return;
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, brief: p.to === p.from + 1 && p.ev === e.id, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
+    GROUPS.push(g);
+    if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
+  });
+  Object.keys(byPlace).forEach(function (id) {
+    // the ones who were there before come first, so they keep their ground from scene to scene
+    var gs = byPlace[id].sort(function (a, b) { return (a.brief - b.brief) || (a.pi - b.pi); });
+    layoutPlace(id, gs, e.t);
+  });
+  if (!noReed && e.witness === 'seen' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {
+    var RG = openGround(rootOf(e.loc), false);
+    if (RG) GROUPS.push({ members: [{ k: 'reed', x: RG.sx, y: RG.sy, yaw: facingYaw(RG.sx, RG.sy, RG.cx, RG.cy), idle: 0.3 }], props: [], fires: [], bloc: 'observer', label: 'Reed', place: rootOf(e.loc), seed: 3, cx: RG.sx, cy: RG.sy, r: 3, reed: true });
+  }
+  GROUPS.forEach(function (g) {
+    if (!g.ship) return;
+    var G = openGround(g.place, true); if (!G) return;
+    g.members = []; g.props = [{ k: 'avrora', x: G.sx, y: G.sy, yaw: Math.atan2(Math.cos(G.axis), -Math.sin(G.axis)), ship: true }]; g.cx = G.sx; g.cy = G.sy; g.r = 60; g.fires = [];
+  });
+  stageDirty = true;
+}
+var SHORT = { 'red-guards': 'Red Guards', sailors: 'Sailors', garrison: 'Soldiers', yunkers: 'Yunkers', 'vladimir-yunkers': 'Vladimir yunkers',
+  'engineers-yunkers': 'Engineering yunkers', 'pavlovsk-yunkers': 'Pavlovsk yunkers', 'womens-battalion': 'Women’s Battalion', 'peter-paul-garrison': 'Peter-Paul garrison',
+  avrora: 'The Avrora', mrc: 'Military Revolutionary Committee', 'military-staff': 'The Staff', workers: 'Workers', crowd: 'Crowd', duma: 'The Duma’s militia',
+  cyclists: 'Cyclists', 'armoured-cars': 'Armoured cars', 'duma-procession': 'The Duma’s procession', 'peasants-congress': 'Peasants’ Congress', pavlovsky: 'Pavlovsky Regiment' };
+function groupLabel(who) { return SHORT[who] || actorName(who); }
+
+function kitHas(kit, name) { return (kit || []).some(function (k) { return k.split(':')[0] === name; }); }
+function carryKit(list, kit) {
+  var n = list.length; if (!n) return;
+  if (kitHas(kit, 'banner')) {
+    var nb = Math.max(1, Math.round(n / 15)), step = Math.max(1, Math.floor(n / nb));
+    for (var b = 0; b < nb; b++) list[Math.min(n - 1, b * step + (step >> 1))].carry = n > 20 ? 'banner' : 'flag';
+  }
+  if (kitHas(kit, 'torch')) list.forEach(function (m, i) { if (i % 2 && !m.carry) m.carry = 'torch'; });
+  if (kitHas(kit, 'bicycle')) list.forEach(function (m) { m.bike = true; });
+}
+
+// ---------- movers ----------
+// The bodies that move in a scene walk, ride or drive their route: on foot in a column four
+// abreast, in the vehicle their mode names, guns behind their teams. Reed walks alone, with a
+// glow under him. A move with no known route is an arc, and a pennant travels it; the body shows
+// up at the end.
+var VEH = { armoured: 'armoured', truck: 'truck', car: 'car', tram: 'tram', cab: 'cab' };
+var movers = [];   // this scene's: {o, list, veh, cols, f}
 function glowDisc() {
   var cv = document.createElement('canvas'); cv.width = cv.height = 64;
   var cx = cv.getContext('2d'), gr = cx.createRadialGradient(32, 32, 0, 32, 32, 32);
   gr.addColorStop(0, 'rgba(255,236,200,0.95)'); gr.addColorStop(0.35, 'rgba(240,200,140,0.45)'); gr.addColorStop(1, 'rgba(240,200,140,0)');
   cx.fillStyle = gr; cx.fillRect(0, 0, 64, 64);
-  var m = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
-  m.rotation.x = -Math.PI / 2; m.position.y = 0.8; m.renderOrder = 5; return m;
+  var m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  m.rotation.x = -Math.PI / 2; m.renderOrder = 5; return m;
 }
-var reedFig = figure(0x1a1714); reedFig.add(glowDisc()); reedFig.visible = false; scene.add(reedFig);
-var moverCache = {};
-function moverFor(who) {
-  if (who === 'reed') return reedFig;
-  if (moverCache[who]) return moverCache[who];
-  var a = AC[who] || { kind: 'unit', bloc: 'neutral' }, col = BLOCC[a.bloc] || BLOCC.neutral;
-  var mat = new THREE.MeshLambertMaterial({ color: col, emissive: col.clone().multiplyScalar(0.2) }), g = new THREE.Group();
-  var many = a.kind !== 'person' && a.kind !== 'ship', cone = new THREE.ConeGeometry(2.3, 7.5, 10);
-  var spots = many ? [[0, 0], [-5, -4], [5, -4], [-4, 5], [4, 5], [0, -9], [0, 9]] : [[0, 0]];
-  spots.forEach(function (s) { var c = new THREE.Mesh(cone, mat); c.position.set(s[0], 3.75, s[1]); c.castShadow = true; g.add(c); });
-  g.visible = false; scene.add(g); moverCache[who] = g; return g;
+var reedGlow = glowDisc(); reedGlow.visible = false; scene.add(reedGlow);
+function hashStr(s) { var h = 7; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 10007; return h; }
+function moverOf(o) {
+  var m = o.m, a = AC[m.who] || {}, veh = VEH[m.mode] || null, list = [];
+  if (m.who === 'reed') list = ['reed'];
+  else if (a.kind === 'person') list = [PERSON_FIG[a.bloc] || 'intelligent'];
+  else if (m.fig) list = members(m.fig, Math.min(m.n || 12, veh ? 6 : 72), hashStr(m.who + m.from));
+  (m.wfig || []).forEach(function (w) { list = list.concat(members(w[0], Math.min(w[1], 40), hashStr(m.who + 'w'))); });
+  var mm = list.map(function (k, i) { return { k: k, i: i }; });
+  carryKit(mm, m.kit);
+  var guns = 0; (m.kit || []).forEach(function (k) { var p = k.split(':'); if (p[0] === 'gun') guns = p[1] ? +p[1] : 1; });
+  return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, cols: mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
+}
+// where a body member is: d metres along the route, `side` metres to its right; returns [x, y, yaw]
+var _pa = new THREE.Vector3();
+function alongPath(o, d, side) {
+  var p = pointAt(o, d), q = pointAt(o, d + 3);
+  var x = p.a.x + (p.b.x - p.a.x) * p.t, z = p.a.z + (p.b.z - p.a.z) * p.t;
+  var qx = q.a.x + (q.b.x - q.a.x) * q.t, qz = q.a.z + (q.b.z - q.a.z) * q.t, dx = qx - x, dz = qz - z;
+  if (dx * dx + dz * dz < 1e-4) { dx = p.b.x - p.a.x; dz = p.b.z - p.a.z; }
+  var yaw = Math.atan2(dx, dz), L = Math.hypot(dx, dz) || 1;
+  return [x + dz / L * side, -(z - dx / L * side), yaw];   // map coordinates (y north)
+}
+function drawMover(mv, FS, t) {
+  var o = mv.o, gap = 1.25 * FS, walking = mv.f > 0 && mv.f < 1 ? 1 : 0, lead = mv.f * o.total;
+  if (mv.arc) {   // no route: a pennant rides the arc; the body waits at the end
+    if (mv.f < 1) {
+      var p = pointAt(o, lead), x = p.a.x + (p.b.x - p.a.x) * p.t, y = p.a.y + (p.b.y - p.a.y) * p.t, z = p.a.z + (p.b.z - p.a.z) * p.t;
+      put('flag', x, y - 3 * FS, z, 0, FS * 1.4, mv.o.e.id.length, 0, 0); mv.lx = x; mv.ly = -z;
+      if (mv.list[0] && mv.list[0].k === 'reed') { reedGlow.position.set(x, 0.8, z); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
+      return;
+    }
+    lead = o.total;
+  }
+  var head = lead, cols = mv.cols;
+  if (mv.veh) {
+    var v = alongPath(o, head, 0), vk = mv.veh; mv.lx = v[0]; mv.ly = v[1];
+    patch(v[0], v[1], 3.2 * FS, mv.bloc);
+    put(vk, v[0], 0, -v[1], v[2], FS, 0, 0, 0);
+    // who rides: in the truck's bed, in the car, on the cab, on the tram's platform
+    var seats = vk === 'truck' ? [[-0.5, -0.4], [0.5, -0.4], [-0.5, -1.3], [0.5, -1.3], [0, -2.1], [0, -0.9]] : vk === 'car' ? [[0.35, -0.6], [-0.35, -0.6], [0.35, 0.3]] :
+      vk === 'cab' ? [[0, -1.9]] : vk === 'tram' ? [[0.4, -4.1], [-0.4, -4.1]] : [];
+    var hy = vk === 'truck' ? 1.0 : vk === 'car' ? 0.55 : vk === 'cab' ? 0.75 : vk === 'tram' ? 0.6 : 0;
+    mv.list.forEach(function (mm, i) {
+      if (vk === 'armoured' || i >= seats.length) return;
+      var s = seats[i], c = Math.cos(v[2]), sn = Math.sin(v[2]);
+      var wx = v[0] + (s[0] * c + s[1] * sn) * FS, wz = -v[1] + (-s[0] * sn + s[1] * c) * FS;
+      put(mm.k, wx, hy * FS, wz, v[2], FS * (vk === 'car' ? 0.85 : 1), i, 0, 0.2);
+      if (mm.k === 'reed') { reedGlow.position.set(wx, 0.8, wz); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
+    });
+    if (mv.leaflets && walking) leafletsAt(v[0], -v[1], v[2], FS, t);
+    return;
+  }
+  var gunRows = 0;
+  if (mv.cav && mv.guns) {   // a battery: each gun behind a pair of horses, the rest riding after
+    for (var gI = 0; gI < mv.guns; gI++) {
+      var gd = head - gI * 9 * FS, g1 = alongPath(o, gd, 0), g2 = alongPath(o, gd - 4 * FS, 0);
+      put('horse', g1[0] + Math.cos(g1[2]) * 0.55 * FS, 0, -g1[1] - Math.sin(g1[2]) * 0.55 * FS, g1[2], FS, gI, walking, 0);
+      put('horse2', g1[0] - Math.cos(g1[2]) * 0.55 * FS, 0, -g1[1] + Math.sin(g1[2]) * 0.55 * FS, g1[2], FS, gI + 0.5, walking, 0);
+      put('gun', g2[0], 0, -g2[1], g2[2] + Math.PI, FS, 0, 0, 0);
+    }
+    gunRows = mv.guns * 9 / 1.25;
+  }
+  mv.list.forEach(function (mm, i) {
+    var row = Math.floor(i / cols) + gunRows, col = i % cols, d = head - row * gap * (mv.cav ? 2.2 : 1);
+    var side = (col - (cols - 1) / 2) * gap * 0.9;
+    var p = alongPath(o, Math.max(0, d), side), key = mv.cav && !mv.guns ? 'cavalry' : mm.k;
+    if (i === 0) { mv.lx = p[0]; mv.ly = p[1]; }
+    if (mv.cav && mv.guns) key = 'cavalry';
+    put(key, p[0], 0, -p[1], p[2], FS, i * 1.3, walking, walking ? 0 : 0.3);
+    if (mm.k !== 'reed') patch(p[0], p[1], 0.95 * FS, mv.bloc);
+    if (mm.carry) carried(mm.carry, p[0], p[1], p[2], FS, t, i);
+    if (mm.bike) put('bicycle', p[0] + Math.cos(p[2]) * 0.5 * FS, 0, -p[1] - Math.sin(p[2]) * 0.5 * FS, p[2], FS, 0, 0, 0);
+    if (mm.k === 'reed') { reedGlow.position.set(p[0], 0.8, -p[1]); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
+  });
+}
+// a flag, a banner or a torch in a figure's right hand
+function carried(what, x, y, yaw, FS, t, i) {
+  var rx = Math.cos(yaw) * 0.36 * FS, rz = -Math.sin(yaw) * 0.36 * FS;
+  if (what === 'banner') put('banner', x + Math.sin(yaw) * 0.4 * FS, 0.2 * FS, -y + Math.cos(yaw) * 0.4 * FS, yaw, FS, i, 0, 0);
+  else if (what === 'flag') put('flag', x + rx, 0.5 * FS, -y + rz, yaw, FS, i, 0, 0);
+  else if (what === 'torch') { put('torch', x + rx, 0.45 * FS, -y + rz, yaw, FS, 0, 0, 0); flames.push([x + rx, 2.4 * FS, -y + rz, 0.55 * FS, i]); }
+}
+
+// ---------- sparks and smoke ----------
+// Fire after dark, torches, muzzle flashes, gunsmoke and the truck's leaflets: points with a
+// soft round sprite, sized in metres.
+function dotTex() {
+  var cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  var cx = cv.getContext('2d'), gr = cx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.4, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  cx.fillStyle = gr; cx.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(cv);
+}
+var DOT = dotTex(), spriteScale = { value: 800 };
+function Sprites(max, additive) {
+  this.max = max; this.n = 0;
+  this.pos = new Float32Array(max * 3); this.col = new Float32Array(max * 4); this.size = new Float32Array(max);
+  var g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(this.col, 4)); g.setAttribute('size', new THREE.BufferAttribute(this.size, 1));
+  this.geo = g;
+  var mat = new THREE.ShaderMaterial({
+    uniforms: { map: { value: DOT }, uScale: spriteScale }, transparent: true, depthWrite: false,
+    blending: additive ? THREE.AdditiveBlending : THREE.NormalBlending,
+    vertexShader: 'attribute float size; attribute vec4 color; varying vec4 vC; uniform float uScale; void main(){ vC = color; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = size * uScale / max(1.0, -mv.z); gl_Position = projectionMatrix * mv; }',
+    fragmentShader: 'uniform sampler2D map; varying vec4 vC; void main(){ vec4 t = texture2D(map, gl_PointCoord); gl_FragColor = vec4(vC.rgb, vC.a * t.a); }'
+  });
+  this.points = new THREE.Points(g, mat); this.points.frustumCulled = false; this.points.renderOrder = 4; scene.add(this.points);
+}
+Sprites.prototype.add = function (x, y, z, size, r, g, b, a) {
+  if (this.n >= this.max) return; var i = this.n++;
+  this.pos[i * 3] = x; this.pos[i * 3 + 1] = y; this.pos[i * 3 + 2] = z; this.size[i] = size;
+  this.col[i * 4] = r; this.col[i * 4 + 1] = g; this.col[i * 4 + 2] = b; this.col[i * 4 + 3] = a;
+};
+Sprites.prototype.end = function () {
+  this.geo.setDrawRange(0, this.n);
+  ['position', 'color', 'size'].forEach(function (k) { this.geo.attributes[k].needsUpdate = true; }, this);
+  this.n = 0;
+};
+var glowFx = new Sprites(900, true), smokeFx = new Sprites(500, false), flames = [], puffs = [], flakes = [];
+var darkNow = false;
+function leafletsAt(x, z, yaw, FS, t) {
+  if (flakes.length < 220 && Math.random() < 0.5) flakes.push({ x: x - Math.sin(yaw) * 2.5 * FS, y: 2.6 * FS, z: z - Math.cos(yaw) * 2.5 * FS, vx: (Math.random() - 0.5) * 3, vy: 1.5 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, t0: t, life: 4 + Math.random() * 3 });
+}
+var shotClock = 0, shotLast = 0;
+function shoot(t, FS) {
+  // muzzle flashes from the bodies on the scene, and smoke where they fire: about six a second,
+  // whatever the frame rate, while the scene is one where Reed reports firing
+  var dtS = Math.min(1, t - (shotLast || t)); shotLast = t;
+  if (!cur || intro || (cur.tags || []).indexOf('shooting') < 0) return;
+  shotClock += dtS * 6;
+  var here = GROUPS.filter(function (g) { return g.members && g.members.length && !g.ship && PL[g.place] && PL[cur.loc] && near(g.place, cur.loc, 450); });
+  while (shotClock >= 1 && here.length) { shotClock -= 1; fireOne(here, t, FS); }
+  shotClock = Math.min(shotClock, 3);
+}
+function fireOne(here, t, FS) {
+  var g = here[Math.floor(Math.random() * here.length)], m = g.members[Math.floor(Math.random() * g.members.length)];
+  var fx = m.x + Math.sin(m.yaw) * 0.6 * FS, fz = -m.y + Math.cos(m.yaw) * 0.6 * FS, fy = 1.7 * FS;
+  puffs.push({ x: fx, y: fy, z: fz, t0: t, life: 0.16, flash: 1, s: 2.2 * FS });
+  puffs.push({ x: fx, y: fy, z: fz, t0: t, life: 2.5 + Math.random() * 2, s: 1.4 * FS, vx: (Math.random() - 0.5) * 0.8, vy: 0.6, vz: (Math.random() - 0.5) * 0.8 });
+  g.props.forEach(function (pr) {
+    if ((pr.k === 'gun' || pr.k === 'armoured') && Math.random() < 0.12) {
+      var gx = pr.x + Math.sin(pr.yaw) * 2.4 * FS, gz = -pr.y + Math.cos(pr.yaw) * 2.4 * FS;
+      puffs.push({ x: gx, y: 1.2 * FS, z: gz, t0: t, life: 0.14, flash: 1, s: 5 * FS });
+      for (var i = 0; i < 4; i++) puffs.push({ x: gx, y: 1.2 * FS, z: gz, t0: t, life: 5 + Math.random() * 3, s: 4 * FS, vx: (Math.random() - 0.5) * 2, vy: 0.9, vz: (Math.random() - 0.5) * 2 });
+    }
+  });
+}
+function near(a, b, m) { var p = PL[rootOf(a)] || PL[a], q = PL[rootOf(b)] || PL[b]; return p && q && p.p && q.p && Math.hypot(p.p[0] - q.p[0], p.p[1] - q.p[1]) < m; }
+function drawFx(t, FS) {
+  // fires burn after dark; each is a few flickering flames and a wide glow
+  GROUPS.forEach(function (g) {
+    (g.fires || []).forEach(function (f, i) {
+      if (!darkNow) return;
+      var fl = 0.75 + 0.25 * Math.sin(t * 13 + i * 3) * Math.sin(t * 7.3 + i);
+      glowFx.add(f[0], 1.2 * FS, -f[1], 14 * FS * fl, 1.0, 0.55, 0.22, 0.32);
+      for (var k = 0; k < 4; k++) glowFx.add(f[0] + Math.sin(t * 5 + k * 2) * 0.25 * FS, (0.5 + k * 0.28 + 0.15 * Math.sin(t * 9 + k)) * FS, -f[1] + Math.cos(t * 6 + k) * 0.25 * FS, (1.7 - k * 0.3) * FS * fl, 1.0, 0.62 - k * 0.08, 0.2, 0.9);
+    });
+  });
+  flames.forEach(function (f) {
+    var fl = 0.8 + 0.2 * Math.sin(t * 15 + f[4]);
+    glowFx.add(f[0], f[1], f[2], f[3] * 1.45 * fl, 1.0, 0.62, 0.25, darkNow ? 0.95 : 0.6);
+    if (darkNow) glowFx.add(f[0], f[1], f[2], f[3] * 6, 1.0, 0.5, 0.2, 0.06);
+  });
+  flames.length = 0;
+  puffs = puffs.filter(function (p) {
+    var a = (t - p.t0) / p.life; if (a >= 1) return false;
+    if (p.flash) glowFx.add(p.x, p.y, p.z, p.s * (1 + a), 1.0, 0.85, 0.45, 1 - a);
+    else smokeFx.add(p.x + p.vx * (t - p.t0), p.y + p.vy * (t - p.t0), p.z + p.vz * (t - p.t0), p.s * (1 + a * 2.5), 0.86, 0.85, 0.82, 0.55 * (1 - a));
+    return true;
+  });
+  flakes = flakes.filter(function (p) {
+    var dt = t - p.t0, a = dt / p.life; if (a >= 1) return false;
+    var y = Math.max(0.1, p.y + p.vy * dt - 1.1 * dt * dt);
+    glowFx.add(p.x + p.vx * dt + Math.sin(dt * 5 + p.t0) * 0.6, y, p.z + p.vz * dt + Math.cos(dt * 4) * 0.6, 0.55 * FS, 0.95, 0.93, 0.86, darkNow ? 0.9 : 0.55);
+    return true;
+  });
+  glowFx.end(); smokeFx.end();
+}
+
+// ---------- whose side ----------
+// a faint patch of each side's colour under every body of people, so the sides read at a glance
+function discTex() {
+  var cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  var cx = cv.getContext('2d'), gr = cx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, 'rgba(255,255,255,0.85)'); gr.addColorStop(0.62, 'rgba(255,255,255,0.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  cx.fillStyle = gr; cx.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(cv);
+}
+var patchGeo = new THREE.PlaneGeometry(2, 2); patchGeo.rotateX(-Math.PI / 2);
+var patchMat = new THREE.MeshBasicMaterial({ map: discTex(), transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -3 });
+var patches = new THREE.InstancedMesh(patchGeo, patchMat, 600); patches.count = 0; patches.frustumCulled = false; patches.renderOrder = 3; scene.add(patches);
+patches.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(600 * 3), 3);
+var patchN = 0, _pc = new THREE.Color();
+function patch(x, y, r, bloc) {
+  if (patchN >= 600 || !bloc || bloc === 'observer') return;
+  _q4.identity(); _m4.compose(_p4.set(x, 0.32, -y), _q4, _s4.set(r, 1, r));
+  patches.setMatrixAt(patchN, _m4); patches.setColorAt(patchN, _pc.set(BLOC[bloc] || BLOC.neutral)); patchN++;
+}
+function flushPatches() { patches.count = patchN; patches.instanceMatrix.needsUpdate = true; patches.instanceColor.needsUpdate = true; patchN = 0; }
+
+// ---------- drawing them ----------
+var SHIP_Y = -EMB + 0.2;
+function drawPeople(now, FS) {
+  var t = now / 1000;
+  figUni.uTime.value = t;
+  reedGlow.visible = false;
+  GROUPS.forEach(function (g) {
+    if (!g.ship && !g.reed && g.members && g.members.length) patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc);
+    (g.props || []).forEach(function (pr) { put(pr.k, pr.x, pr.ship ? SHIP_Y : 0, -pr.y, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0); });
+    (g.members || []).forEach(function (mm, i) {
+      var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS;
+      put(mm.k, x, 0, -y, mm.yaw, FS, g.seed + i * 1.7, 0, mm.idle);
+      if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i);
+      if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * FS, 0, -y - Math.sin(mm.yaw) * 0.5 * FS, mm.yaw, FS, 0, 0, 0);
+      if (mm.k === 'reed') { reedGlow.position.set(x, 0.8, -y); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
+    });
+  });
+  movers.forEach(function (mv) { drawMover(mv, FS, t); });
+  flushInst(); flushPatches();
 }
 
 // ---------- sun ----------
@@ -842,9 +1323,41 @@ function introLabels() {
     if (o.el.className !== cls) o.el.className = cls;
   });
 }
+var grpLabels = [];
+function hideGroupLabels(from) { for (var i = from || 0; i < grpLabels.length; i++) if (grpLabels[i].show) { grpLabels[i].el.style.display = 'none'; grpLabels[i].show = false; } }
+function placeGroupLabels(w, h, placed) {
+  var n = 0, camD = camera.position.distanceTo(controls.target), FS = Math.max(2.0, Math.min(7, camD / 85)), here = PL[rootOf(cur.loc)];
+  if (labelsOn && camD < 1700 && here && here.p) {
+    var cands = [];
+    GROUPS.forEach(function (g) { if (g.cx != null && !g.reed && Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) < 900) cands.push({ x: g.cx, y: g.cy, h: g.ship ? 42 : 3.0 * FS + 1, t: g.label, b: g.bloc, big: (g.members || []).length + (g.ship ? 50 : 0) }); });
+    movers.forEach(function (mv) { if (mv.lx != null && mv.m.who !== 'reed') cands.push({ x: mv.lx, y: mv.ly, h: 3.3 * FS + 1, t: mv.label, b: mv.bloc, big: 999 }); });
+    cands.sort(function (a, b) { return b.big - a.big; });
+    cands.forEach(function (c) {
+      v3.set(c.x, c.h, -c.y).project(camera);
+      if (!(v3.z < 1 && Math.abs(v3.x) < 1.02 && Math.abs(v3.y) < 1.02)) return;
+      var sx = (v3.x * 0.5 + 0.5) * w, sy = (-v3.y * 0.5 + 0.5) * h, ow = c.t.length * 7.2 + 18, oh = 19, rx = sx - ow / 2, ry = sy - oh, ok = false;
+      for (var lift = 0; lift < 3 && !ok; lift++) {
+        ok = true; ry = sy - oh - lift * (oh + 3);
+        for (var q = 0; q < placed.length; q++) { var r = placed[q]; if (rx < r[0] + r[2] + 3 && rx + ow + 3 > r[0] && ry < r[1] + r[3] + 2 && ry + oh + 2 > r[1]) { ok = false; break; } }
+      }
+      if (!ok) return;
+      sy = ry + oh;
+      placed.push([rx, ry, ow, oh]);
+      var o = grpLabels[n];
+      if (!o) { var d = document.createElement('div'); d.innerHTML = '<div class="in"><span class="n"></span></div>'; labelLayer.appendChild(d); o = grpLabels[n] = { el: d, txt: '', show: true }; }
+      if (o.txt !== c.t) { o.el.querySelector('.n').textContent = c.t; o.txt = c.t; }
+      if (!o.show) { o.el.style.display = ''; o.show = true; }
+      o.el.style.transform = 'translate(' + sx.toFixed(1) + 'px,' + sy.toFixed(1) + 'px)';
+      o.el.style.setProperty('--bc', BLOC[c.b] || BLOC.neutral);
+      var cls = 'lbl grp' + (labelsNight ? ' night' : ''); if (o.el.className !== cls) o.el.className = cls;
+      n++;
+    });
+  }
+  hideGroupLabels(n);
+}
 function updateLabels() {
-  if (intro) { introLabels(); return; }
-  if (!cur) { labels.forEach(hideLabel); return; }
+  if (intro) { hideGroupLabels(0); introLabels(); return; }
+  if (!cur) { labels.forEach(hideLabel); hideGroupLabels(0); return; }
   var w = canvas.clientWidth, h = canvas.clientHeight, cand = [];
   var curLoc = rootOf(cur.loc);
   for (var i = 0; i < labels.length; i++) {
@@ -876,6 +1389,7 @@ function updateLabels() {
     var cls = 'lbl ' + c.cls + (c.isCur ? ' cur' : '') + (labelsNight ? ' night' : '');
     if (c.el.className !== cls) { c.el.className = cls; c.ow = 0; }
   }
+  placeGroupLabels(w, h, placed);
 }
 
 // ---------- story state ----------
@@ -973,6 +1487,22 @@ function renderPanel(e) {
   var sp = sunAtEvent(e);
   $('r-sun').textContent = sp ? 'sun ' + (sp.el >= 0 ? sp.el.toFixed(0) + '° up' : Math.abs(sp.el).toFixed(0) + '° below') : 'sun —';
 }
+// the bodies standing at the scene, each with Reed's own words for it and the scene it came in
+var EVBYID = {}; EV.forEach(function (x) { EVBYID[x.id] = x; });
+function renderHere(e) {
+  var loc = rootOf(e.loc), items = GROUPS.filter(function (g) { return g.p && near(g.place, loc, 320); });
+  if (!items.length) return;
+  var f = $('ev-facts'), dt = document.createElement('dt'), dd = document.createElement('dd'), ul = document.createElement('ul');
+  dt.textContent = 'On the scene';
+  items.forEach(function (g) {
+    var li = document.createElement('li'), sw = document.createElement('span'), from = EVBYID[g.p.ev];
+    sw.className = 'sw'; sw.style.background = BLOC[g.bloc] || BLOC.neutral; li.appendChild(sw);
+    var since = from && from !== e ? ', since ' + dateLabel(from.t).replace(/ 1917$/, '').replace(/^\w+ /, '') : '';
+    li.appendChild(document.createTextNode(g.label + (g.size ? ': “' + typo(g.size) + '”' : '') + (g.place !== loc ? ' (' + nameOf(g.place) + ')' : '') + since));
+    ul.appendChild(li);
+  });
+  dd.appendChild(ul); f.appendChild(dt); f.appendChild(dd);
+}
 function sunAtEvent(e) {
   var l = PL[e.loc], lat = 59.94, lon = 30.31, off = S.meta.clock.petrograd;
   if (l && l.zone === 'moscow') { lat = 55.75; lon = 37.62; off = S.meta.clock.moscow; }
@@ -1020,11 +1550,29 @@ function markTimeline() {
 }
 
 // ---------- camera ----------
-var flight = null;
+var flight = null, closeAfter = null;
+var stageLight = new THREE.PointLight(0xffd9a0, 0, 330, 1.2); scene.add(stageLight);
+// While a body walks a long route, the camera comes down and keeps pace with it, unless the
+// reader takes the controls. follow: {mv, d (distance), pol}
+var follow = null;
+function followMover(e) {
+  var list = movers.filter(function (mv) { return !mv.arc && mv.o.total > 650; });
+  if (!list.length) return null;
+  var reed = list.filter(function (mv) { return mv.m.who === 'reed'; })[0];
+  var big = list.slice().sort(function (a, b) { return b.list.length - a.list.length; })[0];
+  var mv = reed || big, mps = mv.o.total / Math.max(1, walkMs(e, mv.o.total) / speed / 1000);   // metres a second on screen
+  return { mv: mv, d: Math.min(650, Math.max(PHONE ? 320 : 260, mps * 2.2)), pol: 1.0 };
+}
 function frameFor(e) {
   var box = new THREE.Box3(), l = PL[rootOf(e.loc)] || PL[e.loc];
   if (l && l.p && !l.far) { var c = new THREE.Vector3(l.p[0], 0, -l.p[1]); box.set(c.clone().addScalar(-300), c.clone().addScalar(300)); }
-  MOVES.forEach(function (o) { if (o.e === e && o.line.visible) o.pts.forEach(function (p) { box.expandByPoint(new THREE.Vector3(p.x, 0, p.z)); }); });
+  // the tour is Petrograd's: a route that leaves the city is framed only as far as the city's edge
+  MOVES.forEach(function (o) {
+    if (o.e === e && o.line.visible) o.pts.forEach(function (p) {
+      if (p.x < EXT[0] - 400 || p.x > EXT[2] + 400 || -p.z < EXT[1] - 400 || -p.z > EXT[3] + 400) return;
+      box.expandByPoint(new THREE.Vector3(p.x, 0, p.z));
+    });
+  });
   if (box.isEmpty()) box.set(new THREE.Vector3(EXT[0], 0, -EXT[3]), new THREE.Vector3(EXT[2], 0, -EXT[1]));
   var c2 = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
   var r = Math.max(size.x, size.z, 260) * 0.62, fovR = camera.fov * Math.PI / 180;
@@ -1036,6 +1584,44 @@ function frameFor(e) {
   var pol = dist > 2600 ? 0.6 : dist > 1500 ? 0.78 : 0.92;
   var pos = c2.clone().add(dir.multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
   return { target: c2, pos: pos };
+}
+// down among the people of the scene, when there are people to see
+function closeFrame(e) {
+  var id = rootOf(e.loc), l = PL[id]; if (!l || !l.p || l.far) return null;
+  var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0;
+  GROUPS.forEach(function (g) {
+    if (g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
+    var w = Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1); sx += g.cx * w; sy += g.cy * w; sw += w;
+  });
+  if (!sw && e.witness !== 'seen') return null;
+  if (sw) { tx = tx * 0.35 + sx / sw * 0.65; ty = ty * 0.35 + sy / sw * 0.65; }
+  var target = new THREE.Vector3(tx, 0, -ty), dist = PHONE ? 260 : 200, pol = 1.05;
+  var dir = camera.position.clone().sub(controls.target); dir.y = 0;
+  if (dir.lengthSq() < 1) dir.set(0, 0, 1);
+  dir.normalize();
+  // in a street the buildings hide the people: look down the street, from higher up
+  var lie = G && groundLie(G, tx, ty, 45);
+  if (lie && lie.open < 0.5 && lie.ratio > 2) {
+    var along = new THREE.Vector3(Math.cos(lie.axis), 0, -Math.sin(lie.axis));
+    if (along.dot(dir) < 0) along.negate();
+    dir.copy(along); pol = 0.78; dist *= 1.1;
+  } else if (lie && lie.open < 0.4) { pol = 0.8; }
+  var pos = target.clone().add(dir.multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
+  return { target: target, pos: pos };
+}
+// how open the ground is within r metres of (x, y), and the direction it runs
+function groundLie(G, x, y, r) {
+  var R = G.R, rc = Math.ceil(r / R.cs), ci = Math.floor((x - R.x0) / R.cs), cj = Math.floor((y - R.y0) / R.cs), n = 0, f = 0, mx = 0, my = 0, P = [];
+  for (var j = cj - rc; j <= cj + rc; j++) for (var i = ci - rc; i <= ci + rc; i++) {
+    if (i < 0 || j < 0 || i >= R.w || j >= R.h || (i - ci) * (i - ci) + (j - cj) * (j - cj) > rc * rc) continue;
+    n++; if (G.ok[j * R.w + i]) { f++; P.push(i, j); mx += i; my += j; }
+  }
+  if (f < 12) return { open: f / Math.max(1, n), ratio: 1, axis: 0 };
+  mx /= f; my /= f;
+  var sxx = 0, syy = 0, sxy = 0;
+  for (var k = 0; k < P.length; k += 2) { var dx = P[k] - mx, dy = P[k + 1] - my; sxx += dx * dx; syy += dy * dy; sxy += dx * dy; }
+  var tr = sxx + syy, det = sxx * syy - sxy * sxy, l1 = tr / 2 + Math.sqrt(Math.max(0, tr * tr / 4 - det)), l2 = Math.max(1e-6, tr - l1);
+  return { open: f / n, ratio: l1 / l2, axis: 0.5 * Math.atan2(2 * sxy, sxx - syy) };
 }
 function flyTo(fr, dur) {
   if (REDUCED || !dur) { controls.target.copy(fr.target); camera.position.copy(fr.pos); controls.update(); return; }
@@ -1077,32 +1663,20 @@ function fullTrail(o) {
   o.line.geometry.instanceCount = Infinity;
 }
 function wrapAngle(a) { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; }
-function placeOn(w, o, f, dt) {
-  var d = f * o.total, p = pointAt(o, d);
-  w.position.lerpVectors(p.a, p.b, p.t);
-  var lineY = w.position.y; w.position.y = o.m.draw === 'street' ? 0 : lineY - 2.2;
-  setTrail(o, p.k, w.position.x, lineY, w.position.z);
-  var ah = pointAt(o, d + 14), ax = ah.a.x + (ah.b.x - ah.a.x) * ah.t, az = ah.a.z + (ah.b.z - ah.a.z) * ah.t;
-  var dx = ax - w.position.x, dz = az - w.position.z;
-  if (dx * dx + dz * dz > 0.01) {
-    var want = Math.atan2(dx, dz);
-    if (!dt) w.rotation.y = want; else w.rotation.y += wrapAngle(want - w.rotation.y) * (1 - Math.exp(-dt * 7));
-  }
+function trailTo(o, f) {   // the route draws itself behind the body as it goes
+  var p = pointAt(o, f * o.total);
+  setTrail(o, p.k, p.a.x + (p.b.x - p.a.x) * p.t, p.a.y + (p.b.y - p.a.y) * p.t, p.a.z + (p.b.z - p.a.z) * p.t);
 }
-function hideMovers() { reedFig.visible = false; Object.keys(moverCache).forEach(function (k) { moverCache[k].visible = false; }); }
+function hideMovers() { movers = []; reedGlow.visible = false; }
 function startWalk(e) {
   hideMovers();
   var mine = MOVES.filter(function (o) { return o.e === e; });
-  // Reed stands where the scene is when he does not move in it but was there
-  if (!mine.some(function (o) { return o.m.who === 'reed'; }) && e.witness === 'seen') {
-    var l = PL[rootOf(e.loc)];
-    if (l && l.p && !l.far) { reedFig.position.set(l.p[0], 0, -l.p[1]); reedFig.visible = true; }
-  }
+  movers = mine.map(moverOf);
   if (!mine.length) { walk = null; return; }
   var longest = Math.max.apply(null, mine.map(function (o) { return o.m.draw === 'street' ? o.total : Math.min(o.total, 3000); }));
-  walk = { list: mine.map(function (o) { var w = moverFor(o.m.who); w.visible = true; return { o: o, w: w }; }), t0: performance.now(), dur: walkMs(e, longest) / speed, last: 0 };
-  walk.list.forEach(function (x) { placeOn(x.w, x.o, 0); });
-  if (REDUCED) { walk.list.forEach(function (x) { placeOn(x.w, x.o, 1); fullTrail(x.o); }); walk = null; }
+  walk = { t0: performance.now(), dur: walkMs(e, longest) / speed };
+  movers.forEach(function (mv) { trailTo(mv.o, 0); });
+  if (REDUCED) { movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); }); walk = null; }
 }
 
 // ---------- off the map ----------
@@ -1140,8 +1714,16 @@ function select(id, opts) {
   skyFrom = lightNow ? lightNow : k; skyTo = k; skyT = REDUCED ? 1 : 0; lightTarget = to;
   if (REDUCED) setLight(to, k);
   showOffmap(e); chromeCache = null;
-  flyTo(frameFor(e), opts.instant ? 0 : 1800);
-  startWalk(e);
+  startWalk(e); stageScene(e); renderHere(e);
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650; });
+  closeAfter = null; follow = null;
+  if (close && !long) flyTo(close, opts.instant ? 0 : 1800);
+  else {
+    flyTo(frameFor(e), opts.instant ? 0 : 1800);
+    follow = REDUCED ? null : followMover(e);
+    // after a followed ride, stay where it ended unless the scene's place has people to look at
+    closeAfter = follow && !GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); }) ? null : close;
+  }
   scene0 = performance.now();
   sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed);
   try { history.replaceState(null, '', '#' + e.id); } catch (err) { }
@@ -1196,7 +1778,7 @@ window.addEventListener('keydown', function (ev) {
   else if (ev.key === 'ArrowLeft') { stop(); step(-1); ev.preventDefault(); }
   else if (ev.key === ' ' && tag !== 'BUTTON') { playing ? stop() : play(); ev.preventDefault(); }
 });
-controls.addEventListener('start', function () { flight = null; if (intro) intro.user = true; });
+controls.addEventListener('start', function () { flight = null; closeAfter = null; follow = null; if (intro) intro.user = true; });
 
 // ---------- introduction ----------
 var intro = null, INTRO_KEY = 'tendays-intro-seen';
@@ -1236,6 +1818,7 @@ function startIntro() {
   MOVES.forEach(function (o) { o.line.visible = false; });
   $('offmap').hidden = true;
   applyControl(INTRO_T); setSnow(false);
+  var before = seq.filter(function (x) { return x.t <= INTRO_T; }); if (before.length) stageScene(before[before.length - 1], true);
   Object.keys(KEYM).forEach(function (k) { if (KEYM[k].wallMat) KEYM[k].wallMat.emissive.setRGB(0, 0, 0); });
   var st = sunAt(INTRO_T, 59.94, 30.31, S.meta.clock.petrograd), k = skyAt(st.el);
   skyFrom = lightNow || k; skyTo = k; skyT = lightNow ? 0 : 1; lightTarget = st; if (!lightNow) { lightNow = k; setLight(st, k); }
@@ -1271,6 +1854,7 @@ function resize() {
   var w = canvas.clientWidth, h = canvas.clientHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   lineMats.forEach(function (m) { m.resolution.set(w, h); });
+  spriteScale.value = h * renderer.getPixelRatio() / (2 * Math.tan(camera.fov * Math.PI / 360));
   PHONE = window.matchMedia('(max-width: 760px)').matches;
   if (!PHONE) camera.setViewOffset(w, h, Math.min(200, $('panel').offsetWidth / 2), 0, w, h);
   else camera.setViewOffset(w, h, 0, Math.min(140, h * 0.16), w, h);
@@ -1290,21 +1874,40 @@ function frame(now) {
     controls.target.lerpVectors(flight.fromT, flight.toT, k);
     camera.position.lerpVectors(flight.fromP, flight.toP, k);
     if (t >= 1) flight = null;
+  } else if (follow && walk && follow.mv.lx != null) {
+    var real = Math.min(2, (now - (follow.last || now)) / 1000), kf = 1 - Math.exp(-real * 2.2); follow.last = now;
+    var want = new THREE.Vector3(follow.mv.lx, 0, -follow.mv.ly), off = camera.position.clone().sub(controls.target);
+    var flat = new THREE.Vector3(off.x, 0, off.z); if (flat.lengthSq() < 1) flat.set(0, 0, 1);
+    flat.normalize();
+    var dd = off.length() + (follow.d - off.length()) * kf, pp = Math.acos(Math.max(-1, Math.min(1, off.y / off.length())));
+    pp += (follow.pol - pp) * kf;
+    controls.target.lerp(want, kf);
+    camera.position.set(controls.target.x + flat.x * Math.sin(pp) * dd, Math.cos(pp) * dd, controls.target.z + flat.z * Math.sin(pp) * dd);
   }
   if (skyT < 1) { skyT = Math.min(1, skyT + dt / 1.4); var bl = blendSky(skyFrom, skyTo, ease(skyT)); lightNow = bl; setLight(lightTarget, bl); }
   else if (!lightNow && skyTo) { lightNow = skyTo; setLight(lightTarget, skyTo); }
-  var camD = camera.position.distanceTo(controls.target), wsc = Math.max(1, Math.min(60, camD / 380));
-  reedFig.scale.setScalar(wsc); Object.keys(moverCache).forEach(function (k) { moverCache[k].scale.setScalar(wsc); });
-  var psc = Math.max(1, camD / 1800);   // pins grow with distance, so the front's towns stay visible
+  var camD = camera.position.distanceTo(controls.target), FS = Math.max(2.0, Math.min(7, camD / 85));   // figures grow with distance
+  var psc = Math.max(0.32, camD / 1800);   // pins grow with distance; close in they give way to the people
   Object.keys(pinMeshes).forEach(function (k) { var p = pinMeshes[k]; p.scale.y = p.scale.x = p.scale.z = (cur && k === rootOf(cur.loc) ? 1.5 : (dayLocs[k] ? 1 : 0.7)) * psc; });
   if (walk) {
     var f = Math.min(1, (now - walk.t0) / walk.dur), s = gait(f, walk.dur);
-    walk.list.forEach(function (x) { placeOn(x.w, x.o, s, dt); });
-    if (f >= 1) { walk.list.forEach(function (x) { fullTrail(x.o); }); walk = null; }
+    movers.forEach(function (mv) { mv.f = s; trailTo(mv.o, s); });
+    if (f >= 1) {
+      movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); }); walk = null;
+      if (closeAfter && !flight) flyTo(closeAfter, 2400);   // the walk done, down to the scene
+      closeAfter = null; follow = null;
+    }
   } else if (playing && now - scene0 > sceneDur) {
     if (!step(1)) stop();
   }
   if (playing) $('prog-i').style.width = (Math.min(1, (now - scene0) / sceneDur) * 100).toFixed(2) + '%';
+  darkNow = !!(lightTarget && lightTarget.el < 1);
+  drawPeople(now, FS); shoot(now / 1000, FS); drawFx(now / 1000, FS);
+  var wantL = darkNow && cur && !intro ? 1.05 : 0;   // after dark the scene is lit, as by its street lamps
+  stageLight.intensity += (wantL - stageLight.intensity) * Math.min(1, dt * 2.5);
+  stageLight.visible = stageLight.intensity > 0.01;
+  stageLight.position.set(controls.target.x, 60, controls.target.z);
+  var lift = darkNow ? 0.17 : 0; figMat.emissive.setRGB(lift, lift * 0.9, lift * 0.78);
   var pulse = 0.5 + 0.5 * Math.sin(now / 420);
   pulseList.forEach(function (p) {
     if (p.o && p.o.wallMat) p.o.wallMat.emissive.copy(p.by).multiplyScalar(0.35 * pulse);
@@ -1326,7 +1929,7 @@ function boot(state) {
   loadMsg.textContent = 'Raising ' + (M.b.length + M.key.length).toLocaleString('en') + ' buildings…';
   setTimeout(function () {
     try {
-      buildGround(); buildBuildings(); buildKeyBuildings(); buildPins(); buildRoutes(); buildLabels();
+      buildGround(); buildBuildings(); buildKeyBuildings(); buildPins(); buildRoutes(); buildLabels(); prepGround();
       buildTimeline();
       camera.position.set(-1500, 2400, 2600); controls.target.set(0, 0, 0);
       resize();
@@ -1342,7 +1945,8 @@ function boot(state) {
     }
   }, 30);
 }
-if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select };
+if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
+  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); } };
 // in a Claude artifact viewer, keep the open scene across republishes
 var hot = window.claude && window.claude.hot;
 if (hot && hot.snapshot) { try { hot.snapshot(function () { return { ev: cur && cur.id }; }); } catch (e) { } }

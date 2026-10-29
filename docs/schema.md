@@ -30,8 +30,8 @@ General rules:
 | `zones` | `{city, front, moscow}`: `[south, west, north, east]` boxes. A pin must lie inside its zone's box. |
 | `speed_kmh` | the fastest plausible speed for each move mode, for the feasibility check |
 | `blocs` | the legend families for actors (see below) |
-| `tags` | the allowed event tags |
-| `days[]` | timeline groups. `os` must be `d` − 13 days. |
+| `tags` | the allowed event tags. `shooting` marks a scene where Reed reports firing: its quotes must say so (fire, shots, fusillade, bombardment…), and the map shows muzzle flashes there. |
+| `days[]` | timeline groups. `os` must be `d` − 13 days. `city`, if given, is the group's name on the Petrograd tour, when `name` is about a scene outside the city. |
 
 ## sources.json
 
@@ -55,7 +55,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 ## places.json
 
-`{id, kind, zone, in?, ll, acc, conf, exists, osm?, site_osm?, wd?, src?, geo, ctl0?, name, reed[], ru?, addr1917?, addr_now?, ident?, today?, note?}`
+`{id, kind, zone, in?, ll, acc, stage?, conf, exists, osm?, site_osm?, wd?, src?, geo, ctl0?, name, reed[], ru?, addr1917?, addr_now?, ident?, today?, note?}`
 
 | field | meaning |
 |---|---|
@@ -63,6 +63,7 @@ Only sources actually read for this project go here: what locates a place, and w
 | `zone` | `city | front | moscow | offmap`. `offmap` places (Pskov, Moghilev, Kronstadt) may start or end a move, never sit in its `via`. |
 | `in` | the containing place (a room in Smolny). Must be within 400 m of it, and never cyclic. |
 | `ll`, `acc` | the pin, and its uncertainty radius in metres. `ll: null` only with `conf: "unlocated"` (Reed's lodging). |
+| `stage` | `[lat, lon]`, display only: the open ground where the place's people are drawn, when the open ground nearest the pin is the wrong side of the building. Within 400 m of `ll`. |
 | `conf` | how sure the identification is:<br>• `named`: Reed names it and the site is certain;<br>• `identified`: Reed's name needed interpreting, and `ident` says how ("Military Hotel" is the Astoria);<br>• `conjectural`: our guess, with the reasoning in `ident`;<br>• `unlocated`: no position. |
 | `exists` | does the 1917 structure substantially survive? `true`, `false` or `null` (not known) |
 | `osm` | the surviving element (`way/…`, `relation/…`, `node/…`). Required for a surviving building, station or complex. Forbidden when `exists` is false; use `site_osm` (what stands on the site now) instead. |
@@ -76,7 +77,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 ## events.json
 
-`{id, t, tq, tr?, tp?, cal, dp?, sec, p?, loc, witness, by?, actors?, tags?, title, why?, sum, q, also?, doc?, moves?, ctl?}`, sorted by `t`. Every event is a passage of Reed's: `sec` and `q` are required. `actors[]` lists the factions and people the scene is about, for filtering by faction; movers and holders are named in `moves` and `ctl` and need not be repeated.
+`{id, t, tq, tr?, tp?, cal, dp?, sec, p?, loc, witness, by?, actors?, tags?, title, why?, sum, q, also?, doc?, moves?, ctl?, present?, gone?}`, sorted by `t`. Every event is a passage of Reed's: `sec` and `q` are required. `actors[]` lists the factions and people the scene is about, for filtering by faction; movers and holders are named in `moves` and `ctl` and need not be repeated.
 
 **Time**
 
@@ -100,7 +101,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 **Moves**
 
-`moves[]`: `{who, with?, size?, from, via?, to, mode, rc, t0?, gap?, ack?}`.
+`moves[]`: `{who, with?, size?, n?, from, via?, to, mode, rc, t0?, gap?, stay?, kit?, ack?}`.
 
 - `mode` is `foot | march | cavalry | cab | tram | car | truck | armoured | rail | ship | air | unknown`. `cab` is a horse cab (izvozchik).
 - `rc` is the route confidence:
@@ -111,6 +112,9 @@ Only sources actually read for this project go here: what locates a place, and w
 - `t0` is a departure time, only when the text states one.
 - `gap` declares that the text skips: the actor turns up somewhere new.
 - `ack` explains a speed the checker finds implausible but the text insists on.
+- `stay` means the body stays where it arrives (a presence, below, from the next scene on). Only bodies of people and ships stay; a person does not.
+- `kit` is what the body brings, from `fire | barricade | mg | gun | armoured | truck | car | banner | torch | bicycle | leaflets`, optionally with a count (`gun:4`). Each item needs its word in the scene's quotes ("batteries", "armoured", "flag", "papers"…).
+- `n` is how many figures to draw. It needs `size`, the phrase it reads; it is a display choice, not a head count.
 
 **Control**
 
@@ -121,13 +125,31 @@ Only sources actually read for this project go here: what locates a place, and w
 - Each change lives on the event that reports it, so it inherits that event's time, quote and witness type.
 - Every change is one Reed reports. There is no field for a change taken from elsewhere, and no field for checking Reed's claims: the old `check[]` was removed when the project settled on following Reed.
 
+**Presence**
+
+Who stands where between scenes. Reed's text keeps people at a place until it removes them, and the map keeps them there too.
+
+`present[]`: `{who, place?, size?, n?, kit?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
+- `who` is a body: a unit, a school, a crowd, a ship, an organ or a party. Never a single person.
+- The evidence is Reed's: `ref` `{sec, q}` is the passage that puts them there; without it, the scene's own quotes. Either way the body must be named there, or within 1,500 characters, under one of its `reed[]` spellings.
+- `size`, `n` and `kit` as for moves; the kit's words must be in the evidence passage.
+- `brief: true` keeps them for this scene only: a crowd watching, a column passing.
+
+`gone[]`: `{who, place?, ref?}` — the text has them leave `place` (default `loc`) after this scene: "the cannon gone", "the sentries in the Square had all disappeared". The checker errors if nobody of that body is there.
+
+A presence also ends, after the scene, when control of its place (or of a place it lies in) passes from its bloc to another: Reed reports the building taken, so its defenders no longer hold it. A later `present` for the same body and place adds to it: its size and count replace the old ones, its kit joins the old kit. `tools/storylib.py` (`presence_spans`) holds these rules, and both the checker and the map use it.
+
+## The tour
+
+`tools/build_story.py` gives the page only the scenes Reed sets in Petrograd (zone `city`). The front, Moscow and the off-map scenes stay in the data, and in every check, but are not toured. A move that leaves the city is still drawn, as an arc.
+
 ## What the checker measures (`--report`)
 
 - **Feasible speed** of every tracked move: straight-line distance through its points, over the widest window the times allow. More than 3× the mode's limit is an error unless the move has `ack`.
 - **Sun words** ("dawn", "twilight", "dusk") against the sun's elevation at `meta.clock`.
 - **Every weekday–date pair in the book**, tested as New and as Old Style.
 - **Reed's walking per day.** It is a floor: straight lines between pins.
-- **Coverage per section, and the control timelines.**
+- **Coverage per section, presence (who stays where, and what ends it), and the control timelines.**
 
 `--osm` fetches each OSM element (cached in `cache/osm/`, one request a second). It checks:
 
