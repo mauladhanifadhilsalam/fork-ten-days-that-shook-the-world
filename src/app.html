@@ -1040,7 +1040,9 @@ function layoutPlace(id, groups, t) {
       function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var kq = cellAt(pts[i][0], pts[i][1]); if (kq < 0 || !G.ok[kq]) break; out.push(pts[i]); } return out; }
       if (st) { f = open(resample(st.f, 1)); b = open(resample(st.b, 1)); }
       if (!st || !f.length || !b.length || f.length + b.length < Math.min(L, 24)) { f = walkSpine(ax, ay, lie.axis, half + adv, true); b = walkSpine(ax, ay, lie.axis + Math.PI, half + adv, true); }
-      if (b.length > f.length) { var tmp = f; f = b; b = tmp; }   // a passing column heads the longer way
+      // a column heads toward what Reed has it face (the procession's front at the cordon), else, passing, the longer way
+      var fxyC = faceXY(g), fe = f[f.length - 1], be = b[b.length - 1];
+      if (fxyC ? Math.hypot(be[0] - fxyC[0], be[1] - fxyC[1]) < Math.hypot(fe[0] - fxyC[0], fe[1] - fxyC[1]) : b.length > f.length) { var tmp = f; f = b; b = tmp; }
       var sp = makeSpine(b.slice(1).reverse().concat(f)), s0 = sp.cum[b.length - 1];   // s0: the anchor
       if (sp.len < L) { rows = Math.max(1, Math.floor(sp.len / rowG)); L = rows * rowG; }
       adv = Math.max(0, Math.min(adv, sp.len - L));

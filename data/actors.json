@@ -203,7 +203,7 @@
   {"from": "1917-11-13T03:30", "s": "neutral", "ev": "sailors-train-moscow", "note": "Refuses to carry troops for either side."}]},
 {"id": "armoured-cars", "kind": "unit", "bloc": "neutral",
  "name": "Armoured Car Division (the “brunnoviki”)",
- "reed": ["brunnoviki"],
+ "reed": ["brunnoviki", "armoured automobile"],
  "ru": "броневой дивизион",
  "stance": [
   {"from": "1917-11-07", "s": "neutral", "ev": "riding-school"},
@@ -225,6 +225,10 @@
  "stance": [
   {"from": "1917-11-08", "s": "oppose", "ev": "gatchina-falls"},
   {"from": "1917-11-14T08:00", "s": "neutral", "ev": "krasnov-surrenders", "note": "Surrendered to Dybenko."}]},
+{"id": "nicolai-bridge-party", "kind": "unit", "bloc": "government",
+ "name": "The officer and five men at the Nicolai Bridge",
+ "reed": ["an officer and five men"],
+ "note": "The party that opened the Nicolai Bridge on the morning of 7 November, “on their own initiative”, after Kerensky’s order to open the bridges. Reed names no unit or school, so they are not drawn as yunkers."},
 {"id": "pavlovsky", "kind": "unit", "bloc": "soviet",
  "name": "Pavlovsky Guards Regiment",
  "reed": ["Pavlovsky"],
@@ -264,6 +268,12 @@
  "stance": [
   {"from": "1917-11-10", "s": "neutral", "ev": "tsarskoye-limbo"},
   {"from": "1917-11-11T07:00", "s": "support", "ev": "tsarskoye-rifles-shelled"}]},
+{"id": "unknown-soldiers", "kind": "unit", "bloc": "neutral",
+ "name": "Soldiers of unknown allegiance",
+ "reed": ["soldiers"],
+ "stance": [
+  {"from": "1917-11-06", "s": "unknown", "ref": {"sec": "III", "q": "Nobody knew whether the soldiers belonged to the Government or the Military Revolutionary Committee."}}],
+ "note": "The squads stopping cars on the Nevsky on 6 November, at the Morskaya corner and in front of the Kazan Cathedral. Reed says nobody knew whose they were, so they are drawn in the neutral grey, not as the Soviet garrison."},
 {"id": "womens-battalion", "kind": "unit", "bloc": "government",
  "name": "Women’s Battalion (1st Petrograd Women’s Battalion)",
  "reed": ["Women’s Battalion"],
@@ -288,6 +298,10 @@
  "name": "Cruiser Aurora",
  "reed": ["Avrora"],
  "ru": "крейсер «Аврора»"},
+{"id": "car-occupants", "kind": "crowd", "bloc": "public",
+ "name": "The occupants of the stopped automobiles",
+ "reed": ["the occupants"],
+ "note": "The people the squads turned out of their private automobiles at the corner of the Morskaya and the Nevsky on 6 November."},
 {"id": "crowd", "kind": "crowd", "bloc": "public",
  "name": "Crowds in the streets",
  "reed": ["crowd", "citizens", "all the people"],

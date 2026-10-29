@@ -623,13 +623,13 @@ class Checker:
                     if 'say' in r:
                         self.say(r, sup[0], sup[1], rw)
                     if 'form' in r or 'march' in r:
-                        self.formation(r, sup[2], rw)
+                        self.formation(r, sup[2], rw, r.get('place', e.get('loc')))
                     if any(k in r for k in ('fire', 'at', 'pose', 'assault', 'patrol')):
                         self.fighting(e, r, sup[2], rw)
                     if 'face' in r:
                         self.facing(r, sup[2], rw)
                     if r.get('inside'):
-                        self.indoors(r, sup[2], rw)
+                        self.indoors(r, sup[2], rw, r.get('place', e.get('loc')))
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -696,7 +696,7 @@ class Checker:
             elif not self.book.near(sec, pos, t):
                 self.F.err('phrase.not-near', where, f'say {t!r} is not within 1,500 characters of the passage')
 
-    def formation(self, r, text, where):
+    def formation(self, r, text, where, place=None):
         """a column, a line or ranks, and a body on the move: each needs its word in the passage or in
         the size phrase (itself Reed's, near the passage). On the move means passing: a brief column."""
         F, words = self.F, text + ' ' + (r.get('size') or '')
@@ -705,7 +705,7 @@ class Checker:
                 F.err('field.enum', where, f'form {r["form"]!r} is not one of {sorted(L.ENUM["form"])}')
             elif not re.search(L.FORM_WORDS[r['form']], words, re.I):
                 F.err('form.not-in-text', where, f'form {r["form"]!r}: the passage has no word for it ({L.FORM_WORDS[r["form"]]})')
-            elif r['form'] == 'ring' and (self.P.get(r.get('place')) or {}).get('kind') not in ('building', 'station', 'complex'):
+            elif r['form'] == 'ring' and (self.P.get(place) or {}).get('kind') not in ('building', 'station', 'complex'):
                 F.err('form.ring-place', where, 'form "ring" surrounds a building: the place is a building, station or complex')
         if r.get('march'):
             if r.get('form') != 'column' or not r.get('brief'):
@@ -750,11 +750,11 @@ class Checker:
             elif not re.search(L.POSE_WORDS[r['pose']], words, re.I):
                 F.err('fight.not-in-text', where, f'pose {r["pose"]!r}: the passage has no word for it ({L.POSE_WORDS[r["pose"]]})')
 
-    def indoors(self, r, text, where):
+    def indoors(self, r, text, where, place=None):
         """a body Reed puts inside its building ("in the back rooms", "inside"): the place is a building,
         and the passage says so; a body inside neither forms up nor fires in the open"""
         F, words = self.F, text + ' ' + (r.get('size') or '')
-        if (self.P.get(r.get('place')) or {}).get('kind') not in ('building', 'station', 'complex', 'room'):
+        if (self.P.get(place) or {}).get('kind') not in ('building', 'station', 'complex', 'room'):
             F.err('field.range', where, 'inside: the place is a building, station, complex or room')
         if not re.search(L.INSIDE_WORDS, words, re.I):
             F.err('form.not-in-text', where, f'inside: the passage has no word for indoors ({L.INSIDE_WORDS})')

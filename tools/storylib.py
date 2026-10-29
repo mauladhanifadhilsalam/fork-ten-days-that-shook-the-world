@@ -103,7 +103,7 @@ MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|filing'
 # The fighting, in the scene whose passage says so: who fires (and from the windows), who lies dead
 # or wounded, who throws himself flat, who runs at the enemy
 POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen',
-              'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground'}
+              'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters'}
 RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'

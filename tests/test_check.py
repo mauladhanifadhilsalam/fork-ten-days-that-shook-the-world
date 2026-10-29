@@ -314,6 +314,21 @@ Breaks.test_picture_caption_quote = case('quote.not-found', mutate=lambda d: d['
 Breaks.test_picture_commons_needs_author = case('field.missing', mutate=lambda d: (d['pictures'][0].update({'from': 'commons', 'caption': 'A pass.', 'date': '1917'}), d['pictures'][0].pop('ref')), only=True)
 
 
+class Implicit(unittest.TestCase):
+    """a presence without `place` stands at its scene's place, and the checks that need the place's kind use that"""
+    def test_ring_at_the_scene_place(self):
+        d = good()
+        ev(d, 'cornice')['present'][1].pop('place')          # the cornice scene is at the Winter Palace, a building
+        self.assertEqual(errors(d), [])
+
+    def test_inside_at_the_scene_place(self):
+        d = good()
+        ev(d, 'cornice')['present'].append({'who': 'pg', 'inside': True, 'ref': {'sec': 'IV', 'q': 'Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace'}})
+        got = errors(d)
+        self.assertNotIn('field.range', got, got)   # the place (the scene's, a building) is fine
+        self.assertIn('form.not-in-text', got, got)   # but the passage has no word for indoors
+
+
 class Presence(unittest.TestCase):
     def spans(self, d):
         evs = L.sort_table('events', d['events'])

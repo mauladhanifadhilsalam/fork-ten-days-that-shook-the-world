@@ -438,6 +438,7 @@ ACTOR_FIG = {
     'pavlovsk-yunkers': [('yunker', 1)],
     'workers': [('worker', .6), ('workerwoman', .4)],   # children only where Reed's size phrase names them
     'duma-procession': [('bourgeois', .5), ('bourgeoiswoman', .2), ('intelligent', .3)],
+    'car-occupants': [('bourgeois', .7), ('bourgeoiswoman', .3)],   # turned out of private automobiles
     'peasants-congress': [('peasant', .75), ('soldier', .25)],
 }
 BLOC_FIG = {
