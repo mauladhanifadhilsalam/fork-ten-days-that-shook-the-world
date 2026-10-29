@@ -290,7 +290,7 @@
  "ru": "крейсер «Аврора»"},
 {"id": "crowd", "kind": "crowd", "bloc": "public",
  "name": "Crowds in the streets",
- "reed": ["crowd", "citizens"],
+ "reed": ["crowd", "citizens", "all the people"],
  "note": "Reed’s onlookers, passers-by and street crowds, drawn as townspeople; his words for them decide who they are."},
 {"id": "duma-procession", "kind": "crowd", "bloc": "opposition",
  "name": "The Duma’s procession to the Winter Palace",

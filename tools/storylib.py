@@ -34,9 +34,9 @@ FIELDS = {
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
-    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'ack'],
+    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'brief', 'ref'],
+    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'brief', 'ref'],
     'gone': ['who', 'place', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
 }
@@ -78,8 +78,10 @@ ENUM = {
     'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
-    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'torch', 'bicycle', 'leaflets'},
-    'form': {'column', 'line', 'ranks'},
+    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'torch', 'bicycle', 'leaflets', 'rifles'},
+    'form': {'column', 'line', 'ranks', 'ring'},
+    'pose': {'fallen', 'prone'},
+    'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons'},
 }
@@ -92,11 +94,28 @@ KIT_WORDS = {
     'gun': r'cannon|field-gun|field-piece|batter(y|ies)|artillery|three-inch', 'armoured': r'armou?red', 'truck': r'truck|lorr',
     'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
+    'rifles': r'heap of rifles|rifles thrown down|rifles stacked|stacked rifles|piles? of rifles|rifles (lay|lying) in',
 }
 # How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
 FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramping', 'line': r'\ba line\b|\bline of\b|cordon',
-              'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation'}
+              'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation', 'ring': r'surround|encircl|\bringed\b|hemmed in'}
 MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|filing'
+# The fighting, in the scene whose passage says so: who fires (and from the windows), who lies dead
+# or wounded, who throws himself flat, who runs at the enemy
+POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen',
+              'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground'}
+RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
+# an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
+ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'
+REPULSE_WORDS = r'crumpl|\bfell\b|fallen|driven back|repulsed|beaten off|thrown back|mowed|cut down'
+ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into)|swept (in|into)|burst (in|into)|rushed (in|into)|broke (in|into)|forced (their|a) way'
+# vehicles cruising up and down the street
+PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
+# a body indoors: the map labels its building and draws no one
+INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard)\b'
+# what a body looks at, or turns its guns on
+FACE_WORDS = r'star(e|ed|es|ing)\b|\bfac(e|ed|es|ing)\b|toward|looking|look(ed)? (at|up|down|out|toward)|watch|trained|turned (to|on|toward)|gaz(e|ed|ing)|pointing|peer|block(ing|ed)? the way|barr(ing|ed) the way|confront'
+WINDOW_WORDS = r'window'
 SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire'
 LIMITS = {'title': 60, 'sum': 350, 'q': 320, 'note': 500, 'why': 300, 'ident': 400}
 ID_RE = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
@@ -477,8 +496,9 @@ def presence_spans(events, actors, places):
     reports the place taken. A later `present` entry for the same body and place adds to it (its size
     and count replace the old ones, its kit joins the old kit), and a `brief` one shows the sum for
     one scene only, unless it is a column marching past (`march`), which is a body of its own. A
-    formation (`form`, `march`) is the scene's, not the body's: a span keeps it only for the scene
-    that states it, its first.
+    formation (`form`, `march`, `face`) and the fighting (`fire`, `at`, `pose`, `assault`, `patrol`)
+    are the scene's, not the body's: a span keeps them only for the scene that states them, its first.
+    Being indoors (`inside`) is the body's, and holds until Reed says otherwise.
 
     Returns (spans, misses). A span is {who, place, start, end, ev, how, end_by, end_ev, size?, n?, kit?}
     and is shown in scenes start <= i < end (end None: to the last scene). misses lists
@@ -513,13 +533,13 @@ def presence_spans(events, actors, places):
         return sp
 
     def formation(sp, rec):
-        for k in ('form', 'march'):
+        for k in ('form', 'march', 'face', 'fire', 'at', 'pose', 'assault', 'patrol'):
             if k in rec:
                 sp[k] = rec[k]
 
     def merge(sp, rec):
         """a later word on the same body adds to what is known: its kit joins the kit already there"""
-        for k in ('size', 'n', 'say'):
+        for k in ('size', 'n', 'say', 'inside'):
             if k in rec:
                 sp[k] = rec[k]
         if rec.get('kit'):

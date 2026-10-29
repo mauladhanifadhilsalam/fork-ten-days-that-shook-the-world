@@ -77,36 +77,60 @@ var PEOPLE = (function (THREE) {
 
   // ---------- people ----------
   // o: coat, len ('long' | 'mid' | 'short'), legs, hat, hatCol, band, rifle, skatka, belts, armband, boards,
-  //    lampas, skirt, scarf, beard, notebook, sabre
+  //    lampas, skirt, scarf, beard, notebook, sabre; pose: 'stand' (the default), and for a fight 'aim'
+  //    (standing, the rifle at the shoulder), 'kneel' (kneeling to fire), 'charge' (running, bayonet
+  //    first), 'prone' (flat on the face) or 'fallen' (on the back, the rifle dropped beside)
   function person(o) {
+    var pose = o.pose || 'stand';
+    if (pose === 'fallen' || pose === 'prone') return lieDown(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), pose === 'fallen', o.rifle);
     var m = new Model(), coat = o.coat, legs = o.legs || coat, boots = o.boots || C.boots, skin = o.skin || C.skin;
+    var kneel = pose === 'kneel' && !o.skirt && o.rifle, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
+    var dy = kneel ? -0.38 : 0;   // kneeling, everything above the hips comes down
     // legs swing about the hip at y = 0.86 (parts 1, 2)
-    if (o.skirt) {
+    if (kneel) {   // the left knee up, the right knee on the ground
+      m.box(legs, -0.1, 0.49, 0.21, 0.15, 0.16, 0.46, 0, 0, 0, 1); m.box(legs, -0.1, 0.27, 0.44, 0.15, 0.44, 0.16, 0, 0, 0, 1);
+      m.box(boots, -0.1, 0.07, 0.5, 0.165, 0.14, 0.26, 0, 0, 0, 1);
+      m.box(legs, 0.1, 0.275, -0.02, 0.15, 0.44, 0.16, 0, 0, 0, 2); m.box(legs, 0.1, 0.09, -0.26, 0.15, 0.15, 0.42, 0, 0, 0, 2);
+      m.box(boots, 0.1, 0.1, -0.52, 0.165, 0.2, 0.12, 0, 0, 0, 2);
+    } else if (o.skirt) {
       m.taper(o.skirt, 0, 0.47, 0, 0.42, 0.3, 0.58, 0.46, 0.86, 0, 0, 0, 0);
       m.box(boots, -0.08, 0.04, 0.08, 0.12, 0.08, 0.2, 0, 0, 0, 1); m.box(boots, 0.08, 0.04, 0.08, 0.12, 0.08, 0.2, 0, 0, 0, 2);
     } else {
+      var st = aim ? 0.09 : 0;   // firing, the left foot forward
       [-1, 1].forEach(function (sx, i) {
-        m.box(legs, 0.1 * sx, 0.56, 0, 0.15, 0.62, 0.17, 0, 0, 0, i + 1);
-        m.box(boots, 0.1 * sx, 0.15, 0.025, 0.165, 0.3, 0.24, 0, 0, 0, i + 1);
-        if (o.lampas) m.box(o.lampas, 0.178 * sx, 0.6, 0, 0.012, 0.52, 0.05, 0, 0, 0, i + 1);
+        m.box(legs, 0.1 * sx, 0.56, -st * sx, 0.15, 0.62, 0.17, 0, 0, 0, i + 1);
+        m.box(boots, 0.1 * sx, 0.15, 0.025 - st * sx, 0.165, 0.3, 0.24, 0, 0, 0, i + 1);
+        if (o.lampas) m.box(o.lampas, 0.178 * sx, 0.6, -st * sx, 0.012, 0.52, 0.05, 0, 0, 0, i + 1);
       });
     }
     // body
-    m.box(coat, 0, 1.13, 0, 0.44, 0.56, 0.26);
-    if (o.len === 'long') m.taper(coat, 0, 0.66, 0, 0.44, 0.27, 0.56, 0.36, 0.5);
-    else if (o.len === 'mid') m.taper(coat, 0, 0.78, 0, 0.44, 0.27, 0.5, 0.32, 0.26);
-    if (o.belt !== false) m.box(o.beltCol || C.leather, 0, 0.88, 0, 0.455, 0.055, 0.28);
-    if (o.skatka) { m.box(o.skatka, 0.02, 1.13, 0.14, 0.11, 0.74, 0.09, 0, 0, 0.78); m.box(o.skatka, 0.02, 1.13, -0.14, 0.11, 0.74, 0.09, 0, 0, -0.78); }
-    if (o.belts) { m.box(o.belts, 0, 1.13, 0.138, 0.05, 0.66, 0.02, 0, 0, 0.62); m.box(o.belts, 0, 1.13, 0.138, 0.05, 0.66, 0.02, 0, 0, -0.62); }
-    if (o.sash) m.box(o.sash, 0, 0.9, 0, 0.47, 0.08, 0.29);
-    if (o.collar) m.box(o.collar, 0, 1.41, -0.01, 0.4, 0.07, 0.27);
-    if (o.boards) { m.box(o.boards, -0.17, 1.42, 0, 0.1, 0.025, 0.13); m.box(o.boards, 0.17, 1.42, 0, 0.1, 0.025, 0.13); }
+    m.box(coat, 0, 1.13 + dy, 0, 0.44, 0.56, 0.26);
+    if (o.len === 'long') m.taper(coat, 0, 0.66 + dy, 0, 0.44, 0.27, 0.56, 0.36, 0.5);
+    else if (o.len === 'mid') m.taper(coat, 0, 0.78 + dy, 0, 0.44, 0.27, 0.5, 0.32, 0.26);
+    if (o.belt !== false) m.box(o.beltCol || C.leather, 0, 0.88 + dy, 0, 0.455, 0.055, 0.28);
+    if (o.skatka) { m.box(o.skatka, 0.02, 1.13 + dy, 0.14, 0.11, 0.74, 0.09, 0, 0, 0.78); m.box(o.skatka, 0.02, 1.13 + dy, -0.14, 0.11, 0.74, 0.09, 0, 0, -0.78); }
+    if (o.belts) { m.box(o.belts, 0, 1.13 + dy, 0.138, 0.05, 0.66, 0.02, 0, 0, 0.62); m.box(o.belts, 0, 1.13 + dy, 0.138, 0.05, 0.66, 0.02, 0, 0, -0.62); }
+    if (o.sash) m.box(o.sash, 0, 0.9 + dy, 0, 0.47, 0.08, 0.29);
+    if (o.collar) m.box(o.collar, 0, 1.41 + dy, -0.01, 0.4, 0.07, 0.27);
+    if (o.boards) { m.box(o.boards, -0.17, 1.42 + dy, 0, 0.1, 0.025, 0.13); m.box(o.boards, 0.17, 1.42 + dy, 0, 0.1, 0.025, 0.13); }
     // arms swing about the shoulder at y = 1.38 (parts 3, 4); a rifle arm holds still
     var armR = o.rifle || o.notebook ? 0 : 4;
-    m.box(coat, -0.285, 1.1, 0, 0.12, 0.58, 0.14, 0, 0, -0.07, 3);
-    m.box(skin, -0.31, 0.78, 0, 0.09, 0.1, 0.1, 0, 0, 0, 3);
-    if (o.armband) m.box(o.armband, -0.29, 1.25, 0, 0.135, 0.08, 0.155, 0, 0, -0.07, 3);
-    if (o.rifle) {
+    if (aim) {   // the rifle at the right shoulder, the left hand under the fore-end, aiming along +z
+      m.box(coat, 0.205, 1.37 + dy, 0.18, 0.12, 0.13, 0.4, 0, -0.35, 0); m.box(skin, 0.14, 1.37 + dy, 0.37, 0.09, 0.1, 0.1);
+      m.box(coat, -0.105, 1.37 + dy, 0.275, 0.12, 0.13, 0.64, 0, 0.54, 0); m.box(skin, 0.06, 1.36 + dy, 0.56, 0.09, 0.1, 0.1);
+      if (o.armband) m.box(o.armband, -0.21, 1.37 + dy, 0.1, 0.155, 0.155, 0.08, 0, 0.54, 0);
+      m.box(C.wood, 0.12, 1.42 + dy, 0.55, 0.045, 0.07, 1.2); m.box(C.steel, 0.12, 1.43 + dy, 1.36, 0.012, 0.012, 0.42);
+    } else if (charge) {   // running, the rifle slanted forward and up, bayonet first
+      m.box(coat, 0.24, 1.19, -0.02, 0.12, 0.42, 0.14, 0.1, 0, 0.12); m.box(skin, 0.2, 0.98, -0.06, 0.09, 0.1, 0.1);
+      m.box(coat, -0.085, 1.34, 0.275, 0.12, 0.13, 0.66, 0, 0.59, 0); m.box(skin, 0.1, 1.3, 0.55, 0.09, 0.1, 0.1);
+      if (o.armband) m.box(o.armband, -0.2, 1.36, 0.1, 0.155, 0.155, 0.08, 0, 0.59, 0);
+      m.box(C.wood, 0.15, 1.2, 0.4, 0.045, 0.07, 1.22, -0.43, 0, 0); m.box(C.steel, 0.085, 1.54, 1.14, 0.012, 0.012, 0.42, -0.43, 0, 0);
+    } else {
+      m.box(coat, -0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, -0.07, 3);
+      m.box(skin, -0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, 3);
+      if (o.armband) m.box(o.armband, -0.29, 1.25 + dy, 0, 0.135, 0.08, 0.155, 0, 0, -0.07, 3);
+    }
+    if (aim || charge) { /* the arms are drawn above */ } else if (o.rifle) {
       m.box(coat, 0.27, 1.13, 0.07, 0.12, 0.5, 0.14, -0.35, 0, 0.05, 0);
       m.box(skin, 0.3, 0.92, 0.17, 0.09, 0.1, 0.1);
       m.box(C.wood, 0.31, 1.2, 0.18, 0.04, 1.28, 0.06); m.box(C.steel, 0.31, 2.02, 0.18, 0.012, 0.42, 0.012);
@@ -116,11 +140,19 @@ var PEOPLE = (function (THREE) {
       if (o.notebook) m.box(C.white, 0.33, 0.86, 0.09, 0.1, 0.14, 0.03, -0.3);
       if (o.cane) m.box(C.black, 0.33, 0.45, 0.04, 0.03, 0.8, 0.03, 0, 0, 0, armR);
     }
-    if (o.sabre) m.box(C.steel, -0.25, 0.62, -0.06, 0.03, 0.8, 0.05, 0.25);
+    if (o.sabre) m.box(C.steel, -0.25, 0.62 + dy, -0.06, 0.03, 0.8, 0.05, 0.25);
     // head
-    m.box(skin, 0, 1.45, 0, 0.12, 0.08, 0.12);
-    m.ball(skin, 0, 1.6, 0.01, 0.26);
-    if (o.beard) m.box(o.beard, 0, 1.52, 0.08, 0.2, 0.14, 0.1);
+    var head = new Model();
+    head.box(skin, 0, 1.45, 0, 0.12, 0.08, 0.12);
+    head.ball(skin, 0, 1.6, 0.01, 0.26);
+    if (o.beard) head.box(o.beard, 0, 1.52, 0.08, 0.2, 0.14, 0.1);
+    hat(head, o, coat);
+    if (o.scarfNeck) head.box(o.scarfNeck, 0, 1.4, 0.02, 0.3, 0.07, 0.3);
+    for (var hi = 0; hi < head.p.length; hi += 3) { m.p.push(head.p[hi], head.p[hi + 1] + dy, head.p[hi + 2] + (aim ? 0.04 : 0)); m.n.push(head.n[hi], head.n[hi + 1], head.n[hi + 2]); }
+    m.c.push.apply(m.c, head.c); m.a.push.apply(m.a, head.a);
+    return m;
+  }
+  function hat(m, o, coat) {
     var hc = o.hatCol || coat;
     switch (o.hat) {
       case 'furazhka':   // peaked cap
@@ -144,34 +176,56 @@ var PEOPLE = (function (THREE) {
       case 'fur':        // peasant's fur hat
         m.cyl(hc, 0, 1.73, 0, 0.3, 0.14, 10); break;
     }
-    if (o.scarfNeck) m.box(o.scarfNeck, 0, 1.4, 0.02, 0.3, 0.07, 0.3);
+  }
+  // a standing figure laid on the ground: on its back (up) or on its face, feet at the origin, and
+  // a rifle, if it had one, dropped beside it. Nothing of it swings.
+  function lieDown(m, up, rifle) {
+    for (var i = 0; i < m.p.length; i += 3) {
+      var y = m.p[i + 1], z = m.p[i + 2], ny = m.n[i + 1], nz = m.n[i + 2];
+      if (up) { m.p[i + 1] = z + 0.15; m.p[i + 2] = -y; m.n[i + 1] = nz; m.n[i + 2] = -ny; }
+      else { m.p[i + 1] = -z + 0.15; m.p[i + 2] = y; m.n[i + 1] = -nz; m.n[i + 2] = ny; }
+    }
+    for (var k = 0; k < m.a.length; k++) m.a[k] = 0;
+    if (rifle) { m.box(C.wood, 0.5, 0.035, up ? -0.75 : 0.75, 0.045, 0.06, 1.28, 0, 0.12, 0); m.box(C.steel, 0.53, 0.035, up ? -1.55 : 1.55, 0.012, 0.012, 0.42, 0, 0.12, 0); }
     return m;
   }
 
-  var FIG = {
-    soldier: person({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: C.furGrey, rifle: true, skatka: '#5c5747' }),
-    soldier2: person({ coat: C.shinel, len: 'long', hat: 'furazhka', hatCol: C.khaki, rifle: true, skatka: '#5c5747' }),
-    soldier3: person({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: '#8a8580', rifle: true }),
-    yunker: person({ coat: C.yunker, len: 'long', hat: 'furazhka', hatCol: '#5a5a55', band: C.red, rifle: true, boards: C.red }),
-    officer: person({ coat: C.officer, len: 'long', hat: 'furazhka', hatCol: '#62604f', band: C.red, boards: C.gold, sabre: true, beltCol: '#5a3d26' }),
-    sailor: person({ coat: C.navy, len: 'short', hat: 'sailor', hatCol: '#141518', rifle: true, beltCol: C.black, collar: '#dcdde2' }),   // the striped vest at the neck
-    sailor2: person({ coat: C.navy, len: 'mid', hat: 'sailor', hatCol: C.navy, rifle: true, belts: C.brass, beltCol: C.black }),
-    redguard: person({ coat: '#2e2b27', len: 'mid', legs: '#24221f', hat: 'cap', hatCol: '#3b3732', rifle: true, armband: C.red, beltCol: C.leather }),
-    redguard2: person({ coat: '#3a3833', len: 'short', legs: '#2a2825', hat: 'cap', hatCol: '#2d2b28', rifle: true, armband: C.red, skatka: '#4a4339' }),
-    cossack: person({ coat: '#5f5b49', len: 'long', legs: '#252c42', hat: 'papakha', hatCol: C.fur, rifle: true, lampas: C.red, sabre: true }),
-    womansoldier: person({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: '#cfcac0', rifle: true, skatka: '#5c5747' }),
-    worker: person({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e' }),
-    worker2: person({ coat: '#353531', len: 'mid', legs: '#272522', hat: 'cap', hatCol: '#454038', beard: '#4e3f30' }),
-    workerwoman: person({ coat: '#5a4a40', len: 'short', skirt: '#35302d', hat: 'scarf', hatCol: '#a03a2c', belt: false }),
-    workerwoman2: person({ coat: '#3f3f45', len: 'short', skirt: '#2c2a2a', hat: 'scarf', hatCol: '#d2cbbb', belt: false }),
-    bourgeois: person({ coat: '#1e1d1c', len: 'long', legs: '#2f2f31', hat: 'bowler', hatCol: '#141414', collar: '#4e3b2d', belt: false, cane: true }),
-    bourgeois2: person({ coat: '#2b2a2f', len: 'long', legs: '#25252a', hat: 'fedora', hatCol: '#3a3632', collar: '#5c4838', belt: false }),
-    bourgeoiswoman: person({ coat: '#3b2b38', len: 'long', skirt: '#2d2530', hat: 'ladyhat', hatCol: '#1d1b1f', band: '#d6cdb9', collar: '#5a4636', belt: false }),
-    intelligent: person({ coat: '#2d3340', len: 'long', legs: '#262a33', hat: 'furazhka', hatCol: '#22293b', band: '#6f8fb8', belt: false }),
-    peasant: person({ coat: '#7b6d5a', len: 'long', legs: '#c2b79c', boots: '#a88e5c', hat: 'fur', hatCol: '#56473a', beard: '#6b5944', sash: '#9b2a20', belt: false }),   // foot-cloths, bast shoes
-    child: person({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e', belt: false }),
-    reed: person({ coat: '#25221f', len: 'long', legs: '#1f1d1b', hat: 'fedora', hatCol: '#2a2724', band: '#111', belt: false, notebook: true, scarfNeck: '#cfc7b4' })
+  var FIG_OPTS = {
+    soldier: ({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: C.furGrey, rifle: true, skatka: '#5c5747' }),
+    soldier2: ({ coat: C.shinel, len: 'long', hat: 'furazhka', hatCol: C.khaki, rifle: true, skatka: '#5c5747' }),
+    soldier3: ({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: '#8a8580', rifle: true }),
+    yunker: ({ coat: C.yunker, len: 'long', hat: 'furazhka', hatCol: '#5a5a55', band: C.red, rifle: true, boards: C.red }),
+    officer: ({ coat: C.officer, len: 'long', hat: 'furazhka', hatCol: '#62604f', band: C.red, boards: C.gold, sabre: true, beltCol: '#5a3d26' }),
+    sailor: ({ coat: C.navy, len: 'short', hat: 'sailor', hatCol: '#141518', rifle: true, beltCol: C.black, collar: '#dcdde2' }),   // the striped vest at the neck
+    sailor2: ({ coat: C.navy, len: 'mid', hat: 'sailor', hatCol: C.navy, rifle: true, belts: C.brass, beltCol: C.black }),
+    redguard: ({ coat: '#2e2b27', len: 'mid', legs: '#24221f', hat: 'cap', hatCol: '#3b3732', rifle: true, armband: C.red, beltCol: C.leather }),
+    redguard2: ({ coat: '#3a3833', len: 'short', legs: '#2a2825', hat: 'cap', hatCol: '#2d2b28', rifle: true, armband: C.red, skatka: '#4a4339' }),
+    cossack: ({ coat: '#5f5b49', len: 'long', legs: '#252c42', hat: 'papakha', hatCol: C.fur, rifle: true, lampas: C.red, sabre: true }),
+    womansoldier: ({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: '#cfcac0', rifle: true, skatka: '#5c5747' }),
+    worker: ({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e' }),
+    worker2: ({ coat: '#353531', len: 'mid', legs: '#272522', hat: 'cap', hatCol: '#454038', beard: '#4e3f30' }),
+    workerwoman: ({ coat: '#5a4a40', len: 'short', skirt: '#35302d', hat: 'scarf', hatCol: '#a03a2c', belt: false }),
+    workerwoman2: ({ coat: '#3f3f45', len: 'short', skirt: '#2c2a2a', hat: 'scarf', hatCol: '#d2cbbb', belt: false }),
+    bourgeois: ({ coat: '#1e1d1c', len: 'long', legs: '#2f2f31', hat: 'bowler', hatCol: '#141414', collar: '#4e3b2d', belt: false, cane: true }),
+    bourgeois2: ({ coat: '#2b2a2f', len: 'long', legs: '#25252a', hat: 'fedora', hatCol: '#3a3632', collar: '#5c4838', belt: false }),
+    bourgeoiswoman: ({ coat: '#3b2b38', len: 'long', skirt: '#2d2530', hat: 'ladyhat', hatCol: '#1d1b1f', band: '#d6cdb9', collar: '#5a4636', belt: false }),
+    intelligent: ({ coat: '#2d3340', len: 'long', legs: '#262a33', hat: 'furazhka', hatCol: '#22293b', band: '#6f8fb8', belt: false }),
+    peasant: ({ coat: '#7b6d5a', len: 'long', legs: '#c2b79c', boots: '#a88e5c', hat: 'fur', hatCol: '#56473a', beard: '#6b5944', sash: '#9b2a20', belt: false }),   // foot-cloths, bast shoes
+    child: ({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e', belt: false }),
+    reed: ({ coat: '#25221f', len: 'long', legs: '#1f1d1b', hat: 'fedora', hatCol: '#2a2724', band: '#111', belt: false, notebook: true, scarfNeck: '#cfc7b4' })
   };
+  var FIG = {};
+  Object.keys(FIG_OPTS).forEach(function (k) { FIG[k] = person(FIG_OPTS[k]); });
+  // where a rifle's muzzle is, in each firing pose (model metres, facing +z)
+  var MUZZLE = { aim: [0.12, 1.42, 1.15], kneel: [0.12, 1.04, 1.15], charge: [0.09, 1.5, 1.02] };
+  var POSED = {};
+  // a figure type in a pose, built the first time it is asked for: 'soldier.aim', 'redguard.fallen'
+  function posed(key) {
+    if (POSED[key]) return POSED[key];
+    var p = key.split('.'), o = FIG_OPTS[p[0]];
+    if (!o) return null;
+    return (POSED[key] = person(Object.assign({}, o, { pose: p[1] })).geometry(FIG_SCALE[p[0]] || 1));
+  }
   var FIG_SCALE = { womansoldier: 0.94, workerwoman: 0.94, workerwoman2: 0.94, bourgeoiswoman: 0.95, child: 0.62 };
   // a type's variants, so a body of men is not a row of clones
   var VARIANTS = { soldier: ['soldier', 'soldier2', 'soldier3'], sailor: ['sailor', 'sailor2'], redguard: ['redguard', 'redguard2'], worker: ['worker', 'worker2'],
@@ -282,6 +336,15 @@ var PEOPLE = (function (THREE) {
     m.box('#5a4a38', 0, 0.2, 0, 5.8, 0.4, 1.3);
     return m;
   }
+  function rifleHeap() {     // rifles thrown down in a heap ("a heap of rifles thrown down by the yunkers")
+    var m = new Model(), r = function (i) { var x = Math.sin(i * 78.233 + 12.9) * 43758.5; return x - Math.floor(x); };
+    for (var i = 0; i < 16; i++) {
+      var a = r(i) * Math.PI * 2, x = (r(i + 20) - 0.5) * 1.3, z = (r(i + 40) - 0.5) * 1.3, y = 0.04 + (i % 5) * 0.055, tilt = (r(i + 60) - 0.5) * 0.3;
+      m.box(C.wood, x, y, z, 0.07, 0.06, 1.25, tilt, a, 0);
+      m.box('#2a2b2c', x + Math.sin(a) * 0.58, y + 0.012, z + Math.cos(a) * 0.58, 0.028, 0.028, 0.45, tilt, a, 0);
+    }
+    return m;
+  }
   function fireLogs() {
     var m = new Model();
     for (var i = 0; i < 5; i++) m.cyl('#3a2a1c', 0, 0.12, 0, 0.12, 1.1, 6, Math.PI / 2, i * 1.26, 0.18);
@@ -328,13 +391,14 @@ var PEOPLE = (function (THREE) {
   }
 
   function build() {
-    var out = { fig: {}, kit: {}, figScale: FIG_SCALE, variants: VARIANTS };
+    var out = { fig: {}, kit: {}, figScale: FIG_SCALE, variants: VARIANTS, muzzle: MUZZLE, armed: {} };
+    Object.keys(FIG_OPTS).forEach(function (k) { if (FIG_OPTS[k].rifle) out.armed[k] = true; });
     Object.keys(FIG).forEach(function (k) { out.fig[k] = FIG[k].geometry(FIG_SCALE[k] || 1); });
     out.kit = {
       armoured: armoured('#77746a').geometry(), truck: truck('#5d5b47').geometry(), car: car('#1d1d1f').geometry(),
       gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(),
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
-      logs: fireLogs().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
+      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()
@@ -366,5 +430,5 @@ var PEOPLE = (function (THREE) {
     return mat;
   }
 
-  return { build: build, material: material };
+  return { build: build, material: material, posed: posed };
 })(THREE);

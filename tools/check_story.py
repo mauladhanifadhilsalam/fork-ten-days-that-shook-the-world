@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL,
+    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
 }
 
@@ -576,6 +576,8 @@ class Checker:
             if 'ack' in m and not m['ack'].strip():
                 F.err('field.type', mw, 'ack explains the anomaly')
             self.count_n(m, mw)
+            if m.get('run') and pos is not None and not re.search(L.RUN_WORDS, self.scene_text(e) + ' ' + (m.get('size') or ''), re.I):
+                F.err('fight.not-in-text', mw, f'run: the passage has no word for running at the enemy ({L.RUN_WORDS})')
             if 'kit' in m and pos is not None:
                 self.kit(m['kit'], self.scene_text(e), mw)
             if 'say' in m and pos is not None:
@@ -622,6 +624,12 @@ class Checker:
                         self.say(r, sup[0], sup[1], rw)
                     if 'form' in r or 'march' in r:
                         self.formation(r, sup[2], rw)
+                    if any(k in r for k in ('fire', 'at', 'pose', 'assault', 'patrol')):
+                        self.fighting(e, r, sup[2], rw)
+                    if 'face' in r:
+                        self.facing(r, sup[2], rw)
+                    if r.get('inside'):
+                        self.indoors(r, sup[2], rw)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -697,11 +705,72 @@ class Checker:
                 F.err('field.enum', where, f'form {r["form"]!r} is not one of {sorted(L.ENUM["form"])}')
             elif not re.search(L.FORM_WORDS[r['form']], words, re.I):
                 F.err('form.not-in-text', where, f'form {r["form"]!r}: the passage has no word for it ({L.FORM_WORDS[r["form"]]})')
+            elif r['form'] == 'ring' and (self.P.get(r.get('place')) or {}).get('kind') not in ('building', 'station', 'complex'):
+                F.err('form.ring-place', where, 'form "ring" surrounds a building: the place is a building, station or complex')
         if r.get('march'):
             if r.get('form') != 'column' or not r.get('brief'):
                 F.err('field.missing', where, 'march (a body passing) needs form: column and brief')
             if not re.search(L.MARCH_WORDS, words, re.I):
                 F.err('form.not-in-text', where, f'march: the passage has no word for it ({L.MARCH_WORDS})')
+
+    def fighting(self, e, r, text, where):
+        """who fires (in the open, or from the windows), at whom or what, who assaults (and is thrown
+        back, or gets in), whose cars cruise up and down, and who lies dead or flat: each needs its
+        words in the passage or the size phrase, and a scene where anyone fires is tagged shooting"""
+        F, words = self.F, text + ' ' + (r.get('size') or '')
+        if 'fire' in r:
+            if r['fire'] not in (True, 'windows'):
+                F.err('field.enum', where, 'fire is true, or "windows" for firing from inside the building')
+            elif not re.search(L.SHOOTING_WORDS, words, re.I):
+                F.err('fight.not-in-text', where, f'fire: the passage has no word for firing ({L.SHOOTING_WORDS})')
+            elif r['fire'] == 'windows' and not re.search(L.WINDOW_WORDS, words, re.I):
+                F.err('fight.not-in-text', where, 'fire: "windows", but the passage says nothing of windows')
+            if 'shooting' not in e.get('tags', []):
+                F.err('tag.shooting', where, 'a body fires here, so the scene is tagged shooting')
+        if 'at' in r:
+            if 'fire' not in r:
+                F.err('field.missing', where, 'at (what the body fires at) needs fire')
+            if r['at'] not in self.A and r['at'] not in self.P:
+                F.err('ref.unknown', where, f'at: no actor or place {r["at"]!r}')
+        if 'assault' in r:
+            if r['assault'] not in L.ENUM['assault']:
+                F.err('field.enum', where, f'assault {r["assault"]!r} is not one of {sorted(L.ENUM["assault"])}')
+            elif r['assault'] == 'repulsed' and not (re.search(L.ATTACK_WORDS, words, re.I) and re.search(L.REPULSE_WORDS, words, re.I)):
+                F.err('fight.not-in-text', where, f'assault "repulsed": the passage needs words for the attack ({L.ATTACK_WORDS}) and for its failing ({L.REPULSE_WORDS})')
+            elif r['assault'] == 'carried' and not re.search(L.ENTRY_WORDS, words, re.I):
+                F.err('fight.not-in-text', where, f'assault "carried": the passage has no words for going in ({L.ENTRY_WORDS})')
+        if r.get('patrol'):
+            if not re.search(L.PATROL_WORDS, words, re.I):
+                F.err('fight.not-in-text', where, f'patrol: the passage has no words for cruising ({L.PATROL_WORDS})')
+            if not any(L.kit_item(k)[0] in ('armoured', 'car', 'truck') for k in r.get('kit', [])):
+                F.err('field.missing', where, 'patrol: the body has no armoured car, car or truck in its kit to cruise in')
+        if 'pose' in r:
+            if r['pose'] not in L.ENUM['pose']:
+                F.err('field.enum', where, f'pose {r["pose"]!r} is not one of {sorted(L.ENUM["pose"])}')
+            elif not re.search(L.POSE_WORDS[r['pose']], words, re.I):
+                F.err('fight.not-in-text', where, f'pose {r["pose"]!r}: the passage has no word for it ({L.POSE_WORDS[r["pose"]]})')
+
+    def indoors(self, r, text, where):
+        """a body Reed puts inside its building ("in the back rooms", "inside"): the place is a building,
+        and the passage says so; a body inside neither forms up nor fires in the open"""
+        F, words = self.F, text + ' ' + (r.get('size') or '')
+        if (self.P.get(r.get('place')) or {}).get('kind') not in ('building', 'station', 'complex', 'room'):
+            F.err('field.range', where, 'inside: the place is a building, station, complex or room')
+        if not re.search(L.INSIDE_WORDS, words, re.I):
+            F.err('form.not-in-text', where, f'inside: the passage has no word for indoors ({L.INSIDE_WORDS})')
+        if any(k in r for k in ('form', 'march', 'assault', 'patrol')) or r.get('fire') is True:
+            F.err('field.range', where, 'inside: a body indoors does not form up, march, assault, patrol or fire in the open')
+
+    def facing(self, r, text, where):
+        """what the body looks at, or trains its guns on ("staring at the hotel roof", "all the guns
+        trained toward St. Isaac's"): a place or a body, with Reed's word for looking in the passage"""
+        F, words = self.F, text + ' ' + (r.get('size') or '')
+        if r['face'] not in self.A and r['face'] not in self.P:
+            F.err('ref.unknown', where, f'face: no actor or place {r["face"]!r}')
+        elif r['face'] == r.get('place'):
+            F.err('field.range', where, 'face: a body faces something other than the place it stands at')
+        if not re.search(L.FACE_WORDS, words, re.I):
+            F.err('form.not-in-text', where, f'face: the passage has no word for looking or training guns ({L.FACE_WORDS})')
 
     def count_n(self, r, where):
         if 'n' in r:

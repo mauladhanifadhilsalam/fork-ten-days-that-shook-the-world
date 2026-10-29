@@ -21,7 +21,9 @@ SECTIONS = {
            'November 7th, and on Thursday, November 16th, nothing happened.',
            'Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace where two '
            'shells from the battleship _Avrora_ had struck. Smolny was ablaze with lights. John Reed.',
-           'Sailors marched up the Nevsky in a column. A red flag crudely lettered in gold, “Peace! Land!” floated over them.'],
+           'Sailors marched up the Nevsky in a column. A red flag crudely lettered in gold, “Peace! Land!” floated over them.',
+           'Soviet troops surrounded the Palace and opened fire, with two armoured cars. The cars went cruising back and forth, '
+           'their guns trained on the walls; waves of Red Guards, assaulting, crumpled under the fire.'],
     'App.III.7': ['At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency. '
                   'At 1.35 the Post Office was occupied by the Military Revolutionary Committee of the '
                   'Provisional Government.'],
@@ -57,6 +59,7 @@ def good():
          'stance': [{'from': '1917-11-06', 's': 'support', 'ref': {'sec': 'App.III.7', 'q': 'At 1.35 the Post Office was occupied'}}]},
         {'id': 'pg', 'kind': 'organ', 'bloc': 'government', 'name': 'Provisional Government', 'reed': ['Provisional Government']},
         {'id': 'sailors', 'kind': 'unit', 'bloc': 'soviet', 'name': 'Sailors', 'reed': ['sailors']},
+        {'id': 'red-guards', 'kind': 'unit', 'bloc': 'soviet', 'name': 'Red Guards', 'reed': ['Red Guards']},
     ]
     g = {'m': 'hand', 'on': '2026-10-29'}
     places = [
@@ -97,7 +100,10 @@ def good():
          'sum': 'Stucco on the pavement.',
          'q': ['Underfoot the sidewalk was littered with broken stucco', 'two shells from the battleship _Avrora_ had struck'],
          'moves': [{'who': 'reed', 'from': 'duma', 'to': 'winter-palace', 'mode': 'foot', 'rc': 'inferred'}],
-         'ctl': [{'place': 'winter-palace', 'state': 'held', 'holder': 'mrc'}]},
+         'ctl': [{'place': 'winter-palace', 'state': 'held', 'holder': 'mrc'}], 'tags': ['shooting'],
+         'present': [{'who': 'sailors', 'place': 'winter-palace', 'fire': True, 'at': 'winter-palace', 'ref': {'sec': 'IV', 'q': 'two shells from the battleship _Avrora_ had struck'}},
+                     {'who': 'red-guards', 'place': 'winter-palace', 'kit': ['armoured:2'], 'form': 'ring', 'fire': True, 'assault': 'repulsed', 'patrol': True,
+                      'ref': {'sec': 'IV', 'q': 'Soviet troops surrounded the Palace and opened fire, with two armoured cars. The cars went cruising back and forth, their guns trained on the walls; waves of Red Guards, assaulting, crumpled under the fire.'}}]},
         {'id': 'holtzman', 't': '1917-11-13T02:55', 'tq': 'approx', 'tr': ['1917-11-13T02:30', '1917-11-13T03:00'],
          'tp': "almost three o'clock in the morning", 'cal': 'none', 'sec': 'IX', 'loc': 'smolny', 'witness': 'seen',
          'title': 'Kerensky is smashed', 'sum': 'Holtzman runs in with the telegram.',
@@ -267,6 +273,34 @@ Breaks.test_form_not_in_text = case('form.not-in-text', mutate=lambda d: ev(d, '
 Breaks.test_form_enum = case('field.enum', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'square'}), only=True)
 Breaks.test_march_needs_brief = case('field.missing', mutate=lambda d: ev(d, 'reed-walks')['present'][0].pop('brief'), only=True)
 Breaks.test_march_not_in_text = case('form.not-in-text', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'column', 'march': True, 'brief': True}), only=True)
+# the fighting: who fires, at what, from the windows or not; who lies dead or flat; who runs at the enemy
+def _cornice_fire(d):
+    return ev(d, 'cornice')['present'][0]
+Breaks.test_fire_needs_the_tag = case('tag.shooting', mutate=lambda d: ev(d, 'cornice').pop('tags'), only=True)
+Breaks.test_fire_from_windows_needs_the_word = case('fight.not-in-text', mutate=lambda d: _cornice_fire(d).update({'fire': 'windows'}), only=True)
+Breaks.test_fire_enum = case('field.enum', mutate=lambda d: _cornice_fire(d).update({'fire': 'cannon'}), only=True)
+Breaks.test_fire_at_unknown = case('ref.unknown', mutate=lambda d: _cornice_fire(d).update({'at': 'nowhere'}), only=True)
+Breaks.test_at_needs_fire = case('field.missing', mutate=lambda d: _cornice_fire(d).pop('fire'), only=True)
+Breaks.test_pose_needs_its_words = case('fight.not-in-text', mutate=lambda d: _cornice_fire(d).update({'pose': 'fallen'}), only=True)
+Breaks.test_pose_enum = case('field.enum', mutate=lambda d: _cornice_fire(d).update({'pose': 'kneeling'}), only=True)
+Breaks.test_run_needs_its_word = case('fight.not-in-text', mutate=lambda d: ev(d, 'cornice')['moves'][0].update({'run': True}), only=True)
+# a body that surrounds a building, assaults it, cruises round it in its cars
+def _ring(d):
+    return ev(d, 'cornice')['present'][1]
+_FIRST = 'Soviet troops surrounded the Palace and opened fire, with two armoured cars.'
+Breaks.test_ring_not_in_text = case('form.not-in-text', mutate=lambda d: _cornice_fire(d).update({'form': 'ring'}), only=True)
+Breaks.test_ring_needs_a_building = case('form.ring-place', mutate=lambda d: _ring(d).update({'place': 'nevsky'}), only=True)
+Breaks.test_assault_enum = case('field.enum', mutate=lambda d: _ring(d).update({'assault': 'won'}), only=True)
+Breaks.test_assault_repulsed_needs_its_words = case('fight.not-in-text', mutate=lambda d: (_ring(d).pop('patrol'), _ring(d)['ref'].update({'q': _FIRST})), only=True)
+Breaks.test_assault_carried_needs_its_words = case('fight.not-in-text', mutate=lambda d: _ring(d).update({'assault': 'carried'}), only=True)
+Breaks.test_patrol_needs_its_words = case('fight.not-in-text', mutate=lambda d: (_ring(d).pop('assault'), _ring(d)['ref'].update({'q': _FIRST})), only=True)
+Breaks.test_patrol_needs_a_vehicle = case('field.missing', mutate=lambda d: _ring(d).pop('kit'), only=True)
+# what a body looks at: a known place or body, with Reed's word for looking
+Breaks.test_face_needs_its_word = case('form.not-in-text', mutate=lambda d: _cornice_fire(d).update({'face': 'duma'}), only=True)
+Breaks.test_face_unknown = case('ref.unknown', mutate=lambda d: _ring(d).update({'face': 'nowhere'}), only=True)
+# a body indoors: in a building, with Reed's word for it, and not formed up or firing in the open
+Breaks.test_inside_needs_its_word = case('form.not-in-text', mutate=lambda d: ev(d, 'dan-bell')['present'][0].update({'inside': True}), only=True)
+Breaks.test_inside_does_not_form_up = case('field.range', mutate=lambda d: ev(d, 'dan-bell').update({'present': [{'who': 'pg', 'place': 'winter-palace', 'inside': True, 'form': 'line', 'size': 'Smolny was ablaze with lights', 'ref': {'sec': 'IV', 'q': 'Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace'}}]}))
 Breaks.test_tag_shooting = case('tag.shooting', mutate=lambda d: ev(d, 'dan-bell').update({'tags': ['shooting']}), only=True)
 Breaks.test_geo_stage = case('geo.stage', mutate=lambda d: pl(d, 'duma').update({'stage': [59.95, 30.33]}), only=True)
 Breaks.test_stay_kind = case('presence.kind', mutate=lambda d: ev(d, 'reed-walks')['moves'][0].update({'stay': True}), only=True)

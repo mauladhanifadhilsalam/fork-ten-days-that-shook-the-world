@@ -222,7 +222,7 @@
  "ctl": [
   {"place": "winter-palace", "state": "besieged", "holder": "provisional-government", "by": "mrc"}],
  "present": [
-  {"who": "garrison", "place": "palace-square", "size": "a cordon of troops", "n": 40, "form": "line"}]},
+  {"who": "garrison", "place": "palace-square-west", "size": "a cordon of troops", "n": 40, "form": "line"}]},
 {"id": "no-more-government", "t": "1917-11-07T12:00", "tq": "stated", "tp": "The noon cannon boomed", "cal": "NS", "dp": "Wednesday, November 7th", "sec": "IV", "p": 97, "loc": "state-bank", "witness": "seen", "actors": ["garrison"],
  "title": "“No more Government”",
  "sum": "Reed rises late. At noon, walking down the Nevsky, he asks the soldiers at the State Bank’s gates whose side they are on.",
@@ -265,30 +265,45 @@
   {"who": "reed", "from": "mariinsky-palace", "via": ["admiralty", "palace-square"], "to": "winter-palace", "mode": "foot", "rc": "stated"}],
  "present": [
   {"who": "yunkers", "place": "winter-palace", "kit": ["barricade"], "ref": {"sec": "IV", "q": "Except for far-away soldiers who seemed to be carrying wood out of the Palace courtyard and piling it in front of the main gateway, everything was quiet."}},
-  {"who": "garrison", "place": "palace-square", "form": "line", "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}},
-  {"who": "crowd", "place": "palace-square", "brief": true, "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}}]},
+  {"who": "garrison", "place": "palace-square-west", "form": "line", "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}},
+  {"who": "crowd", "place": "palace-square-west", "brief": true, "ref": {"sec": "IV", "q": "a cordon of troops stretched clear across the western end, besieged by an uneasy throng of citizens"}}]},
 {"id": "yunker-sortie", "t": "1917-11-07T15:15", "tq": "inferred", "tr": ["1917-11-07T14:30", "1917-11-07T16:30"], "cal": "none", "sec": "IV", "p": 102, "loc": "winter-palace", "witness": "seen", "actors": ["yunkers"],
  "title": "A sortie through the Red Arch",
  "why": "Reed watches from a palace window, before dusk.",
- "sum": "Two companies of yunkers march off through the Red Arch, “to capture the Telephone Exchange”, and come back with their wounded.",
+ "sum": "Two of three companies of yunkers drawn up before the palace march off across the Square and through the Red Arch, “to capture the Telephone Exchange”, someone says.",
  "q": ["went swinging off across the Square, disappearing through the Red Arch into the quiet city.", "“They are going to capture the Telephone Exchange,” said some one."],
  "also": [
   {"sec": "IV", "q": "For a while we stood at the window, looking down on the Square before the Palace"}],
  "moves": [
-  {"who": "yunkers", "size": "two of the companies", "from": "winter-palace", "via": ["red-arch"], "to": "telephone-exchange", "mode": "march", "rc": "inferred"},
-  {"who": "yunkers", "from": "telephone-exchange", "via": ["red-arch"], "to": "winter-palace", "mode": "march", "rc": "inferred"}],
+  {"who": "yunkers", "size": "two of the companies", "from": "winter-palace", "to": "red-arch", "mode": "march", "rc": "inferred"}],
  "present": [
   {"who": "yunkers", "place": "winter-palace", "size": "three companies of long-coated yunkers", "n": 56, "form": "ranks", "ref": {"sec": "IV", "q": "looking down on the Square before the Palace, where three companies of long-coated yunkers were drawn up under arms"}},
-  {"who": "womens-battalion", "place": "winter-palace", "ref": {"sec": "IV", "q": "The Women's Battalion decided to remain loyal to the Government."}}]},
+  {"who": "womens-battalion", "place": "winter-palace", "inside": true, "ref": {"sec": "IV", "q": "“Yes, they are in the back rooms, where they won’t be hurt if any trouble comes.”"}}]},
+{"id": "yunker-panic", "t": "1917-11-07T15:35", "tq": "inferred", "tr": ["1917-11-07T15:15", "1917-11-07T16:30"], "cal": "none", "sec": "IV", "loc": "winter-palace", "witness": "seen", "actors": ["yunkers"], "tags": ["shooting"],
+ "title": "A burst of rifle-fire",
+ "why": "After the sortie and the cadets’ talk at the window; before the yunkers come back.",
+ "sum": "A burst of rifle-fire not far off: out on the Square the people run and throw themselves flat, the cab drivers gallop off, and inside the palace the yunkers grab their rifles. Reed does not see who fired.",
+ "q": "At this point there was a burst of rifle-fire not far off. Out on the Square all the people began to run, falling flat on their faces, and the izvoshtchiki, standing on the corners, galloped in every direction.",
+ "also": [
+  {"sec": "IV", "q": "Inside all was uproar, soldiers running here and there, grabbing up guns, rifle-belts and shouting"}],
+ "present": [
+  {"who": "crowd", "place": "palace-square", "size": "all the people", "n": 30, "pose": "prone", "brief": true}]},
+{"id": "yunkers-return", "t": "1917-11-07T15:50", "tq": "inferred", "tr": ["1917-11-07T15:35", "1917-11-07T16:30"], "cal": "none", "sec": "IV", "loc": "winter-palace", "witness": "seen", "actors": ["yunkers"],
+ "title": "The yunkers come back",
+ "why": "“In a few minutes” after the firing it was quiet; before “it was getting late when we left the Palace”.",
+ "sum": "The yunkers come back through the Red Arch across the Square, a little out of step, one of them held up by two comrades.",
+ "q": "Through the Red Arch appeared the yunkers, marching a little out of step, one of them supported by two comrades.",
+ "moves": [
+  {"who": "yunkers", "size": "the yunkers", "n": 30, "from": "red-arch", "to": "winter-palace", "mode": "march", "rc": "inferred"}],
+ "gone": [
+  {"who": "garrison", "place": "palace-square-west", "ref": {"sec": "IV", "q": "The sentries in the Square had all disappeared."}}]},
 {"id": "hotel-france-dinner", "t": "1917-11-07T17:30", "tq": "inferred", "tr": ["1917-11-07T16:30", "1917-11-07T19:00"], "cal": "none", "sec": "IV", "p": 103, "loc": "hotel-france", "witness": "seen",
  "title": "Dinner at the Hotel France",
  "why": "“It was getting late when we left the Palace.”",
  "sum": "At dinner the pale waiter moves them to the back room: the café lights are going out, “there will be much shooting”.",
  "q": "We went into the Hotel France for dinner, and right in the middle of soup the waiter, very pale in the face, came up and insisted that we move to the main dining-room at the back of the house",
  "moves": [
-  {"who": "reed", "from": "winter-palace", "via": ["palace-square", "red-arch"], "to": "hotel-france", "mode": "foot", "rc": "inferred"}],
- "gone": [
-  {"who": "garrison", "place": "palace-square", "ref": {"sec": "IV", "q": "The sentries in the Square had all disappeared."}}]},
+  {"who": "reed", "from": "winter-palace", "via": ["palace-square", "red-arch"], "to": "hotel-france", "mode": "foot", "rc": "inferred"}]},
 {"id": "kerensky-ostrov", "t": "1917-11-07T18:00", "tq": "approx", "tr": ["1917-11-07T15:00", "1917-11-07T21:00"], "tp": "Toward evening", "cal": "NS", "dp": "in the morning of November 7th", "sec": "App.IV.2", "p": 124, "loc": "ostrov", "witness": "reported",
  "title": "Kerensky at Ostrov",
  "sum": "From Gatchina by special train, Kerensky is at Ostrov, Province of Pskov, toward evening.",

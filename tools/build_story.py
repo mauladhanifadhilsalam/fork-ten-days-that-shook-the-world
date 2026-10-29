@@ -237,6 +237,26 @@ def clear(a, b):
     return not any(_obst[i].intersects(ln) for i in _tree.query(ln))
 
 
+def out_of_walls(q):
+    """a point inside a building or the river (a pin) moved out to the open ground just past the
+    nearest edge, so a route starts or ends at the building's wall, not in it"""
+    from shapely.geometry import Point as _Pt
+    pt = _Pt(q)
+    for _ in range(3):
+        hit = [i for i in _tree.query(pt) if _obst[i].contains(pt)]
+        if not hit:
+            return (pt.x, pt.y)
+        g = _obst[hit[0]]
+        ring = g.exterior if hasattr(g, 'exterior') else None
+        if ring is None:
+            return q
+        b = ring.interpolate(ring.project(pt))
+        dx, dy = b.x - pt.x, b.y - pt.y
+        dl = math.hypot(dx, dy) or 1.0
+        pt = _Pt(b.x + dx / dl * 2.5, b.y + dy / dl * 2.5)
+    return (pt.x, pt.y)
+
+
 def shortcuts(p):
     changed = True
     while changed:
@@ -254,6 +274,28 @@ def shortcuts(p):
             if changed:
                 break
     return p
+
+
+def pull(p):
+    """straighten a route across open ground: from each point, on to the farthest later point it can
+    see past every building and the river, when the streets go well out of the way between them
+    (across a square instead of round its edge)"""
+    if len(p) < 3:
+        return p
+    cum = [0.0]
+    for a, b in zip(p, p[1:]):
+        cum.append(cum[-1] + math.dist(a, b))
+    out, i = [p[0]], 0
+    while i < len(p) - 1:
+        nxt = i + 1
+        for j in range(min(len(p) - 1, i + 60), i + 1, -1):
+            d = math.dist(p[i], p[j])
+            if d < 450 and cum[j] - cum[i] > 1.12 * d + 8 and clear(p[i], p[j]):
+                nxt = j
+                break
+        out.append(p[nxt])
+        i = nxt
+    return out
 
 
 def round_corners(p, rmax=9.0, steps=5):
@@ -305,9 +347,14 @@ for p in T['places']:
 STREET_MODES = {'foot', 'march', 'cab', 'car', 'truck', 'armoured', 'cavalry', 'tram'}
 
 
-def point(ref):
+def point(ref, end=False):
+    """where a route meets a place: its pin, or at an end of the route its stage (the open ground in
+    front of its door) if it has one"""
     if isinstance(ref, str):
-        return P(*T_places[ref]['ll']) if T_places[ref].get('ll') else None
+        pl = T_places[ref]
+        if end and pl.get('stage'):
+            return P(*pl['stage'])
+        return P(*pl['ll']) if pl.get('ll') else None
     return P(*ref)
 
 
@@ -320,7 +367,7 @@ PASSED = {'building', 'complex', 'station', 'room'}   # landmarks a route goes b
 
 def shape(m):
     seq = [m['from']] + list(m.get('via', [])) + [m['to']]
-    xy = [point(r) for r in seq]
+    xy = [point(r, end=i in (0, len(seq) - 1)) for i, r in enumerate(seq)]
     if any(q is None for q in xy):
         stats['unlocated'] += 1
         return None, 'unlocated'
@@ -334,11 +381,20 @@ def shape(m):
     # street route between its neighbours goes by it, while its pin would pull the route round its back
     keep = [0] + [i for i in range(1, len(seq) - 1) if not (isinstance(seq[i], str) and T_places[seq[i]].get('kind') in PASSED)] + [len(seq) - 1]
     seq, xy = [seq[i] for i in keep], [xy[i] for i in keep]
-    # a street named as a waypoint ("up the Morskaya") is entered at its nearest point to its pin
+    # a route starts and ends on the open ground at a building's wall, not at its pin inside it
+    for i in (0, len(seq) - 1):
+        pl = T_places.get(seq[i]) if isinstance(seq[i], str) else None
+        if pl and pl.get('kind') in PASSED and not pl.get('stage'):
+            xy[i] = out_of_walls(xy[i])
+    # a street named as a waypoint ("up the Morskaya") is entered where it passes nearest the way
+    # between its neighbours (not at its pin, which may be far along it)
     for i, r in enumerate(seq):
         pl = T_places.get(r) if isinstance(r, str) else None
         if pl and pl.get('kind') == 'street' and pl.get('ru'):
-            s = snap(*xy[i], name=pl['ru'])
+            near = xy[i]
+            if 0 < i < len(seq) - 1:
+                near = ((xy[i - 1][0] + xy[i + 1][0]) / 2, (xy[i - 1][1] + xy[i + 1][1]) / 2)
+            s = snap(*near, name=pl['ru'])
             if s and s[4] < 400:
                 xy[i] = s[3]
     full = [xy[0]]
@@ -348,6 +404,11 @@ def shape(m):
             print(f"  no street route for {m['who']} {m['from']} -> {m['to']}: leg {[round(v) for v in a]} -> {[round(v) for v in b]}")
             stats['straight'] += 1
             return [[round(a, 1), round(b, 1)] for a, b in xy], 'straight'
+        # across open ground (a square) straight, when the streets would go the long way round its edge
+        d = math.dist(a, b)
+        if d < 450 and plen(leg) > 1.3 * d + 15 and clear(a, b):
+            leg = [a, b]
+            stats['across'] = stats.get('across', 0) + 1
         full += leg
     full.append(xy[-1])
     full = dedupe(full)
@@ -356,6 +417,7 @@ def shape(m):
     roundtrip = m['from'] == m['to']
     if not roundtrip:
         full = shortcuts(full)
+        full = pull(full)
     full = cut_uturns(full, keep=set(range(1, len(full) - 1)) if roundtrip else set())
     full = round_corners(full)
     stats['routed'] += 1
@@ -374,7 +436,7 @@ ACTOR_FIG = {
     'womens-battalion': [('womansoldier', 1)],
     'yunkers': [('yunker', 1)], 'vladimir-yunkers': [('yunker', 1)], 'engineers-yunkers': [('yunker', 1)],
     'pavlovsk-yunkers': [('yunker', 1)],
-    'workers': [('worker', .5), ('workerwoman', .35), ('child', .15)],
+    'workers': [('worker', .6), ('workerwoman', .4)],   # children only where Reed's size phrase names them
     'duma-procession': [('bourgeois', .5), ('bourgeoiswoman', .2), ('intelligent', .3)],
     'peasants-congress': [('peasant', .75), ('soldier', .25)],
 }
@@ -383,7 +445,7 @@ BLOC_FIG = {
     'government': [('officer', .5), ('bourgeois', .5)],
     'opposition': [('bourgeois', .5), ('intelligent', .4), ('bourgeoiswoman', .1)],
     'neutral': [('soldier', 1)],
-    'public': [('worker', .3), ('workerwoman', .25), ('bourgeois', .2), ('bourgeoiswoman', .1), ('intelligent', .1), ('child', .05)],
+    'public': [('worker', .35), ('workerwoman', .25), ('bourgeois', .2), ('bourgeoiswoman', .1), ('intelligent', .1)],
 }
 # Reed's own words for a body, when he gives them, override the default figures: the specific words
 # name who they are; the generic ones (women, children) only add to the mix
@@ -491,13 +553,17 @@ for sp in spans:
         rec['ship'] = True
     else:
         rec['fig'], rec['n'] = figures(sp['who'], sp.get('size'), sp.get('n'))
-    for k in ('size', 'kit', 'say'):
+    for k in ('size', 'kit', 'say', 'inside'):
         if k in sp:
             rec[k] = sp[k]
     if sp.get('form') and in_tour[sp['start']]:   # drawn in its own scene only
         e0 = events_all[sp['start']]
         words = [L.norm(x) for x in L.segments(e0.get('q', ''))] + [L.norm(r['q']) for r in e0.get('also', [])]
         rec.update(formation(sp, ' '.join(words)))
+    if in_tour[sp['start']]:   # the fighting, too, is drawn in its own scene only
+        for k in ('face', 'fire', 'at', 'pose', 'assault', 'patrol'):
+            if k in sp:
+                rec[k] = sp[k]
     presence.append(rec)
 
 events = []
@@ -510,7 +576,7 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['doc'] = e['doc']
     mv = []
     for m in e.get('moves', []):
-        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say') if k in m}
+        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say', 'run') if k in m}
         if T_actors.get(m['who'], {}).get('kind') not in ('person', 'ship'):
             r['fig'], r['n'] = figures(m['who'], m.get('size'), m.get('n'))
         wf = [list(figures(w)) for w in m.get('with', []) if T_actors.get(w, {}).get('kind') not in ('person', 'ship')]

@@ -314,10 +314,11 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <h3>The people</h3>
       <ul>
         <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
-        <li>Each body stands on a patch of its side’s colour. Defenders of a building face out; everybody else faces in.</li>
+        <li>Each body stands on a patch of its side’s colour. Defenders of a building face out from its walls, and everybody else faces it, or whatever Reed has them look at (“staring at the hotel roof”). A body Reed puts indoors (“they are in the back rooms”) is a label on its building.</li>
         <li>Where Reed says how a body stands, it stands so in that scene: “an interminable column of soldiers” down the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours, not his.</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
-        <li>Fires burn after dark. Muzzle flashes and smoke appear only in scenes where Reed reports firing.</li>
+        <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
+        <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
 
@@ -745,6 +746,7 @@ var PK = PEOPLE.build(), figUni = { uTime: { value: 0 } }, figMat = PEOPLE.mater
 var INST = {}, instList = [];
 function inst(key) {
   if (INST[key]) return INST[key];
+  if (!PK.fig[key] && key.indexOf('.') > 0) { var pg = PEOPLE.posed(key); if (pg) PK.fig[key] = pg; }   // a figure in a pose: 'sailor.kneel'
   if (!PK.fig[key] && !PK.kit[key]) { console.warn('no model for ' + key); return inst('soldier'); }
   var isFig = !!PK.fig[key], geo = (isFig ? PK.fig[key] : PK.kit[key]).clone();
   var cap = isFig ? (/^(soldier|redguard|worker|sailor)/.test(key) ? 1400 : 700) : key === 'avrora' ? 2 : 90;
@@ -769,17 +771,18 @@ function flushInst() { instList.forEach(function (o) { o.mesh.count = o.n; o.mes
 // Where people can stand around a place: a small raster of the plan (buildings and water closed,
 // bridges open), searched outward from the open ground nearest the place. A crowd so fills the
 // square or the street in front of a building, never its inside or a courtyard shut within it.
-var BGRID = null, WATER = null, BRIDGES = null, GROUND = {};
+var BGRID = null, WATER = null, BRIDGES = null, GROUND = {}, KEYR = {};   // KEYR: place id -> the outlines of Reed's building
 function prepGround() {
   BGRID = {};
-  function add(r) {
+  function add(r, h, id, holes) {
     var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
     for (var i = 0; i < r.length; i += 2) { x0 = Math.min(x0, r[i]); x1 = Math.max(x1, r[i]); y0 = Math.min(y0, r[i + 1]); y1 = Math.max(y1, r[i + 1]); }
-    var rec = { r: r, b: [x0, y0, x1, y1] };
+    var rec = { r: r, b: [x0, y0, x1, y1], h: h, id: id, holes: (holes || []).filter(function (q) { return q.length >= 6; }) };
     for (var gx = Math.floor(x0 / 100); gx <= Math.floor(x1 / 100); gx++) for (var gy = Math.floor(y0 / 100); gy <= Math.floor(y1 / 100); gy++) (BGRID[gx + ',' + gy] = BGRID[gx + ',' + gy] || []).push(rec);
+    if (id) (KEYR[id] = KEYR[id] || []).push(rec);
   }
-  M.b.forEach(function (b) { add(ring(b[2])); });
-  M.key.forEach(function (b) { add(ring(b[3])); });
+  M.b.forEach(function (b, bi) { add(ring(b[2]), heightOf({ l: b[0], k: b[1] }, bi), null, b.slice(3).map(ring)); });
+  M.key.forEach(function (b) { add(ring(b[3]), b[2] === 2 ? 0 : b[1] * 3.7 + 2.5 + (b[2] === 1 ? 6 : 0), b[0], b.slice(4).map(ring)); });
   WATER = M.water.map(function (p) { return p.map(ring); });
   BRIDGES = M.br.map(function (p) { return ring(p[0]); });
 }
@@ -800,17 +803,22 @@ function fillRing(R, r, v) {   // cells whose centres lie inside ring r (even-od
     }
   }
 }
+function ringBox(r) { var b = [1e9, 1e9, -1e9, -1e9]; for (var i = 0; i < r.length; i += 2) { b[0] = Math.min(b[0], r[i]); b[2] = Math.max(b[2], r[i]); b[1] = Math.min(b[1], r[i + 1]); b[3] = Math.max(b[3], r[i + 1]); } return b; }
 function raster(cx, cy, half, cs) {
   var w = Math.ceil(2 * half / cs), R = { x0: cx - half, y0: cy - half, cs: cs, w: w, h: w, a: new Uint8Array(w * w) };
   var bb = [R.x0, R.y0, R.x0 + w * cs, R.y0 + w * cs], seen = new Set();
   WATER.forEach(function (p) { if (p[0].length < 6) return; fillRing(R, p[0], 2); for (var h = 1; h < p.length; h++) if (p[h].length >= 6) fillRing(R, p[h], 0); });
   BRIDGES.forEach(function (r) { if (r.length >= 6) fillRing(R, r, 0); });
+  var recs = [], holes = [];
   for (var gx = Math.floor(bb[0] / 100); gx <= Math.floor(bb[2] / 100); gx++) for (var gy = Math.floor(bb[1] / 100); gy <= Math.floor(bb[3] / 100); gy++)
     (BGRID[gx + ',' + gy] || []).forEach(function (rec) {
       var b = rec.b;
       if (seen.has(rec) || b[2] < bb[0] || b[0] > bb[2] || b[3] < bb[1] || b[1] > bb[3]) return;
-      seen.add(rec); fillRing(R, rec.r, 1);
+      seen.add(rec); recs.push(rec); fillRing(R, rec.r, 1);
     });
+  // a building's courtyards are open (Peter-Paul's yard), and the buildings standing in them closed again
+  recs.forEach(function (rec) { rec.holes.forEach(function (q) { fillRing(R, q, 0); holes.push(ringBox(q)); }); });
+  if (holes.length) recs.forEach(function (rec) { var b = rec.b; if (holes.some(function (h) { return b[0] >= h[0] && b[2] <= h[2] && b[1] >= h[1] && b[3] <= h[3]; })) fillRing(R, rec.r, 1); });
   return R;
 }
 // open ground around a place, nearest first along the ground (Dijkstra over the raster's open
@@ -884,6 +892,14 @@ function members(fig, n, seed) {
 }
 function holderBloc(id, t) { var s = holdAt(id, t); return s && s.holder ? blocOf(s.holder) : null; }
 function facingYaw(x, y, tx, ty) { return Math.atan2(tx - x, -(ty - y)); }   // world z is -y
+// what a body looks at, if Reed says ("staring at the hotel roof"): the place's pin, or the body's
+function faceXY(g) {
+  if (!g.face) return null;
+  var l = PL[g.face]; if (l && l.p) return l.p;
+  var h = GROUPS.filter(function (o) { return o.who === g.face && o !== g; })[0];
+  if (h && h.cx != null) return [h.cx, h.cy];
+  return h && PL[h.place] && PL[h.place].p ? PL[h.place].p : null;
+}
 // a formation's spine: points through open ground with their arc lengths; spineAt gives the point
 // s metres along it and the unit tangent there, [x, y, tx, ty]
 function spineAt(sp, s) {
@@ -1042,10 +1058,12 @@ function layoutPlace(id, groups, t) {
       }
       return fi;
     }
-    // a line or ranks are drawn up straight, facing out from the place their side holds, else toward
-    // it (along the ground's run if that gives no direction), on the nearest ground where they fit
-    var fx, fy;
-    if (ol > 4) { fx = ox / ol; fy = oy / ol; if (!(defend && g.form === 'line')) { fx = -fx; fy = -fy; } }
+    if (g.form === 'line') return lineUp(g, figs, fi, ax, ay, left, defend);
+    // ranks are drawn up straight, facing the place (along the ground's run if that gives no
+    // direction), on the nearest ground where they fit
+    var fx, fy, fxy = faceXY(g);
+    if (fxy && Math.hypot(fxy[0] - ax, fxy[1] - ay) > 4) { var fd = Math.hypot(fxy[0] - ax, fxy[1] - ay); fx = (fxy[0] - ax) / fd; fy = (fxy[1] - ay) / fd; }
+    else if (ol > 4) { fx = ox / ol; fy = oy / ol; if (!defend) { fx = -fx; fy = -fy; } }
     else { fx = Math.cos(lie.axis); fy = Math.sin(lie.axis); }
     var ux = -fy, uy = fx, yaw = Math.atan2(fx, -fy), ranks = g.form === 'ranks';
     var blocks = ranks ? (g.blocks || 1) : 1, per = Math.ceil(left / blocks), colG2 = ranks ? 1.0 : 2.0, gapB = 3.2, rowG2 = ranks ? 1.3 : 1.6;
@@ -1074,17 +1092,184 @@ function layoutPlace(id, groups, t) {
     g.members.forEach(function (mm) { var kq = cellAt(mm.x, mm.y); if (kq >= 0) used[kq] = 1; });
     return fi;
   }
+  // A line is drawn across: along the shortest chord of open ground through its anchor, wall to wall
+  // (a street, the mouth of a square), its men spread to fill it, up to 4 m apart. It faces the
+  // throng pressing on it if one stands at the place, and outward if its side holds the building;
+  // else it faces in, toward the square or building it closes off.
+  function lineUp(g, figs, fi, ax, ay, left, defend) {
+    function run(dx, dy) { var d = 0; while (d < 170) { var kq = cellAt(ax + dx * (d + 1), ay + dy * (d + 1)); if (kq < 0 || !G.ok[kq]) break; d++; } return d; }
+    var best = null, fxy = faceXY(g), pk = (PL[g.place] || {}).kind;
+    if (pk === 'bridge' || pk === 'street') {
+      // "drawn across the Nevsky": on the street's axis, square to it (a wide bridge's shortest chord can run along the street)
+      var st = streetSpine(ax, ay, 12);
+      if (st && st.f.length > 1) {
+        var c0 = st.f[0], c1 = st.f[Math.min(st.f.length - 1, 3)], tl = Math.hypot(c1[0] - c0[0], c1[1] - c0[1]);
+        if (tl > 1) {
+          var kq0 = cellAt(c0[0], c0[1]);
+          if (kq0 >= 0 && G.ok[kq0]) { ax = c0[0]; ay = c0[1]; }
+          var ux1 = -(c1[1] - c0[1]) / tl, uy1 = (c1[0] - c0[0]) / tl, p1 = Math.min(45, run(ux1, uy1)), q1 = Math.min(45, run(-ux1, -uy1));
+          if (!fxy && p1 + q1 >= 8) best = { w: p1 + q1, dx: ux1, dy: uy1, p: p1, q: q1 };
+        }
+      }
+    }
+    if (fxy) {   // drawn across the way it looks, however the ground runs ("diagonally across the wide square")
+      var dx0 = fxy[0] - ax, dy0 = fxy[1] - ay, dl = Math.hypot(dx0, dy0) || 1, ux0 = -dy0 / dl, uy0 = dx0 / dl, p0 = Math.min(45, run(ux0, uy0)), q0 = Math.min(45, run(-ux0, -uy0));
+      if (p0 + q0 >= 8) best = { w: p0 + q0, dx: ux0, dy: uy0, p: p0, q: q0 };
+    }
+    for (var a = 0; a < 180 && !fxy && !best; a += 5) {
+      var r = a * Math.PI / 180, dx = Math.cos(r), dy = Math.sin(r), p = run(dx, dy), q = run(-dx, -dy);
+      if (p + q >= 8 && (!best || p + q < best.w)) best = { w: p + q, dx: dx, dy: dy, p: p, q: q };
+    }
+    if (!best) return fi;
+    var ux = best.dx, uy = best.dy, mx = ax + ux * (best.p - best.q) / 2, my = ay + uy * (best.p - best.q) / 2;
+    var crowd = groups.some(function (h) { return h !== g && !h.form && isCrowd(h); });
+    var pl = PL[g.place], inn = pl && pl.in && PL[pl.in] && PL[pl.in].p ? PL[pl.in].p : [G.cx, G.cy];
+    var fx = -uy, fy = ux, toIn = (inn[0] - mx) * fx + (inn[1] - my) * fy;
+    if (fxy) { if ((fxy[0] - mx) * fx + (fxy[1] - my) * fy < 0) { fx = -fx; fy = -fy; } }
+    else if (!!(crowd || defend) === (toIn > 0)) { fx = -fx; fy = -fy; }
+    var depth = left > 60 ? 2 : 1, cols = Math.ceil(left / depth), gap = Math.max(1.2, Math.min(4, (best.w - 3) / Math.max(1, cols - 1)));
+    var yaw = Math.atan2(fx, -fy);
+    for (var j = 0; j < left && fi < figs.length; j++) {
+      var along = (Math.floor(j / depth) - (cols - 1) / 2) * gap, back = (j % depth) * 1.6;
+      var x = mx + ux * along - fx * back, y = my + uy * along - fy * back, kq = cellAt(x, y);
+      if (kq < 0 || !G.ok[kq]) continue;   // in a wall: the figure joins the rest below
+      g.members.push({ k: figs[fi++], x: x, y: y, yaw: yaw + (hash(g.seed + j * 2.37) - 0.5) * 0.08, idle: 0.15 });
+      used[kq] = 1;
+    }
+    g.line = { c: [mx, my], f: [fx, fy], u: [ux, uy] };
+    return fi;
+  }
+  // A body that surrounds a building (Reed's "surrounded") stands round it in sections: on the open
+  // ground 9 to 45 m from its walls with a clear line to them, spread all the way round, each section
+  // facing the wall nearest it. Returns the sections, {x, y, wx, wy, r}, nearest the walls first, or null.
+  function ringSites(g, n) {
+    var recs = outlinesOf(g.place); if (!recs.length) return null;
+    var bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9, cx = 0, cy = 0, c = 0;
+    recs.forEach(function (rec) { cx += (rec.b[0] + rec.b[2]) / 2; cy += (rec.b[1] + rec.b[3]) / 2; c++; bx0 = Math.min(bx0, rec.b[0]); by0 = Math.min(by0, rec.b[1]); bx1 = Math.max(bx1, rec.b[2]); by1 = Math.max(by1, rec.b[3]); });
+    cx /= c; cy /= c;
+    var cand = [], H = G.R.h;
+    for (var k = 0; k < W * H; k++) {
+      if (!free(k)) continue;
+      var x = cellX(G, k), y = cellY(G, k);
+      if (x < bx0 - 45 || x > bx1 + 45 || y < by0 - 45 || y > by1 + 45) continue;
+      var w = nearestOn(recs, x, y); if (w.d < 9 || w.d > 45 || !sightTo(x, y, w.x, w.y)) continue;
+      cand.push({ k: k, x: x, y: y, wx: w.x, wy: w.y, d: w.d, a: Math.atan2(y - cy, x - cx) });
+    }
+    if (!cand.length) return null;
+    var S = Math.max(3, Math.min(8, Math.round(n / 7))), a0 = hash(g.seed) * 6.283, out = [];
+    for (var si = 0; si < S; si++) {
+      var want = a0 + si * 6.283 / S, best = null;
+      cand.forEach(function (q) {
+        var da = Math.abs(Math.atan2(Math.sin(q.a - want), Math.cos(q.a - want))); if (da > Math.PI / S) return;
+        if (!free(q.k) || out.some(function (o) { return Math.hypot(o.x - q.x, o.y - q.y) < 14; })) return;
+        var sc = Math.abs(q.d - 16) + da * 30; if (!best || sc < best.sc) { best = q; best.sc = sc; }
+      });
+      if (best) out.push({ x: best.x, y: best.y, wx: best.wx, wy: best.wy, d: best.d, r: 5 });
+    }
+    return out.length ? out : null;
+  }
+  // a clear line over open ground from (x, y) to the wall at (wx, wy)
+  function sightTo(x, y, wx, wy) {
+    var L = Math.hypot(wx - x, wy - y);
+    for (var q = 1; q < L - 1.2; q += 0.9) { var kq = cellAt(x + (wx - x) * q / L, y + (wy - y) * q / L); if (kq < 0 || G.R.a[kq] === 1) return false; }
+    return true;
+  }
+  // a section of a ring: its men in a short line across the line to the wall, two deep if many, facing it
+  function sectionUp(g, sec, figs, fi, count) {
+    var fx = sec.wx - sec.x, fy = sec.wy - sec.y, fl = Math.hypot(fx, fy) || 1; fx /= fl; fy /= fl;
+    var ux = -fy, uy = fx, depth = count > 6 ? 2 : 1, cols = Math.ceil(count / depth), placed = 0;
+    for (var j = 0; j < count * 3 && placed < count && fi < figs.length; j++) {
+      var slot = j < count ? j : count + (j - count);   // spill past the ends if the ground is taken
+      var along = (Math.floor(slot / depth) - (cols - 1) / 2) * 1.4, back = (slot % depth) * 1.5;
+      var x = sec.x + ux * along - fx * back + (hash(g.seed + j * 3.1) - 0.5) * 0.5, y = sec.y + uy * along - fy * back + (hash(g.seed + j * 5.3) - 0.5) * 0.5, kq = cellAt(x, y);
+      if (kq < 0 || !free(kq)) continue;
+      used[kq] = 1; placed++;
+      g.members.push({ k: figs[fi++], x: x, y: y, yaw: facingYaw(x, y, sec.wx, sec.wy) + (hash(g.seed + j * 2.37) - 0.5) * 0.15, idle: 0.2, sec: sec });
+    }
+    return fi;
+  }
+  function isCrowd(h) { return h.bloc === 'public' || (AC[h.who] && AC[h.who].kind === 'crowd'); }
+  // a heap of rifles thrown down: just inside a barricade of the body's, toward its building, else on the
+  // open ground before the building
+  function heaps(g, n) {
+    var bars = g.props.filter(function (p) { return /^barricade/.test(p.k); });
+    for (var h = 0; h < n; h++) {
+      var x, y, b = bars[h % Math.max(1, bars.length)];
+      if (b) { var dx = G.cx - b.x, dy = G.cy - b.y, dl = Math.hypot(dx, dy) || 1; x = b.x + dx / dl * 2.6 + (h - (n - 1) / 2) * 1.6; y = b.y + dy / dl * 2.6; }
+      else { var ih = pick(6 + h * 12, 1); if (ih < 0) return; x = cellX(G, G.order[ih]); y = cellY(G, G.order[ih]); }
+      var kq = cellAt(x, y); if (kq >= 0) take(kq, 1);
+      g.props.push({ k: 'rifles', x: x, y: y, yaw: hash(g.seed + h) * 6.283 });
+    }
+  }
   groups.forEach(function (g, gi) {
     g.members = []; g.props = []; g.fires = [];
+    var kit0 = g.kit || [];
+    function kitN0(name, dflt) { for (var i = 0; i < kit0.length; i++) { var p = kit0[i].split(':'); if (p[0] === name) return p[1] ? +p[1] : dflt; } return 0; }
+    if (g.inside) {   // indoors: a label on the building, no one drawn; its barricades and the rifles it threw down stay outside
+      var il = PL[g.place] || PL[id]; g.cx = il.p[0]; g.cy = il.p[1]; g.r = 8;
+      var cur0 = siege && owner && g.bloc !== owner ? gapIx : 0;
+      for (var bi0 = 0; bi0 < kitN0('barricade', 2); bi0++) {
+        var ib = pick(cur0 + 10 + bi0 * 30, 1.5); if (ib < 0) break; var kb = G.order[ib]; take(kb, 3);
+        var bx0 = cellX(G, kb), by0 = cellY(G, kb); g.props.push({ k: bi0 % 2 ? 'barricade2' : 'barricade', x: bx0, y: by0, yaw: facingYaw(bx0, by0, G.cx, G.cy) });
+      }
+      heaps(g, kitN0('rifles', 1));
+      return;
+    }
     var defend = owner && g.bloc === owner && !g.brief, seed = g.seed;
     // under siege the besiegers keep their distance, down the street or across the square
     var cur = siege && owner && g.bloc !== owner ? gapIx : 0;
-    function yawAt(x, y) { var a = facingYaw(x, y, G.cx, G.cy); return (defend ? a + Math.PI : a) + (hash(seed + x * 0.37 + y) - 0.5) * 0.7; }
+    var fxy = faceXY(g), pk = PL[id] && PL[id].kind, bldg = pk === 'building' || pk === 'station' || pk === 'complex' ? outlinesOf(id) : [];
+    function yawAt(x, y) {
+      var j = hash(seed + x * 0.37 + y) - 0.5;
+      if (fxy) return facingYaw(x, y, fxy[0], fxy[1]) + j * 0.35;
+      if (bldg.length) {   // the building itself: out from its nearest wall, or toward it
+        var w = nearestOn(bldg, x, y);
+        if (w.d > 0.3 && w.d < 120) { var aw = facingYaw(w.x, w.y, x, y); return (defend ? aw : aw + Math.PI) + j * 0.5; }
+      }
+      var a = facingYaw(x, y, G.cx, G.cy); return (defend ? a + Math.PI : a) + j * 0.7;
+    }
     var figs = members(g.fig, g.n, seed), fi = 0, kit = g.kit || [];
     function kitN(name, dflt) { for (var i = 0; i < kit.length; i++) { var p = kit[i].split(':'); if (p[0] === name) return p[1] ? +p[1] : dflt; } return 0; }
     // machine guns and fires close in front of the place; vehicles and guns where there is room
     var nMg = kitN('mg', 2), nFire = kitN('fire', 1), nGun = kitN('gun', 1), nArm = kitN('armoured', 1), nTruck = kitN('truck', 1), nCar = kitN('car', 1);
-    var i, ix, k, carFlags = 0;
+    var i, ix, k, carFlags = 0, ring = g.form === 'ring' ? ringSites(g, g.n || figs.length) : null;
+    if (g.form === 'ring' && !ring) g.form = null;   // no building to stand round: an ordinary body
+    if (ring) {
+      g.secs = ring;
+      // the guns, machine guns and cars at the sections, each a few metres behind its men, facing the wall
+      var kitList = [];
+      [['gun', nGun], ['mg', nMg], ['armoured', nArm], ['truck', nTruck], ['car', nCar]].forEach(function (v) { for (var j = 0; j < v[1]; j++) kitList.push(v[0]); });
+      kitList.forEach(function (kind, j) {
+        var sec = ring[j % ring.length], fx = sec.wx - sec.x, fy = sec.wy - sec.y, fl = Math.hypot(fx, fy) || 1, back = kind === 'mg' ? -1.5 : kind === 'gun' ? 2 : 6 + Math.floor(j / ring.length) * 5;
+        var side = (Math.floor(j / ring.length) % 2 ? 1 : -1) * (kind === 'gun' ? 3.5 : 5) * (1 + Math.floor(j / ring.length / 2));
+        var px = sec.x - fx / fl * back - fy / fl * side, py = sec.y - fy / fl * back + fx / fl * side, kq = cellAt(px, py);
+        if (kq < 0 || !G.ok[kq]) { px = sec.x; py = sec.y; }
+        var yaw = kind === 'gun' || kind === 'mg' ? facingYaw(px, py, sec.wx, sec.wy) : facingYaw(px, py, sec.wx, sec.wy) + Math.PI / 2;
+        var kq2 = cellAt(px, py); if (kq2 >= 0) take(kq2, kind === 'mg' ? 0.9 : 2.4);
+        g.props.push({ k: kind, x: px, y: py, yaw: yaw, sec: sec, flags: kind === 'armoured' && !carFlags && kitNum(kit, 'flag') ? (carFlags = Math.min(2, Math.max(1, kitNum(kit, 'flag')))) : 0 });
+        if (kind === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: px, y: py, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2, sec: sec });
+        if (kind === 'mg' && fi < figs.length) g.members.push({ k: figs[fi++], x: px, y: py, ox: -Math.sin(yaw) * 0.8, oy: Math.cos(yaw) * 0.8, yaw: yaw, idle: 0.2, sec: sec });
+      });
+      nMg = nGun = nArm = nTruck = nCar = 0;
+      var per = Math.ceil((figs.length - fi) / ring.length);
+      ring.forEach(function (sec) { fi = sectionUp(g, sec, figs, fi, Math.min(per, figs.length - fi)); });
+    }
+    if (defend && bldg.length && nMg >= 2) {   // "one on each side of the door": in pairs along the wall either side of the way in
+      var a0 = pick(cur, 0), k0 = a0 >= 0 ? G.order[a0] : -1;
+      if (k0 >= 0) {
+        var dx0 = cellX(G, k0), dy0 = cellY(G, k0), w0 = nearestOn(bldg, dx0, dy0), nx0 = dx0 - w0.x, ny0 = dy0 - w0.y, nl0 = Math.hypot(nx0, ny0) || 1, placed = 0;
+        nx0 /= nl0; ny0 /= nl0;
+        for (i = 0; i < nMg; i++) {
+          var sd = i % 2 ? 1 : -1, off = 4 + Math.floor(i / 2) * 2.4, px0 = w0.x + nx0 * 2.5 - ny0 * sd * off, py0 = w0.y + ny0 * 2.5 + nx0 * sd * off, kq0 = cellAt(px0, py0);
+          if (kq0 < 0 || !free(kq0)) continue;
+          take(kq0, 0.9); placed++;
+          var yy0 = facingYaw(px0, py0, px0 + nx0, py0 + ny0);
+          g.props.push({ k: 'mg', x: px0, y: py0, yaw: yy0 });
+          if (fi < figs.length) g.members.push({ k: figs[fi++], x: px0, y: py0, ox: -Math.sin(yy0) * 0.8, oy: Math.cos(yy0) * 0.8, yaw: yy0, idle: 0.2 });
+        }
+        nMg -= placed;
+      }
+    }
     for (i = 0; i < nMg; i++) {
       ix = pick(cur + i * 3, 0.9); if (ix < 0) break; k = G.order[ix]; take(k, 0.9);
       var mx = cellX(G, k), my = cellY(G, k), my2 = yawAt(mx, my);
@@ -1101,19 +1286,38 @@ function layoutPlace(id, groups, t) {
     }
     [['gun', nGun, 2.2], ['armoured', nArm, 3.4], ['truck', nTruck, 3.6], ['car', nCar, 2.8]].forEach(function (v) {
       for (var j = 0; j < v[1]; j++) {
-        var at = pick(cur + 18 + j * 25, v[2]); if (at < 0) return;
-        var kk = G.order[at]; take(kk, v[2]);
-        var vx = cellX(G, kk), vy = cellY(G, kk), yaw = v[0] === 'gun' ? yawAt(vx, vy) : facingYaw(vx, vy, G.cx, G.cy) + Math.PI / 2 + (hash(seed + j) - 0.5);
+        var room = v[2] * 2.2;   // drawn at FS 2 or more
+        var at = pick(cur + 18 + j * 25, room); if (at < 0) at = pick(cur + 18 + j * 25, v[2]); if (at < 0) return;
+        var kk = G.order[at]; take(kk, room);
+        var vx = cellX(G, kk), vy = cellY(G, kk), yaw = v[0] === 'gun' || fxy ? yawAt(vx, vy) : facingYaw(vx, vy, G.cx, G.cy) + Math.PI / 2 + (hash(seed + j) - 0.5);
+        if (v[0] !== 'gun' && !fxy) {   // a vehicle in a street stands along it
+          var sv = streetSpine(vx, vy, 4);
+          if (sv && sv.f.length > 1 && Math.hypot(sv.f[0][0] - vx, sv.f[0][1] - vy) < 16) { var q1 = sv.f[1]; yaw = facingYaw(sv.f[0][0], sv.f[0][1], q1[0], q1[1]) + (hash(seed + j * 3) < 0.5 ? 0 : Math.PI); }
+        }
         g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw, flags: v[0] === 'armoured' && !carFlags && kitNum(kit, 'flag') ? (carFlags = Math.min(2, Math.max(1, kitNum(kit, 'flag')))) : 0 });
         if (v[0] === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: vx, y: vy, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2 });
       }
     });
-    // the people: in Reed's formation if the scene's passage gives one, the rest on the nearest open ground
-    if (g.form && fi < figs.length) fi = formUp(g, figs, fi, cur, defend);
+    // the people: in Reed's formation if the scene's passage gives one, the rest on the nearest open
+    // ground; a crowd at a line stands in front of it, and whoever watches a formation faces it
+    if (g.form && g.form !== 'ring' && fi < figs.length) fi = formUp(g, figs, fi, cur, defend);
+    var lineG = !g.form && isCrowd(g) ? groups.filter(function (h) { return h.line; })[0] : null, aord = null;
+    if (lineG) {
+      var lx = lineG.line.c[0] + lineG.line.f[0] * 10, ly = lineG.line.c[1] + lineG.line.f[1] * 10;
+      aord = G.order.filter(function (kk) { return G.ok[kk]; }).sort(function (a, b) { return Math.hypot(cellX(G, a) - lx, cellY(G, a) - ly) - Math.hypot(cellX(G, b) - lx, cellY(G, b) - ly); });
+    }
+    var watched = !fxy && !g.form && !defend && (g.brief || isCrowd(g)) ? groups.filter(function (h) { return h !== g && h.form && h.members && h.members.length; }) : [];
+    function faceWatch(x, y) {
+      var bm = null, bd = 6400;
+      watched.forEach(function (h) { h.members.forEach(function (m) { var d = (m.x - x) * (m.x - x) + (m.y - y) * (m.y - y); if (d < bd) { bd = d; bm = m; } }); });
+      return bm ? facingYaw(x, y, bm.x, bm.y) + (hash(seed + x + y * 0.3) - 0.5) * 0.5 : null;
+    }
     for (; fi < figs.length; fi++) {
-      ix = pick(cur, 0); if (ix < 0) break; k = G.order[ix]; take(k, 0);
-      var x = cellX(G, k) + (hash(seed + fi * 3.1) - 0.5) * 0.9, y = cellY(G, k) + (hash(seed + fi * 5.7) - 0.5) * 0.9;
-      g.members.push({ k: figs[fi], x: x, y: y, yaw: yawAt(x, y), idle: g.brief ? 0.8 : 0.35 });
+      if (aord) { while (aord.length && !free(aord[0])) aord.shift(); if (!aord.length) break; k = aord.shift(); }
+      else { ix = pick(cur, 0); if (ix < 0) break; k = G.order[ix]; }
+      take(k, 0);
+      var x = cellX(G, k) + (hash(seed + fi * 3.1) - 0.5) * 0.9, y = cellY(G, k) + (hash(seed + fi * 5.7) - 0.5) * 0.9, wy = watched.length ? faceWatch(x, y) : null;
+      g.members.push({ k: figs[fi], x: x, y: y, yaw: wy != null ? wy : yawAt(x, y), idle: g.brief ? 0.8 : 0.35 });
     }
     // barricades in front of the body, across the way in
     var nBar = kitN('barricade', 2);
@@ -1122,11 +1326,25 @@ function layoutPlace(id, groups, t) {
       var bx = cellX(G, k), by = cellY(G, k);
       g.props.push({ k: i % 2 ? 'barricade2' : 'barricade', x: bx, y: by, yaw: facingYaw(bx, by, G.cx, G.cy) });
     }
+    heaps(g, kitN('rifles', 1));
     // flags and banners in a few hands (a flag on the car, if there is one), torches in every other hand, a bicycle for each cyclist
     carryKit(g.members, kit, g.say, carFlags);
     var sx = 0, sy = 0; g.members.forEach(function (mm) { sx += mm.x; sy += mm.y; });
     g.cx = g.members.length ? sx / g.members.length : G.sx; g.cy = g.members.length ? sy / g.members.length : G.sy;
     var r = 4; g.members.forEach(function (mm) { r = Math.max(r, Math.hypot(mm.x - g.cx, mm.y - g.cy)); }); g.r = r;
+  });
+  // a body there for this scene only (come along to talk, or to watch), loose and with nothing named to
+  // look at, turns to the nearest of the others at the place
+  groups.forEach(function (g) {
+    if (!g.brief || g.form || g.inside || g.face || !g.members.length) return;
+    var others = groups.filter(function (h) { return h !== g && !h.inside && h.members && h.members.length; });
+    if (!others.length) return;
+    g.members.forEach(function (m, i) {
+      if (m.ox != null) return;   // gun crews and the men round a fire keep their places
+      var bm = null, bd = 900;
+      others.forEach(function (h) { h.members.forEach(function (q) { var d = (q.x - m.x) * (q.x - m.x) + (q.y - m.y) * (q.y - m.y); if (d < bd) { bd = d; bm = q; } }); });
+      if (bm) m.yaw = facingYaw(m.x, m.y, bm.x, bm.y) + (hash(g.seed + i * 2.1) - 0.5) * 0.5;
+    });
   });
 }
 function stageScene(e, noReed) {
@@ -1139,7 +1357,7 @@ function stageScene(e, noReed) {
   (S.presence || []).forEach(function (p, pi) {
     if (!on(p) || (!p.brief && briefs[p.who + '|' + p.place])) return;
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
-    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && p.from === idx ? p.form : null, march: !!(p.march && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && p.from === idx ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && p.from === idx ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
     GROUPS.push(g);
     if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
   });
@@ -1151,8 +1369,21 @@ function stageScene(e, noReed) {
   });
   if (!noReed && e.witness === 'seen' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {
     var RG = openGround(rootOf(e.loc), false);
-    if (RG) GROUPS.push({ members: [{ k: 'reed', x: RG.sx, y: RG.sy, yaw: facingYaw(RG.sx, RG.sy, RG.cx, RG.cy), idle: 0.3 }], props: [], fires: [], bloc: 'observer', label: 'Reed', place: rootOf(e.loc), seed: 3, cx: RG.sx, cy: RG.sy, r: 3, reed: true });
+    if (RG) {
+      // beside the bodies at his place, not under them, looking at the largest
+      var here = GROUPS.filter(function (g) { return !g.ship && g.members && g.members.length && rootOf(g.place) === rootOf(e.loc); }), spot = null, big = null;
+      here.forEach(function (g) { if (!big || g.members.length > big.members.length) big = g; });
+      for (var oi = 0; oi < RG.order.length && oi < 2600 && !spot; oi++) {
+        var kk = RG.order[oi], rx = cellX(RG, kk), ry = cellY(RG, kk);
+        if (here.every(function (g) { return g.members.every(function (m) { return Math.abs(m.x - rx) > 2.6 || Math.abs(m.y - ry) > 2.6; }); })) spot = [rx, ry];
+      }
+      spot = spot || [RG.sx, RG.sy];
+      var look = big ? [big.cx, big.cy] : [RG.cx, RG.cy];
+      if (Math.hypot(look[0] - spot[0], look[1] - spot[1]) < 1) look = [RG.cx, RG.cy];
+      GROUPS.push({ members: [{ k: 'reed', x: spot[0], y: spot[1], yaw: facingYaw(spot[0], spot[1], look[0], look[1]), idle: 0.3 }], props: [], fires: [], bloc: 'observer', label: 'Reed', place: rootOf(e.loc), seed: 3, cx: spot[0], cy: spot[1], r: 3, reed: true });
+    }
   }
+  armFights();
   GROUPS.forEach(function (g) {
     if (!g.ship) return;
     var G = openGround(g.place, true); if (!G) return;
@@ -1266,7 +1497,7 @@ function drawMover(mv, FS, t) {
       put('horse2', g1[0] - Math.cos(g1[2]) * 0.55 * FS, 0, -g1[1] + Math.sin(g1[2]) * 0.55 * FS, g1[2], FS, gI + 0.5, walking, 0);
       put('gun', g2[0], 0, -g2[1], g2[2] + Math.PI, FS, 0, 0, 0);
     }
-    gunRows = mv.guns * 9 / 1.25;
+    gunRows = Math.max(0, (mv.guns * 9 - 2) / 2.75);   // in riders' rows (2.2 gaps of 1.25), the first just behind the last gun
   }
   mv.list.forEach(function (mm, i) {
     var row = Math.floor(i / cols) + gunRows, col = i % cols, d = head - row * gap * (mv.cav ? 2.2 : 1);
@@ -1274,6 +1505,7 @@ function drawMover(mv, FS, t) {
     var p = alongPath(o, Math.max(0, d), side), key = mv.cav && !mv.guns ? 'cavalry' : mm.k;
     if (i === 0) { mv.lx = p[0]; mv.ly = p[1]; }
     if (mv.cav && mv.guns) key = 'cavalry';
+    if (mv.m.run && walking && PK.armed[key]) key += '.charge';   // running at the enemy, bayonet first
     put(key, p[0], 0, -p[1], p[2], FS, i * 1.3, walking, walking ? 0 : 0.3);
     if (mm.k !== 'reed') patch(p[0], p[1], 0.95 * FS, mv.bloc);
     if (mm.carry) carried(mm.carry, p[0], p[1], p[2], FS, t, i, mm.say);
@@ -1281,7 +1513,6 @@ function drawMover(mv, FS, t) {
     if (mm.k === 'reed') { reedGlow.position.set(p[0], 0.8, -p[1]); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
   });
 }
-// a banner lettered with Reed's words for it: red cloth, gold letters, readable from either side
 // Reed's words on a banner (two poles, the size of the plain one) or a flag (one pole, the
 // flag's size): red cloth lettered in gold, readable from both sides. Pooled, one per carrier.
 var LETTERED = {}, letterPool = {}, letterUsed = {};
@@ -1364,36 +1595,359 @@ Sprites.prototype.end = function () {
   ['position', 'color', 'size'].forEach(function (k) { this.geo.attributes[k].needsUpdate = true; }, this);
   this.n = 0;
 };
-var glowFx = new Sprites(900, true), smokeFx = new Sprites(500, false), flames = [], puffs = [], flakes = [];
+var glowFx = new Sprites(900, true), smokeFx = new Sprites(900, false), flames = [], puffs = [], flakes = [];
 var darkNow = false;
 function leafletsAt(x, z, yaw, FS, t) {
   if (flakes.length < 220 && Math.random() < 0.5) flakes.push({ x: x - Math.sin(yaw) * 2.5 * FS, y: 2.6 * FS, z: z - Math.cos(yaw) * 2.5 * FS, vx: (Math.random() - 0.5) * 3, vy: 1.5 + Math.random() * 2, vz: (Math.random() - 0.5) * 3, t0: t, life: 4 + Math.random() * 3 });
 }
-var shotClock = 0, shotLast = 0;
-function shoot(t, FS) {
-  // muzzle flashes from the bodies on the scene, and smoke where they fire: about six a second,
-  // whatever the frame rate, while the scene is one where Reed reports firing
-  var dtS = Math.min(1, t - (shotLast || t)); shotLast = t;
-  if (!cur || intro || (cur.tags || []).indexOf('shooting') < 0) return;
-  shotClock += dtS * 6;
-  var here = GROUPS.filter(function (g) { return g.members && g.members.length && !g.ship && PL[g.place] && PL[cur.loc] && near(g.place, cur.loc, 450); });
-  while (shotClock >= 1 && here.length) { shotClock -= 1; fireOne(here, t, FS); }
-  shotClock = Math.min(shotClock, 3);
+function near(a, b, m) { var p = PL[rootOf(a)] || PL[a], q = PL[rootOf(b)] || PL[b]; return p && q && p.p && q.p && Math.hypot(p.p[0] - q.p[0], p.p[1] - q.p[1]) < m; }
+
+// ---------- the fighting ----------
+// Where Reed has a body fire in a scene (presence `fire`), its riflemen take aim at what it fires
+// at (the body named in `at`, else the nearest body of the other side, else the wall of the
+// building it lays siege to), kneeling behind its barricades or standing. Each man fires every few
+// seconds: a flash at his muzzle, a puff of smoke, dust where the round strikes. Machine guns and
+// armoured cars fire bursts; field-guns recoil and burst their shells on the target, lighting the
+// street at night. A body that fires "from the windows" is inside its building, and its fire comes
+// from the windows facing the enemy. The dead and the wounded (`pose: fallen`) lie on the ground;
+// people who throw themselves flat (`pose: prone`) lie on their faces.
+var SIDE = { soviet: 1, government: 2, opposition: 2 };
+function opposed(a, b) { return !!(SIDE[a] && SIDE[b] && SIDE[a] !== SIDE[b]); }
+var boom = 0, fightLast = 0, boomLight = new THREE.PointLight(0xffb36b, 0, 240, 1.6); scene.add(boomLight);
+// The walls under fire are the real outlines of the buildings, the ones the map raises: the
+// building of a place is Reed's own (KEYR) or the outline at its pin.
+function ringArea(r) { var a = 0, n = r.length / 2; for (var i = 0, j = n - 1; i < n; j = i++) a += r[2 * j] * r[2 * i + 1] - r[2 * i] * r[2 * j + 1]; return a / 2; }
+function inRing(r, x, y) {
+  var c = false, n = r.length / 2;
+  for (var i = 0, j = n - 1; i < n; j = i++) { var xi = r[2 * i], yi = r[2 * i + 1], xj = r[2 * j], yj = r[2 * j + 1]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; }
+  return c;
 }
-function fireOne(here, t, FS) {
-  var g = here[Math.floor(Math.random() * here.length)], m = g.members[Math.floor(Math.random() * g.members.length)];
-  var fx = m.x + Math.sin(m.yaw) * 0.6 * FS, fz = -m.y + Math.cos(m.yaw) * 0.6 * FS, fy = 1.7 * FS;
-  puffs.push({ x: fx, y: fy, z: fz, t0: t, life: 0.16, flash: 1, s: 2.2 * FS });
-  puffs.push({ x: fx, y: fy, z: fz, t0: t, life: 2.5 + Math.random() * 2, s: 1.4 * FS, vx: (Math.random() - 0.5) * 0.8, vy: 0.6, vz: (Math.random() - 0.5) * 0.8 });
-  g.props.forEach(function (pr) {
-    if ((pr.k === 'gun' || pr.k === 'armoured') && Math.random() < 0.12) {
-      var gx = pr.x + Math.sin(pr.yaw) * 2.4 * FS, gz = -pr.y + Math.cos(pr.yaw) * 2.4 * FS;
-      puffs.push({ x: gx, y: 1.2 * FS, z: gz, t0: t, life: 0.14, flash: 1, s: 5 * FS });
-      for (var i = 0; i < 4; i++) puffs.push({ x: gx, y: 1.2 * FS, z: gz, t0: t, life: 5 + Math.random() * 3, s: 4 * FS, vx: (Math.random() - 0.5) * 2, vy: 0.9, vz: (Math.random() - 0.5) * 2 });
+function segDist(px, py, ax, ay, bx, by) { var ex = bx - ax, ey = by - ay, L2 = ex * ex + ey * ey, t = L2 ? Math.max(0, Math.min(1, ((px - ax) * ex + (py - ay) * ey) / L2)) : 0; return Math.hypot(ax + ex * t - px, ay + ey * t - py); }
+function ringDist(r, x, y) {
+  if (inRing(r, x, y)) return 0;
+  var d = 1e9, n = r.length / 2;
+  for (var i = 0, j = n - 1; i < n; j = i++) d = Math.min(d, segDist(x, y, r[2 * j], r[2 * j + 1], r[2 * i], r[2 * i + 1]));
+  return d;
+}
+function nearestOn(recs, x, y) {   // the nearest point on these outlines to (x, y): {x, y, d}
+  var best = { d: 1e9, x: x, y: y };
+  recs.forEach(function (rec) {
+    var r = rec.r, n = r.length / 2;
+    for (var i = 0, j = n - 1; i < n; j = i++) {
+      var ax = r[2 * j], ay = r[2 * j + 1], ex = r[2 * i] - ax, ey = r[2 * i + 1] - ay, L2 = ex * ex + ey * ey, t = L2 ? Math.max(0, Math.min(1, ((x - ax) * ex + (y - ay) * ey) / L2)) : 0;
+      var px = ax + ex * t, py = ay + ey * t, d = Math.hypot(px - x, py - y);
+      if (d < best.d) best = { d: d, x: px, y: py };
     }
   });
+  return best;
 }
-function near(a, b, m) { var p = PL[rootOf(a)] || PL[a], q = PL[rootOf(b)] || PL[b]; return p && q && p.p && q.p && Math.hypot(p.p[0] - q.p[0], p.p[1] - q.p[1]) < m; }
+function outlinesOf(pid) {
+  if (KEYR[pid]) { var own = KEYR[pid].filter(function (rec) { return rec.h > 0; }); if (own.length) return own; }
+  var l = PL[pid]; if (!l || !l.p) return [];
+  var best = null, gx = Math.floor(l.p[0] / 100), gy = Math.floor(l.p[1] / 100);
+  for (var i = -1; i <= 1; i++) for (var j = -1; j <= 1; j++) (BGRID[(gx + i) + ',' + (gy + j)] || []).forEach(function (rec) {
+    if (!(rec.h > 0)) return;
+    var d = ringDist(rec.r, l.p[0], l.p[1]); if (d < 20 && (!best || d < best.d)) best = { d: d, rec: rec };
+  });
+  return best ? [best.rec] : [];
+}
+// points every `step` metres along the walls of these outlines that face (fx, fy), a hand's breadth
+// out from the wall: {x, y, nx, ny, h, d}, (nx, ny) out of the building, h its height, nearest first
+function facesOf(recs, fx, fy, step) {
+  var out = [];
+  recs.forEach(function (rec) {
+    var r = rec.r, n = r.length / 2, sg = ringArea(r) > 0 ? 1 : -1;
+    for (var i = 0, j = n - 1; i < n; j = i++) {
+      var ax = r[2 * j], ay = r[2 * j + 1], bx = r[2 * i], by = r[2 * i + 1], ex = bx - ax, ey = by - ay, L = Math.hypot(ex, ey);
+      if (L < 1.5) continue;
+      var nx = sg * ey / L, ny = -sg * ex / L;
+      if (nx * (fx - (ax + bx) / 2) + ny * (fy - (ay + by) / 2) <= 0) continue;   // this wall looks away
+      for (var q = Math.min(step / 2, L / 2); q < L; q += step) { var x = ax + ex * q / L, y = ay + ey * q / L; out.push({ x: x + nx * 0.25, y: y + ny * 0.25, nx: nx, ny: ny, h: rec.h, d: Math.hypot(fx - x, fy - y) }); }
+    }
+  });
+  return out.sort(function (a, b) { return a.d - b.d; });
+}
+// the body g fires at: the one its `at` names, else the nearest of the other side within 450 m
+function foeOf(g) {
+  var best = null;
+  GROUPS.forEach(function (h) {
+    if (h === g || h.cx == null || h.ship || h.reed || !(h.inside || (h.members && h.members.length))) return;
+    if (g.at ? h.who !== g.at : !opposed(g.bloc, h.bloc)) return;
+    var d = Math.hypot(h.cx - g.cx, h.cy - g.cy);
+    if (d < 450 && (!best || d < best.d)) best = { d: d, h: h };
+  });
+  return best ? best.h : null;
+}
+function sectionsOf(h) { return h.secs || [{ x: h.cx, y: h.cy, r: Math.max(2.5, Math.min(12, h.r * 0.7)) }]; }
+// what a shooter of g standing at (x, y) aims at: the nearest part of the enemy body in the open, else
+// the wall nearest him of the building the enemy holds (or that g's `at` names, or g's own place)
+function aimFrom(g, foe, x, y) {
+  if (foe && !foe.inside) {
+    var s = null; sectionsOf(foe).forEach(function (q) { if (!s || Math.hypot(q.x - x, q.y - y) < Math.hypot(s.x - x, s.y - y)) s = q; });
+    return { x: s.x, y: s.y, r: s.r, h0: 0.15, h1: 0.8, ground: true };
+  }
+  return wallTarget(foe ? foe.place : (g.at && PL[g.at] ? g.at : g.place), x, y);
+}
+var WALLT = {};
+function wallTarget(pid, x, y) {
+  var key = pid + '|' + Math.round(x / 6) + ',' + Math.round(y / 6);
+  if (WALLT[key] !== undefined) return WALLT[key];
+  var fs = facesOf(outlinesOf(pid), x, y, 2.5);
+  if (!fs.length) return (WALLT[key] = null);
+  var f0 = fs[0];
+  fs = fs.filter(function (f) { return Math.hypot(f.x - f0.x, f.y - f0.y) < 16; });
+  return (WALLT[key] = { x: f0.x, y: f0.y, r: 8, h0: 1.6, h1: 13, wall: true, faces: fs });
+}
+// a body that holds the building it stands at while it is under siege is inside it
+function besiegedIn(g, t) {
+  var l = PL[g.place], st = holdAt(rootOf(g.place), t);
+  return !!(l && (l.kind === 'building' || l.kind === 'station') && st && (st.state === 'besieged' || st.state === 'contested') && st.holder && blocOf(st.holder) === g.bloc);
+}
+// firing from the windows: up to a dozen, on the floors of the walls of the body's building that face
+// the enemy; with the enemy all round, on every side of it, each window firing at the part nearest it
+function windowsOf(g, foe) {
+  var recs = outlinesOf(g.place), secs = foe ? sectionsOf(foe) : [], fs = [];
+  if (!recs.length || !secs.length) return false;
+  var each = Math.max(2, Math.ceil(14 / secs.length));
+  secs.forEach(function (q) { facesOf(recs, q.x, q.y, 3.2).slice(0, 30).forEach(function (f, j) { if (j % Math.max(1, Math.floor(30 / each)) === 0) { f.q = q; fs.push(f); } }); });
+  if (!fs.length) return false;
+  g.windows = [];
+  fs.slice(0, 16).forEach(function (f, j) {
+    var floors = Math.max(1, Math.floor((f.h - 1) / 3.7)), k = Math.floor(hash(g.seed + j * 2.3) * floors);
+    g.windows.push({ x: f.x + f.nx * 0.3, y: f.y + f.ny * 0.3, h: 2.2 + k * 3.7, tf: hash(g.seed + j * 1.7) * 4, T: { x: f.q.x, y: f.q.y, r: f.q.r, h0: 0.15, h1: 0.8, ground: true } });
+  });
+  var sx = 0, sy = 0; g.windows.forEach(function (w) { sx += w.x; sy += w.y; });
+  g.cx = sx / g.windows.length; g.cy = sy / g.windows.length; g.inside = true;   // the label goes on the building
+  return true;
+}
+function armFights() {
+  WALLT = {};
+  GROUPS.forEach(function (g) {
+    if (!g.pose) return;
+    g.members.forEach(function (m, i) { m.pose = g.pose; m.yaw = hash(g.seed + i * 4.1) * 6.283; m.idle = 0; m.carry = null; m.bike = false; });
+  });
+  // the bodies inside their buildings first, then everybody who fires at them
+  GROUPS.forEach(function (g) {
+    if (g.fire === true && cur && besiegedIn(g, cur.t)) g.fire = 'windows';
+    if (g.fire === 'windows' && !windowsOf(g, foeOf(g))) g.fire = null;
+  });
+  GROUPS.forEach(function (g) {
+    if ((!g.fire && !g.assault && !g.patrol) || g.fire === 'windows') return;
+    var foe = foeOf(g), bars = (g.props || []).filter(function (p) { return /^barricade/.test(p.k); }), any = false;
+    g.members.forEach(function (m, i) {
+      if (!PK.armed[m.k] || m.pose || m.ox != null || (!g.fire && !g.assault)) return;
+      var T = aimFrom(g, foe, m.x, m.y); if (!T) return;
+      m.T = T; any = true;
+      m.yaw = facingYaw(m.x, m.y, T.x + (hash(g.seed + i * 5.1) - 0.5) * T.r * 1.6, T.y + (hash(g.seed + i * 7.7) - 0.5) * T.r * 1.6);
+      if (g.fire) {
+        var low = bars.some(function (b) { return Math.hypot(b.x - m.x, b.y - m.y) < 7; });
+        m.pose = low || hash(g.seed + i * 2.9) < 0.35 ? 'kneel' : 'aim'; m.tf = 0.4 + hash(g.seed + i * 3.3) * 5; m.idle = 0; m.carry = null;
+      }
+      m.hx = m.x; m.hy = m.y; m.hyaw = m.yaw; m.hpose = m.pose || null;
+    });
+    (g.props || []).forEach(function (pr, i) {
+      if (g.patrol && (pr.k === 'armoured' || pr.k === 'car' || pr.k === 'truck')) { patrolOf(g, pr); if (pr.path) any = true; }
+      if (!g.fire || (pr.k !== 'gun' && pr.k !== 'mg' && pr.k !== 'armoured')) return;
+      var T = aimFrom(g, foe, pr.x, pr.y); if (!T) return;
+      pr.T = T; any = true; pr.tf = 0.8 + hash(g.seed + i * 4.4) * (pr.k === 'gun' ? 5 : 3); pr.burst = 0;
+      if (pr.k !== 'armoured') pr.yaw = facingYaw(pr.x, pr.y, T.x, T.y);
+      // the crew stays behind its gun as it turns
+      g.members.filter(function (m) { return m.x === pr.x && m.y === pr.y && m.ox != null; }).forEach(function (m, c) {
+        var back = pr.k === 'gun' ? 2.9 : 0.8, side = pr.k === 'gun' ? (c - 1) * 0.9 : 0;
+        m.ox = -Math.sin(pr.yaw) * back + Math.cos(pr.yaw) * side; m.oy = Math.cos(pr.yaw) * back + Math.sin(pr.yaw) * side;
+        m.yaw = pr.yaw; if (PK.armed[m.k] && pr.k === 'mg') m.pose = 'kneel'; m.tf = null;
+      });
+    });
+    if (!any) { g.fire = null; g.assault = null; }
+  });
+  seedScars(cur);
+}
+// an armoured car cruising back and forth: down the street it stands in, 30 m each way. The cars of
+// 1917 had a driver at each end, so it does not turn
+function patrolOf(g, pr) {
+  var st = streetSpine(pr.x, pr.y, 32); if (!st) return;
+  var G = openGround(rootOf(g.place), false);
+  function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var q = pts[i], k = G ? Math.floor((q[0] - G.R.x0) / G.R.cs) + Math.floor((q[1] - G.R.y0) / G.R.cs) * G.R.w : -1; if (G && (k < 0 || !G.ok[k])) break; out.push(q); } return out; }
+  var f = open(resample(st.f, 1)), b = open(resample(st.b, 1));
+  var pts = b.slice(1).reverse().concat(f); if (pts.length < 12) return;
+  var cum = [0]; for (var i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  pr.path = { p: pts, cum: cum, len: cum[cum.length - 1] }; pr.ph = hash(g.seed + pr.x) * pr.path.len * 2;
+}
+function patrolStep(g, pr, t) {
+  var P = pr.path, L = P.len, u = (t * 2.8 + pr.ph) % (2 * L), s = u < L ? u : 2 * L - u;   // 10 km/h
+  var q = spineAt(P, s);
+  pr.x = q[0]; pr.y = q[1]; pr.yaw = Math.atan2(q[2], -q[3]);
+  if (!pr.Tt || Math.hypot(pr.Tt[0] - pr.x, pr.Tt[1] - pr.y) > 6) { pr.Tt = [pr.x, pr.y]; pr.T = aimFrom(g, foeOf(g), pr.x, pr.y) || pr.T; }
+}
+// Reed's assaults: waves of the body run at the enemy, bayonets first. A wave that is "repulsed"
+// crumples under the fire: some fall where they are hit and lie there, the rest run back to their
+// places; one that is "carried" pours into the building and is gone, and the next follows it.
+function assault(g, t, dt) {
+  if (!g.assault) return;
+  var A = g.aw = g.aw || { next: t + 1 + hash(g.seed) * 3, dead: 0 }, carried = g.assault === 'carried';
+  var free = g.members.filter(function (m) { return m.T && !m.run && !m.dead && !m.gone; });
+  if (t >= A.next && free.length) {
+    var k = carried ? Math.min(free.length, 2 + Math.floor(Math.random() * 3)) : Math.min(free.length, Math.max(4, Math.round(free.length * 0.3)));
+    free.sort(function () { return Math.random() - 0.5; }).slice(0, k).forEach(function (m) {
+      var T = m.T, gx = T.x + (Math.random() - 0.5) * T.r, gy = T.y + (Math.random() - 0.5) * T.r, L = Math.hypot(gx - m.hx, gy - m.hy) || 1, stop = T.wall ? 0.6 : 3;
+      m.run = { t0: t + Math.random() * 0.8, gx: m.hx + (gx - m.hx) * (L - stop) / L, gy: m.hy + (gy - m.hy) * (L - stop) / L, L: L - stop, out: 1,
+        fall: !carried && A.dead < g.members.length * 0.35 && Math.random() < 0.45 ? 0.3 + Math.random() * 0.55 : 0, back: 0.5 + Math.random() * 0.35 };
+      if (m.run.fall) A.dead++;
+    });
+    A.next = t + (carried ? 0.6 + Math.random() * 0.8 : 9 + Math.random() * 6);
+  }
+  g.members.forEach(function (m) {
+    var R = m.run; if (!R || t < R.t0) return;
+    var d = (t - R.t0) * 4.2, f = d / R.L;   // at the run
+    if (R.out) {
+      var stopAt = R.fall || (carried ? 1 : R.back);
+      if (f >= stopAt) {
+        f = stopAt;
+        if (R.fall) { m.dead = true; m.pose = 'fallen'; m.run = null; m.T = null; m.x = m.hx + (R.gx - m.hx) * f; m.y = m.hy + (R.gy - m.hy) * f; return; }
+        if (carried) { m.gone = true; m.run = null; m.back = t + 6 + Math.random() * 8; return; }
+        R.out = 0; R.t0 = t; R.f0 = f;
+      }
+      m.x = m.hx + (R.gx - m.hx) * f; m.y = m.hy + (R.gy - m.hy) * f; m.yaw = facingYaw(m.hx, m.hy, R.gx, R.gy); m.pose = 'charge'; m.walk = 1;
+    } else {
+      var fb = Math.max(0, R.f0 - d / R.L);
+      m.x = m.hx + (R.gx - m.hx) * fb; m.y = m.hy + (R.gy - m.hy) * fb; m.yaw = facingYaw(R.gx, R.gy, m.hx, m.hy); m.pose = null; m.walk = 1;
+      if (fb <= 0) { m.run = null; m.x = m.hx; m.y = m.hy; m.yaw = m.hyaw; m.pose = m.hpose; m.walk = 0; m.tf = 1 + Math.random() * 3; }
+    }
+  });
+  // the ones who went in come back out to their places, and the stream goes on
+  if (carried) g.members.forEach(function (m) { if (m.gone && t > m.back) { m.gone = false; m.x = m.hx; m.y = m.hy; m.yaw = m.hyaw; m.pose = m.hpose; m.walk = 0; } });
+}
+function muzzle(m, FS) {
+  var l = PK.muzzle[m.pose] || PK.muzzle.aim, x = m.x + (m.ox || 0) * FS, y = m.y + (m.oy || 0) * FS, s = Math.sin(m.yaw), c = Math.cos(m.yaw);
+  return [x + (l[0] * c + l[2] * s) * FS, l[1] * FS, -y + (-l[0] * s + l[2] * c) * FS];
+}
+function propPoint(pr, l, FS) { var s = Math.sin(pr.yaw), c = Math.cos(pr.yaw); return [pr.x + (l[0] * c + l[2] * s) * FS, l[1] * FS, -pr.y + (-l[0] * s + l[2] * c) * FS]; }
+var DUST = [0.6, 0.55, 0.47], PLASTER = [0.6, 0.57, 0.52], DEBRIS = [0.33, 0.3, 0.27], SNOWDUST = [0.93, 0.94, 0.96];
+// Rifles and guns in 1917 burnt smokeless powder: a flash at the muzzle and only a wisp after it. What
+// hangs over a fight is dust: off the ground where rounds land, plaster off the walls, and the smoke
+// and debris of bursting shells.
+function flashAt(p, s, t) {
+  puffs.push({ x: p[0], y: p[1], z: p[2], t0: t, life: 0.13, flash: 1, s: s });
+  puffs.push({ x: p[0], y: p[1], z: p[2], t0: t, life: 1.1 + Math.random() * 0.8, s: s * 0.4, vx: (Math.random() - 0.5) * 0.5, vy: 0.4, vz: (Math.random() - 0.5) * 0.5, fade: 0.3 });
+}
+var WIND = [0.7, -0.3];   // the dust drifts with it
+function haze(p, t, FS) {   // the dust kicked up along a firing line
+  puffs.push({ x: p[0], y: Math.min(p[1], 1.2 * FS) * 0.7, z: p[2], t0: t, life: 6 + Math.random() * 4, s: (2.2 + Math.random()) * FS, vx: WIND[0] + (Math.random() - 0.5) * 0.4, vy: 0.1, vz: WIND[1] + (Math.random() - 0.5) * 0.4, col: snowNow ? SNOWDUST : DUST, fade: 0.16 });
+}
+function onWall(T) {   // a point on the face of the wall under fire, a little out from it, below its roof
+  var f = T.faces[Math.floor(Math.random() * T.faces.length)], out = 0.15 + Math.random() * 0.5, top = Math.min(T.h1, f.h - 1);
+  return { x: f.x + f.nx * out, y: f.y + f.ny * out, h: T.h0 + Math.random() * Math.max(0.5, top - T.h0), nx: f.nx, ny: f.ny, f: f };
+}
+function strike(T, t, FS) {   // a round lands: dust off the ground, or plaster off the wall
+  var x, y, h, vx = 0, vz = 0;
+  if (T.wall) { var w = onWall(T); x = w.x; y = w.y; h = w.h; vx = w.nx * 0.8; vz = -w.ny * 0.8; }
+  else { x = T.x + (Math.random() - 0.5) * 2 * T.r; y = T.y + (Math.random() - 0.5) * 2 * T.r; h = (T.h0 + Math.random() * (T.h1 - T.h0)) * FS; }
+  var t1 = t + 0.12 + Math.random() * 0.1;
+  puffs.push({ x: x, y: h, z: -y, t0: t1, life: 1.3 + Math.random() * 0.9, s: 0.9 * FS, vx: vx, vy: 0.3, vz: vz, col: T.wall ? PLASTER : (snowNow ? SNOWDUST : DUST), fade: 0.75 });
+  if (T.wall && Math.random() < 0.5) puffs.push({ x: x, y: h, z: -y, t0: t1, life: 0.08, flash: 1, s: 0.7 * FS, chip: 1 });   // the spark of a round on stone
+}
+function shell(T, t0, FS) {   // a shell bursts on the target, and leaves its hole in the wall
+  var x, y, h, nx = 0, ny = 0;
+  if (T.wall) { var w = onWall(T); x = w.x; y = w.y; h = w.h; nx = w.nx; ny = w.ny; }
+  else { x = T.x + (Math.random() - 0.5) * T.r; y = T.y + (Math.random() - 0.5) * T.r; h = 0.8; }
+  puffs.push({ x: x, y: h, z: -y, t0: t0, life: 0.3, flash: 1, s: 9 * FS, boom: 1 });
+  for (var i = 0; i < 12; i++) puffs.push({ x: x, y: h, z: -y, t0: t0 + i * 0.03, life: 3.5 + Math.random() * 3.5, s: (2 + Math.random() * 1.6) * FS, vx: nx * 3 + (Math.random() - 0.5) * 4, vy: 1.2 + Math.random() * 1.6, vz: -ny * 3 + (Math.random() - 0.5) * 4, col: i % 3 ? DEBRIS : (T.wall ? PLASTER : DUST), fade: 0.8 });
+  if (T.wall && cur) scarAt(w.f.x - nx * 0.2, w.f.y - ny * 0.2, h, nx, ny, 1.4 + Math.random() * 1.4, cur.t, t0);
+}
+// the holes shells tear in the walls: dark blotches on the wall's face, kept for every later scene
+var SCARS = [], scarMesh = null;
+function scarTex() {
+  var cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  var cx = cv.getContext('2d'), gr = cx.createRadialGradient(32, 32, 2, 32, 32, 31);
+  gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.45, 'rgba(255,255,255,0.9)'); gr.addColorStop(0.75, 'rgba(255,255,255,0.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  cx.fillStyle = gr; cx.beginPath();
+  for (var i = 0; i <= 14; i++) { var a = i / 14 * 6.283, rr = 22 + 9 * Math.sin(i * 2.7) * Math.cos(i * 1.3); cx.lineTo(32 + Math.cos(a) * rr, 32 + Math.sin(a) * rr); }
+  cx.fill(); return new THREE.CanvasTexture(cv);
+}
+function scarAt(x, y, h, nx, ny, s, at, t0) {
+  if (!scarMesh) {
+    var sg = new THREE.PlaneGeometry(1, 1);
+    scarMesh = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ map: scarTex(), color: 0x2a2522, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }), 240);
+    scarMesh.count = 0; scarMesh.frustumCulled = false; scarMesh.renderOrder = 3; scene.add(scarMesh);
+  }
+  if (SCARS.length >= 240) SCARS.shift();
+  SCARS.push({ x: x, y: y, h: h, yaw: Math.atan2(nx, -ny), s: s, at: at, t0: t0 });
+}
+// a bombardment has been going on when its scene opens, and its holes are there in every later scene
+// however the reader gets there: each field-gun firing at a wall leaves six, placed the same every time
+var SEEDED = {};
+function seedScars(e) {
+  if (!e || SEEDED[e.id]) return; SEEDED[e.id] = 1;
+  GROUPS.forEach(function (g) {
+    if (!g.fire) return;
+    (g.props || []).forEach(function (pr, i) {
+      if (pr.k !== 'gun' || !pr.T || !pr.T.wall) return;
+      for (var k = 0; k < 6; k++) {
+        var f = pr.T.faces[Math.floor(hash(g.seed + i * 3.1 + k * 7.7) * pr.T.faces.length)], top = Math.min(pr.T.h1, f.h - 1), h = pr.T.h0 + hash(g.seed + k * 1.3 + i) * Math.max(0.5, top - pr.T.h0);
+        scarAt(f.x - f.nx * 0.2, f.y - f.ny * 0.2, h, f.nx, f.ny, 1.4 + hash(g.seed + k + i * 9) * 1.4, e.t, -1);
+      }
+    });
+  });
+}
+function drawScars(t) {
+  if (!scarMesh) return;
+  var n = 0;
+  SCARS.forEach(function (sc) {
+    if (!cur || sc.at > cur.t || t < sc.t0) return;   // not yet: a scene before the bombardment, or the shell still in the air
+    var grow = Math.min(1, (t - sc.t0) * 4);
+    _q4.setFromAxisAngle(_up, sc.yaw); _m4.compose(_p4.set(sc.x, sc.h, -sc.y), _q4, _s4.set(sc.s * grow, sc.s * 0.8 * grow, 1));
+    scarMesh.setMatrixAt(n++, _m4);
+  });
+  scarMesh.count = n; scarMesh.instanceMatrix.needsUpdate = true;
+}
+function battle(t, FS) {
+  var dt = Math.min(0.25, Math.max(0, t - (fightLast || t))); fightLast = t;
+  if (!cur || intro) return;
+  var shots = 0;
+  GROUPS.forEach(function (g) {
+    if (!g.fire && !g.assault && !g.patrol) return;
+    assault(g, t, dt);
+    if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path) patrolStep(g, pr, t); }); return; }
+    if (g.windows) g.windows.forEach(function (w) {
+      if ((w.tf -= dt) > 0) return; w.tf = 1.2 + Math.random() * 4;
+      if (shots++ > 30) return;
+      flashAt([w.x, w.h, -w.y], 1.8 * FS, t); strike(w.T, t, FS);
+      if (Math.random() < 0.25) haze([w.x, 0.5 * FS, -w.y], t, FS * 0.7);
+    });
+    else {
+      var aimers = [];
+      g.members.forEach(function (m) {
+        if (m.tf == null || !m.T || m.run || m.dead || m.gone || (m.pose !== 'aim' && m.pose !== 'kneel')) return;
+        aimers.push(m);
+        if ((m.tf -= dt) > 0) return; m.tf = 2 + Math.random() * 4.5;
+        if (shots++ > 30) return;
+        flashAt(muzzle(m, FS), 1.7 * FS, t); strike(m.T, t, FS);
+      });
+      g.hz = (g.hz || 0) - dt;
+      if (aimers.length && g.hz <= 0) { g.hz = 0.5; haze(muzzle(aimers[Math.floor(Math.random() * aimers.length)], FS), t, FS); }
+    }
+    (g.props || []).forEach(function (pr) {
+      if (pr.path) patrolStep(g, pr, t);
+      if (pr.tf == null || !pr.T) return;
+      var T = pr.T;
+      if (pr.k === 'gun') {
+        if ((pr.tf -= dt) > 0) return; pr.tf = 6 + Math.random() * 6; pr.kick = t;
+        var mz = propPoint(pr, [0, 1.1, 2.1], FS);
+        flashAt(mz, 6 * FS, t);
+        // the blast raises the dust in front of the muzzle
+        for (var i = 0; i < 6; i++) puffs.push({ x: mz[0] + Math.sin(pr.yaw) * i * 0.5 * FS, y: 0.5 * FS, z: mz[2] + Math.cos(pr.yaw) * i * 0.5 * FS, t0: t, life: 4 + Math.random() * 3, s: (2.6 + Math.random()) * FS, vx: Math.sin(pr.yaw) * 2 + (Math.random() - 0.5) * 2, vy: 0.5, vz: Math.cos(pr.yaw) * 2 + (Math.random() - 0.5) * 2, col: snowNow ? SNOWDUST : DUST, fade: 0.5 });
+        shell(T, t + 0.45 + Math.random() * 0.3, FS);
+        return;
+      }
+      if (pr.burst > 0) { if ((pr.bt -= dt) > 0) return; pr.bt = 0.09; pr.burst--; }   // a machine gun's or armoured car's burst
+      else { if ((pr.tf -= dt) > 0) return; pr.tf = 2.5 + Math.random() * 3.5; pr.burst = 6 + Math.floor(Math.random() * 6); pr.bt = 0; return; }
+      var lp = pr.k === 'mg' ? [0, 0.64, 0.86] : [pr.burst % 2 ? 0.52 : -0.52, 2.38, 0.05];
+      flashAt(propPoint(pr, lp, FS), 1.5 * FS, t); if (pr.burst % 2 === 0) strike(T, t, FS);
+    });
+  });
+  if (boom > 0.02) { boomLight.intensity = boom; boom *= Math.pow(0.004, dt); } else { boom = 0; boomLight.intensity = 0; }
+  boomLight.visible = boom > 0;
+}
 function drawFx(t, FS) {
   // fires burn after dark; each is a few flickering flames and a wide glow
   GROUPS.forEach(function (g) {
@@ -1411,9 +1965,14 @@ function drawFx(t, FS) {
   });
   flames.length = 0;
   puffs = puffs.filter(function (p) {
+    if (t < p.t0) return true;   // a round still in the air
     var a = (t - p.t0) / p.life; if (a >= 1) return false;
-    if (p.flash) glowFx.add(p.x, p.y, p.z, p.s * (1 + a), 1.0, 0.85, 0.45, 1 - a);
-    else smokeFx.add(p.x + p.vx * (t - p.t0), p.y + p.vy * (t - p.t0), p.z + p.vz * (t - p.t0), p.s * (1 + a * 2.5), 0.86, 0.85, 0.82, 0.55 * (1 - a));
+    if (p.boom && !p.lit) { p.lit = 1; boomLight.position.set(p.x, p.y + 6, p.z); boom = darkNow ? 3.2 : 1.2; }
+    if (p.flash) {
+      glowFx.add(p.x, p.y, p.z, p.s * (1 + a), 1.0, p.chip ? 0.95 : 0.85, p.chip ? 0.8 : 0.45, 1 - a);
+      if (!darkNow && !p.chip) smokeFx.add(p.x, p.y, p.z, p.s * 0.42, 1.0, 0.66, 0.22, 0.95 * (1 - a));   // by day the flash needs a body to show on bright stucco
+    }
+    else { var c = p.col || [0.86, 0.85, 0.82]; smokeFx.add(p.x + p.vx * (t - p.t0), p.y + p.vy * (t - p.t0), p.z + p.vz * (t - p.t0), p.s * (1 + a * 2.5), c[0], c[1], c[2], (p.fade || 0.55) * (1 - a) * Math.min(1, (t - p.t0) * 3)); }
     return true;
   });
   flakes = flakes.filter(function (p) {
@@ -1422,7 +1981,7 @@ function drawFx(t, FS) {
     glowFx.add(p.x + p.vx * dt + Math.sin(dt * 5 + p.t0) * 0.6, y, p.z + p.vz * dt + Math.cos(dt * 4) * 0.6, 0.55 * FS, 0.95, 0.93, 0.86, darkNow ? 0.9 : 0.55);
     return true;
   });
-  glowFx.end(); smokeFx.end();
+  glowFx.end(); smokeFx.end(); drawScars(t);
 }
 
 // ---------- whose side ----------
@@ -1447,6 +2006,16 @@ function flushPatches() { patches.count = patchN; patches.instanceMatrix.needsUp
 
 // a formation's patch: one disc for every dozen, in their order along it
 function formPatches(g, FS) {
+  if (g.secs) {   // a ring: one for each section
+    g.secs.forEach(function (sec) {
+      var sx = 0, sy = 0, c = 0, r = 1;
+      g.members.forEach(function (mm) { if (mm.sec === sec && !mm.dead && !mm.gone) { sx += mm.hx != null ? mm.hx : mm.x; sy += mm.hy != null ? mm.hy : mm.y; c++; } });
+      if (!c) return; sx /= c; sy /= c;
+      g.members.forEach(function (mm) { if (mm.sec === sec) r = Math.max(r, Math.hypot((mm.hx != null ? mm.hx : mm.x) - sx, (mm.hy != null ? mm.hy : mm.y) - sy)); });
+      patch(sx, sy, Math.min(r, 14) + 1.2 * FS, g.bloc);
+    });
+    return;
+  }
   var m = g.members, n = m.length;
   for (var i = 0; i < n; i += 12) {
     var sx = 0, sy = 0, c = 0, j, r = 1;
@@ -1471,18 +2040,20 @@ function drawPeople(now, FS) {
       g.members.forEach(function (mm) { if (mm.s0 != null) posOnSpine(g, mm, adv); sx += mm.x; sy += mm.y; });
       if (g.members.length) { g.cx = sx / g.members.length; g.cy = sy / g.members.length; }
     }
-    if (!g.ship && !g.reed && g.members && g.members.length) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
+    if (!g.ship && !g.reed && !g.inside && g.members && g.members.length) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
     (g.props || []).forEach(function (pr) {
-      put(pr.k, pr.x, pr.ship ? SHIP_Y : 0, -pr.y, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
+      var kick = pr.kick ? Math.max(0, 1 - (t - pr.kick) / 0.45) * 0.7 * FS : 0;   // a gun's recoil
+      put(pr.k, pr.x - Math.sin(pr.yaw) * kick, pr.ship ? SHIP_Y : 0, -pr.y - Math.cos(pr.yaw) * kick, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
       // flying from the car: one at the back, or two from the turrets ("two red flags flying from the turret")
       for (var fl = 0; fl < (pr.flags || 0); fl++) {
         var lx = pr.flags > 1 ? (fl ? 0.52 : -0.52) : 0, lz = pr.flags > 1 ? -1.05 : -1.9, cs = Math.cos(pr.yaw), sn = Math.sin(pr.yaw);
         put('flag', pr.x + (lx * cs + lz * sn) * FS, (pr.flags > 1 ? 2.6 : 2.05) * FS, -pr.y + (-lx * sn + lz * cs) * FS, pr.yaw, FS * 0.8, g.seed + fl, 0, 0);
       }
     });
-    (g.members || []).forEach(function (mm, i) {
-      var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS;
-      put(mm.k, x, 0, -y, mm.yaw, FS, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, mm.s0 != null ? walking : 0, mm.idle);   // a column in step, unless Reed says otherwise
+    if (!g.inside) (g.members || []).forEach(function (mm, i) {
+      if (mm.gone) return;   // into the building
+      var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS, wk = mm.walk ? 1 : mm.s0 != null && !mm.pose ? walking : 0;
+      put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, mm.yaw, FS, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
       if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i, mm.say);
       if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * FS, 0, -y - Math.sin(mm.yaw) * 0.5 * FS, mm.yaw, FS, 0, 0, 0);
       if (mm.k === 'reed') { reedGlow.position.set(x, 0.8, -y); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
@@ -1549,8 +2120,9 @@ function setLight(st, k) {
   waterMat.color.copy(C.water).lerp(k.top, 0.25);
 }
 var lightNow = null, lightTarget = null, skyFrom = null, skyTo = null, skyT = 1;
+var snowNow = false;
 function setSnow(on) {
-  var s = on ? 1 : 0;
+  var s = on ? 1 : 0; snowNow = !!on;
   landMat.color.copy(C.land).lerp(C.snow, 0.75 * s);
   surroundMat.color.copy(C.surround).lerp(C.snow, 0.6 * s);
   roofMat.color.copy(ROOF).lerp(ROOF_SNOW, s);
@@ -1607,7 +2179,12 @@ function placeGroupLabels(w, h, placed) {
   var n = 0, camD = camera.position.distanceTo(controls.target), FS = Math.max(2.0, Math.min(7, camD / 85)), here = PL[rootOf(cur.loc)];
   if (labelsOn && camD < 1700 && here && here.p) {
     var cands = [];
-    GROUPS.forEach(function (g) { if (g.cx != null && !g.reed && Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) < 900) cands.push({ x: g.cx, y: g.cy, h: g.ship ? 42 : 3.0 * FS + 1, t: g.label, b: g.bloc, big: (g.members || []).length + (g.ship ? 50 : 0) }); });
+    GROUPS.forEach(function (g) {
+      if (g.cx == null || g.reed || Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) >= 900) return;
+      var lx = g.cx, ly = g.cy;
+      if (g.secs) { var cxm = camera.position.x, cym = -camera.position.z, bs = null; g.secs.forEach(function (q) { var d = Math.hypot(q.x - cxm, q.y - cym); if (!bs || d < bs.d) bs = { d: d, q: q }; }); lx = bs.q.x; ly = bs.q.y; }
+      cands.push({ x: lx, y: ly, h: g.ship ? 42 : 3.0 * FS + 1, t: g.label, b: g.bloc, big: (g.members || []).length + (g.ship ? 50 : 0) });
+    });
     movers.forEach(function (mv) { if (mv.lx != null && mv.m.who !== 'reed') cands.push({ x: mv.lx, y: mv.ly, h: 3.3 * FS + 1, t: mv.label, b: mv.bloc, big: 999 }); });
     cands.sort(function (a, b) { return b.big - a.big; });
     cands.forEach(function (c) {
@@ -1902,9 +2479,20 @@ function closeFrame(e) {
     if (g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
     var w = Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1); sx += g.cx * w; sy += g.cy * w; sw += w;
   });
+  // the bodies that arrive in the scene count where they end up
+  var ends = [];
+  movers.forEach(function (mv) {
+    if (mv.m.who === 'reed' || !mv.o.pts || !mv.o.pts.length) return;
+    var q = mv.o.pts[mv.o.pts.length - 1], mx = q.x, my = -q.z;
+    if (Math.hypot(mx - tx, my - ty) > 260) return;
+    var w = Math.min(60, mv.list.length + 1); sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
+  });
   if (!sw && e.witness !== 'seen') return null;
   if (sw) { tx = tx * 0.35 + sx / sw * 0.65; ty = ty * 0.35 + sy / sw * 0.65; }
-  var target = new THREE.Vector3(tx, 0, -ty), dist = PHONE ? 260 : 200, pol = 1.05;
+  // far enough back to take in every body of the scene's place
+  var spread = 0;
+  GROUPS.forEach(function (g) { if (g.cx != null && !g.reed && Math.hypot(g.cx - (G ? G.sx : l.p[0]), g.cy - (G ? G.sy : l.p[1])) <= 260) spread = Math.max(spread, Math.hypot(g.cx - tx, g.cy - ty) + (g.r || 0)); });
+  var target = new THREE.Vector3(tx, 0, -ty), dist = Math.max(PHONE ? 260 : 200, Math.min(PHONE ? 520 : 440, spread * 1.8)), pol = 1.05;
   var dir = camera.position.clone().sub(controls.target); dir.y = 0;
   if (dir.lengthSq() < 1) dir.set(0, 0, 1);
   dir.normalize();
@@ -1912,18 +2500,75 @@ function closeFrame(e) {
   var lie = G && groundLie(G, tx, ty, 45), col = null;
   GROUPS.forEach(function (g) { if (g.form === 'column' && g.cx != null && g.members.length > 4 && Math.hypot(g.cx - tx, g.cy - ty) < 150 && (!col || g.members.length > col.members.length)) col = g; });
   var cax = col && new THREE.Vector3(col.members[0].x - col.members[col.members.length - 1].x, 0, -(col.members[0].y - col.members[col.members.length - 1].y));
+  // a fight: every shooter and what he aims at
+  var shots = [];
+  GROUPS.forEach(function (g) {
+    if (!(g.fire || g.assault) || g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
+    (g.windows || []).forEach(function (w) { shots.push([w.x, w.y, w.T.x, w.T.y]); });
+    (g.members || []).forEach(function (m) { if (m.T) shots.push([m.x, m.y, m.T.x, m.T.y]); });
+    (g.props || []).forEach(function (pr) { if (pr.T) shots.push([pr.x, pr.y, pr.T.x, pr.T.y]); });
+  });
   if (cax && cax.lengthSq() > 4) {
     // a column seen end on is a blob: look at it from about 45° off its line, and from higher
     cax.normalize(); if (cax.dot(dir) < 0) cax.negate();
     dir.copy(cax.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.8)); pol = 0.72;
     target.set(tx * 0.3 + col.cx * 0.7, 0, -(ty * 0.3 + col.cy * 0.7));
+  } else if (shots.length >= 3) {
+    // nearer and from higher up, so the streets between the walls show; across the line of fire if
+    // there is one, so both sides are in view
+    var mx = 0, my = 0, c2 = 0, s2 = 0, sp2 = 0;
+    shots.forEach(function (q) { mx += q[0] + q[2]; my += q[1] + q[3]; var a = Math.atan2(q[3] - q[1], q[2] - q[0]); c2 += Math.cos(2 * a); s2 += Math.sin(2 * a); });
+    mx /= 2 * shots.length; my /= 2 * shots.length;
+    shots.forEach(function (q) { sp2 = Math.max(sp2, Math.hypot(q[0] - mx, q[1] - my), Math.hypot(q[2] - mx, q[3] - my)); });
+    target.set(mx, 0, -my);
+    dist = Math.max(PHONE ? 190 : 150, Math.min(PHONE ? 380 : 320, sp2 * 2.4)); pol = 0.78;
+    if (Math.hypot(c2, s2) / shots.length > 0.45) {
+      var la = 0.5 * Math.atan2(s2, c2), across = new THREE.Vector3(-Math.sin(la), 0, -Math.cos(la));
+      if (across.dot(dir) < 0) across.negate();
+      dir.copy(across.applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.35));   // a little off square, for depth
+    }
   } else if (lie && lie.open < 0.5 && lie.ratio > 2) {
     var along = new THREE.Vector3(Math.cos(lie.axis), 0, -Math.sin(lie.axis));
     if (along.dot(dir) < 0) along.negate();
     dir.copy(along); pol = 0.78; dist *= 1.1;
   } else if (lie && lie.open < 0.4) { pol = 0.8; }
+  // look from where the people show: the first heading (and, if need be, the steeper angle) from which
+  // most of them are not hidden behind buildings, turning as little as will do
+  var FSc = Math.max(2, Math.min(7, dist / 85)), pts = [];
+  GROUPS.forEach(function (g) {
+    if (g.cx == null || g.inside || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
+    var m = g.members || [], st = Math.max(1, Math.floor(m.length / 4));
+    for (var i = 0; i < m.length; i += st) pts.push([m[i].x, m[i].y, 1.3 * FSc]);
+    (g.props || []).forEach(function (pr) { if (!pr.ship) pts.push([pr.x, pr.y, 1.0 * FSc]); });
+  });
+  ends.forEach(function (q) { pts.push([q[0], q[1], 1.3 * FSc]); });
+  if (pts.length > 24) { var keep = []; for (var pi = 0; pi < pts.length; pi += pts.length / 24) keep.push(pts[Math.floor(pi)]); pts = keep; }
+  if (pts.length) {
+    var base = Math.atan2(dir.x, dir.z), best = null, tries = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6];
+    for (var ti = 0; ti < tries.length && !(best && best.seen >= 0.85); ti++) {
+      var th = base + tries[ti] * Math.PI / 6;
+      [pol, Math.min(pol, 0.62)].forEach(function (pp, pj) {
+        if (best && best.seen >= 0.85) return;
+        var hh = Math.cos(pp) * dist, rr = Math.sin(pp) * dist, cx = target.x + Math.sin(th) * rr, cy = -(target.z + Math.cos(th) * rr);
+        var seen = pts.filter(function (q) { return !hiddenBy(cx, cy, hh, q[0], q[1], q[2]); }).length / pts.length;
+        var sc = seen - Math.abs(tries[ti]) * 0.03 - pj * 0.04;
+        if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp, seen: seen };
+      });
+    }
+    dir.set(Math.sin(best.th), 0, Math.cos(best.th)); pol = best.pp;
+  }
   var pos = target.clone().add(dir.multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
   return { target: target, pos: pos };
+}
+// is the point (x, y) at height h hidden from a camera at (cx, cy), height ch, by a building? (map metres)
+function hiddenBy(cx, cy, ch, x, y, h) {
+  var L = Math.hypot(x - cx, y - cy); if (L < 4) return false;
+  for (var d = 3; d < Math.min(L, 260); d += 3) {
+    var f = 1 - d / L, px = cx + (x - cx) * f, py = cy + (y - cy) * f, ph = ch + (h - ch) * f;
+    var cell = BGRID[Math.floor(px / 100) + ',' + Math.floor(py / 100)]; if (!cell) continue;
+    for (var j = 0; j < cell.length; j++) { var rec = cell[j], b = rec.b; if (rec.h > ph && px >= b[0] && px <= b[2] && py >= b[1] && py <= b[3] && inRing(rec.r, px, py)) return true; }
+  }
+  return false;
 }
 // how open the ground is within r metres of (x, y), and the direction it runs
 function groundLie(G, x, y, r) {
@@ -2031,7 +2676,10 @@ function select(id, opts) {
   if (REDUCED) setLight(to, k);
   showOffmap(e); chromeCache = null;
   startWalk(e); stageScene(e); renderHere(e);
-  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650; });
+  // a long walk is followed from above, unless the scene has its own local action and the long move is
+  // only an arc (whose body just turns up at the end)
+  var local = MOVES.some(function (o) { return o.e === e && o.m.who !== 'reed' && o.line.visible && o.total <= 650 && near(o.m.to, e.loc, 300); });
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(local && o.m.draw !== 'street'); });
   closeAfter = null; follow = null;
   if (close && !long) flyTo(close, opts.instant ? 0 : 1800);
   else {
@@ -2219,7 +2867,7 @@ function frame(now) {
   }
   if (playing) $('prog-i').style.width = (Math.min(1, (now - scene0) / sceneDur) * 100).toFixed(2) + '%';
   darkNow = !!(lightTarget && lightTarget.el < 1);
-  drawPeople(now, FS); shoot(now / 1000, FS); drawFx(now / 1000, FS);
+  drawPeople(now, FS); battle(now / 1000, FS); drawFx(now / 1000, FS);
   var wantL = darkNow && cur && !intro ? 1.05 : 0;   // after dark the scene is lit, as by its street lamps
   stageLight.intensity += (wantL - stageLight.intensity) * Math.min(1, dt * 2.5);
   stageLight.visible = stageLight.intensity > 0.01;
@@ -2248,6 +2896,11 @@ function boot(state) {
     try {
       buildGround(); buildBuildings(); buildKeyBuildings(); buildPins(); buildRoutes(); buildLabels(); prepGround();
       buildTimeline();
+      // the bombardments' holes, before any scene is shown
+      seq.forEach(function (e, i) {
+        if (!(S.presence || []).some(function (p) { return p.fire && p.from === i && kitHas(p.kit, 'gun'); })) return;
+        var c0 = cur; cur = e; try { stageScene(e, true); } catch (err) { } cur = c0;
+      });
       camera.position.set(-1500, 2400, 2600); controls.target.set(0, 0, 0);
       resize();
       var start = (state && state.ev) || (location.hash && location.hash.slice(1));
@@ -2263,7 +2916,12 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
-  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); } };
+  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); },
+  movers: function () { return movers; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
+  // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
+  restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
+  // run the fighting for the last `secs` seconds at 60 frames a second, as a real browser would, so a slow test renderer shows its steady state
+  fight: function (secs) { var T = performance.now() / 1000, FS = Math.max(2.0, Math.min(7, camera.position.distanceTo(controls.target) / 85)); fightLast = 0; for (var t = T - secs; t < T; t += 1 / 60) { battle(t, FS); drawFx(t, FS); } return puffs.length; } };
 // in a Claude artifact viewer, keep the open scene across republishes
 var hot = window.claude && window.claude.hot;
 if (hot && hot.snapshot) { try { hot.snapshot(function () { return { ev: cur && cur.id }; }); } catch (e) { } }
