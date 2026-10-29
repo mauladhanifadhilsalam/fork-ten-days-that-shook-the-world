@@ -145,12 +145,15 @@ From a read-only survey of `raskolnikov-wandering`:
 
 **Drop:** the Russian-text checks, the fever band, the 730-paces and verst measures, and the Crime and Punishment copy.
 
-**Bugs found in passing** (in the old repo, not fixed here):
+**Bugs found in passing** (in the old repo, not fixed there; the copies here are fixed):
 - street centre-lines over the removed bridges are still drawn;
 - the bridge filter also strips ordinary streets (Биржевой проезд, Биржевой переулок, Дворцовый проезд) from routing;
-- 87% of park vertices are consecutive duplicates, about 0.6 MB of the page.
+- 87% of park vertices are consecutive duplicates, about 0.6 MB of the page;
+- the sun is mirrored north to south. `setLight` builds the sun's direction as `(sin az, …, cos az)`, but world `z` points south, so a noon sun (azimuth 180°) is placed in the north and the shadows fall south. The glow in the sky shader has the same sign error. Here the direction is `(sin az, …, −cos az)`.
 
-**The larger extent's data.** Overpass and Geofabrik are not reachable from this build environment; the OSM API is, so the first rendering round should plan around it. The data tools here already use it: `tools/geocode.py` finds buildings in small boxes around a hint, and `check_story.py --osm` tests each pin against its footprint.
+**Fixed while porting.** Line materials created after the first resize kept a 1×1 resolution, which made a 4-pixel route line several screens wide; they now take the canvas size when they are made. A pin inside a building could snap onto a courtyard path cut off from the street network, which left the router stranded; snapping now uses the main network only.
+
+**The larger extent's data.** Overpass and Geofabrik are not reachable from this build environment, so `tools/fetch_osm.py` uses the OSM API: 153 small tiles over the 7.0 × 5.0 km core (about 205 MB), plus the 34 water relations they touch, fetched whole. The core holds 10,328 buildings and Reed's 21.
 
 ## 7. The data model
 
@@ -173,7 +176,7 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 ## 9. Roadmap
 
 1. **Review this data** (the user's call), and fix what a human reader finds.
-2. **Port the engine.** Copy it into this repo and drive it from the extended config, actor table and story clock. Render the 3D city core first, with Reed's track, the 19 control timelines and the moves.
+2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 19 control timelines on Reed's buildings, the 1917 sky and the first snow. Next: a places index, a better look for the front, and the tram and rail lines of 1917.
 3. **The front view.** Terrain, 1917 railways and roads, and towns without modern suburbs.
 4. **The 1916 plan overlay** and 1917 bridges, including raised and lowered states where the text gives them.
 5. **Coverage.** Chapter I background, the Chapter XI decrees and the appendix documents. Possibly a Moscow inset.

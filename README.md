@@ -1,13 +1,20 @@
 # ten-days-that-shook-the-world
 
-A future 3D map of John Reed's *Ten Days That Shook the World* (1919): Reed's own path through Petrograd in October–December 1917, the factions, who held which building when, and the movements he reports. It is the sister project of [Raskolnikov Wandering](https://github.com/mauladhanifadhilsalam/raskolnikov-wandering).
+A 3D map of John Reed's *Ten Days That Shook the World* (1919): Reed's own path through Petrograd in October–December 1917, the factions, who held which building when, and the movements he reports, scene by scene, as he wrote it. It is the sister project of [Raskolnikov Wandering](https://github.com/mauladhanifadhilsalam/raskolnikov-wandering), whose 3D engine it adapts.
 
-**Status: data first, no 3D yet.** This repo holds:
+**Status: a first working map on a checked seed dataset.** Open `index.html` in a browser (it needs a network connection for three.js and the fonts). This repo holds:
 - the assessment of whether, and how, the Raskolnikov treatment fits Reed: [docs/assessment.md](docs/assessment.md);
-- a checked seed dataset;
-- the tools that check it.
+- a checked seed dataset, and the tools that check it;
+- the map: the OSM pipeline for the 1917 city, the story builder and the page.
 
-The rendering comes next, once the data has been reviewed.
+## The map
+
+- **138 scenes, on a timeline of real dates.** Each card gives the date and the time and how the time is known, the place, how Reed knew (he was there, he was told, it was reported, or it is a document he prints), his words, and the moves and changes of control in the scene. Tall ticks on the timeline are scenes Reed saw.
+- **Reed's walks along the streets he names.** Routes with `rc: "stated"` are solid, routes we inferred are dashed, and moves Reed gives no route for (or that go by train or leave the city) are arcs. Reed is ink by day and pale by night; every other mover takes its bloc's colour.
+- **Who holds what.** The 21 buildings that are Reed's places stand out of the city, and the ones that change hands take the holder's colour on the roof, as Reed reports it at that moment. A besieged building pulses in the besieger's colour.
+- **A sky for each scene** on the 1917 Petrograd clock (about UTC+3:01), and the city turns white after Reed's first snow on 13 November.
+- **The front and Moscow.** The detailed city runs from the Petrograd Side to Smolny. Pulkovo, Tsarskoye Selo and Gatchina are pins on a gridded plain; Moscow and the far stations, as decided, are text only, with a card that says which way and how far.
+- Drag to pan, right-drag or two fingers to rotate, scroll or pinch to zoom. ←/→ step through scenes, space plays. `index.html#storming` opens a scene.
 
 ## What is here
 
@@ -25,6 +32,18 @@ tools/fmt_story.py     writes the canonical layout; --check, --pages
 tools/geocode.py       finds OSM buildings around a hint (OSM API only), --accept writes them
 tools/storylib.py      shared schema, layout, quote normalisation, date and time parsers, geometry, sun
 tests/test_check.py    one failing fixture per error code, plus mutation tests on the real data
+
+tools/mapconf.py       the 3D extent, the projection, and the bridges that did not stand in 1917
+tools/fetch_osm.py     OSM API tiles over the city core, plus every water relation they touch -> cache/
+tools/build_map.py     land, water, parks, bridges, buildings (Reed's apart), streets, rail; the street graph
+tools/build_story.py   the data -> what the page draws: places in metres, street routes, control timelines
+tools/bundle.py        packs build/*.json into src/app.html -> index.html (+ a CSP pinned to the script)
+tools/build.sh         the whole pipeline; --bundle only re-packs the page
+src/app.html           the page
+build/map.json         the built city (committed, so the page can be rebuilt without OSM)
+build/story.json       the built story
+index.html             the built page
+Dockerfile, deploy/    a small nginx container for Cloud Run, as in Raskolnikov Wandering
 ```
 
 ## What the data asserts
@@ -94,6 +113,28 @@ python3 -I tools/check_story.py --pdf cache/ten-days-reed.pdf
 
 The marxists.org PDF is regenerated from time to time. If its hash changes, refill the page numbers with `python3 -I tools/fmt_story.py --pages cache/ten-days-reed.pdf data`. Section plus quote remains the reference that counts.
 
+## Building the map
+
+The map step needs Shapely (`pip install shapely`); the rest is standard-library Python. The first run downloads about 210 MB of OSM data into `./cache`, slowly and politely, from the OSM API:
+
+```bash
+tools/build.sh
+```
+
+After editing only `src/app.html`:
+
+```bash
+tools/build.sh --bundle
+```
+
+To deploy on Cloud Run, from the repo root:
+
+```bash
+gcloud run deploy ten-days --source . --region europe-north1 --allow-unauthenticated
+```
+
+The container serves `/`, `/index.html` and `/healthz`, and returns 404 for everything else.
+
 ## Adding or changing data
 
 1. Find the passage. The section ids are those in `cache/sections.json`.
@@ -115,5 +156,6 @@ python3 -I tools/geocode.py --accept ID=way/123
 ## Sources and licences
 
 - John Reed, *Ten Days That Shook the World* (1919). Public domain. Text from [Project Gutenberg #3076](https://www.gutenberg.org/ebooks/3076); page numbers from the [Marxists Internet Archive PDF](https://www.marxists.org/ebooks/reed/ten-days-that-shook-the-world-reed.pdf).
-- Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). The coordinates and element ids in `data/places.json` are derived from OSM and are available under the [Open Database License](https://opendatacommons.org/licenses/odbl/).
+- Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright). The coordinates and element ids in `data/places.json`, and the geometry in `build/map.json`, are derived from OSM and are available under the [Open Database License](https://opendatacommons.org/licenses/odbl/).
+- The 3D engine, the OSM pipeline and the routing helpers are adapted from Raskolnikov Wandering, designed and developed by @altf4m8.
 - The other sources consulted are listed in `data/sources.json` and cited in the assessment.

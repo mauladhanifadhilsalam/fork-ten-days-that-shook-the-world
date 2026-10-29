@@ -1,0 +1,8 @@
+# Allowlist: the image is built from source, so only what bundle.py needs goes in.
+*
+!Dockerfile
+!tools/bundle.py
+!src/
+!build/map.json
+!build/story.json
+!deploy/
