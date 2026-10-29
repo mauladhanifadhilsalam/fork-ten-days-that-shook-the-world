@@ -1,0 +1,113 @@
+{
+ "meta": {
+   "title": "Ten Days That Shook the World: places, factions and movements in Reed's Petrograd",
+   "text": {
+     "gutenberg": 3076,
+     "url": "https://www.gutenberg.org/ebooks/3076",
+     "body_sha256": "e82c94fbbc9ec113aeb91e0f28ac1432aa6be142307ed4e516f9869af7ec4cf2",
+     "edition": "Project Gutenberg #3076 (Norman Wolcott, with corrections by Andrew Sly and Stefan Malte Schumacher; updated 3 March 2021). Its graphics are keyed to the pages of the original edition."
+   },
+   "pdf": {
+     "url": "https://www.marxists.org/ebooks/reed/ten-days-that-shook-the-world-reed.pdf",
+     "sha256": "eb2fb704fb9efd8070182eb56ce1e37155f9c67cafb1af5a43b83a5c3f43d6e2",
+     "fetched": "2026-10-29",
+     "note": "calibre 9.16.0, generated 2026-10-21, 309 pages. p is the PDF page index (the printed page number is one lower). Footnotes are moved to the end of each chapter; some photo captions are the editors', not Reed's."
+   },
+   "calendar": {
+     "store": "NS",
+     "os_lag": 13,
+     "ref": {
+       "sec": "Notes",
+       "q": "I have adopted in this book our Calendar throughout, instead of the former Russian Calendar, which was thirteen days earlier."
+     },
+     "note": "Reed keeps to New Style in his narrative, but the documents he prints, and a few of his own lines, use Old Style. Each event says which in cal."
+   },
+   "clock": {
+     "petrograd": {
+       "offset_min": 181.3,
+       "basis": "Pulkovo mean time (UTC+2:01:19) plus the 1917 summer hour, in force from 1 July until Decree No. 142 of December 1917. Assumes Reed's times are local clock times; he never says.",
+       "src": [
+         "tzdb",
+         "tz-list-2021"
+       ]
+     },
+     "moscow": {
+       "offset_min": 211.3,
+       "basis": "tzdb Europe/Moscow for 1917 (2:31:19) plus the summer hour.",
+       "src": [
+         "tzdb"
+       ]
+     }
+   },
+   "range": [
+     "1917-09-01",
+     "1917-12-31"
+   ],
+   "zones": {
+     "city": [
+       59.83,
+       30.15,
+       60.03,
+       30.55
+     ],
+     "front": [
+       59.5,
+       29.95,
+       59.85,
+       30.75
+     ],
+     "moscow": [
+       55.55,
+       37.35,
+       55.95,
+       37.85
+     ]
+   },
+   "speed_kmh": {
+     "foot": 6,
+     "march": 5,
+     "cavalry": 12,
+     "tram": 15,
+     "car": 45,
+     "truck": 30,
+     "armoured": 25,
+     "rail": 45,
+     "ship": 20,
+     "air": 150,
+     "unknown": 45
+   },
+   "blocs": {
+     "soviet": "For the insurrection and Soviet power: the Bolsheviki, the Left SRs, the Military Revolutionary Committee, the Red Guards, most of the garrison and the fleet.",
+     "government": "The Provisional Government and those who fought for it: its ministers and staff, the yunker schools, Krasnov's Cossacks, the Women's Battalion.",
+     "opposition": "Against the insurrection without being the deposed government: the City Duma, the Committee for Salvation, the Mensheviki and SRs, the Cadets, the old Tsay-ee-kah and Peasants' Executive.",
+     "neutral": "Declared neutral or split: the Petrograd Cossacks, Vikzhel, several regiments.",
+     "foreign": "Allied embassies and officers.",
+     "observer": "Reed and his companions.",
+     "public": "Crowds without one allegiance."
+   },
+   "tags": [
+     "background",
+     "contradiction",
+     "flashback",
+     "measure",
+     "moscow",
+     "rumour"
+   ],
+   "note": "A seed dataset for a 3D map of Reed's book, not of the revolution: it records what Reed says, how he knows it, and where the record disagrees."
+ },
+ "days": [
+  {"d": "1917-09-28", "os": "1917-09-15", "label": "Sept–Oct", "name": "Background"},
+  {"d": "1917-11-04", "os": "1917-10-22", "label": "4 Nov", "name": "The Day of the Petrograd Soviet"},
+  {"d": "1917-11-05", "os": "1917-10-23", "label": "5 Nov", "name": "Peter-Paul comes over"},
+  {"d": "1917-11-06", "os": "1917-10-24", "label": "6 Nov", "name": "On the eve"},
+  {"d": "1917-11-07", "os": "1917-10-25", "label": "7 Nov", "name": "The fall of the Provisional Government"},
+  {"d": "1917-11-08", "os": "1917-10-26", "label": "8 Nov", "name": "Peace and land"},
+  {"d": "1917-11-09", "os": "1917-10-27", "label": "9 Nov", "name": "The Committee for Salvation"},
+  {"d": "1917-11-10", "os": "1917-10-28", "label": "10 Nov", "name": "The revolutionary front"},
+  {"d": "1917-11-11", "os": "1917-10-29", "label": "11 Nov", "name": "The yunker rising"},
+  {"d": "1917-11-12", "os": "1917-10-30", "label": "12 Nov", "name": "Pulkovo"},
+  {"d": "1917-11-13", "os": "1917-10-31", "label": "13 Nov", "name": "Tsarskoye Selo"},
+  {"d": "1917-11-14", "os": "1917-11-01", "label": "14–16 Nov", "name": "Gatchina, and the march home"},
+  {"d": "1917-11-17", "os": "1917-11-04", "label": "17–27 Nov", "name": "The conquest of power"},
+  {"d": "1917-11-28", "os": "1917-11-15", "label": "28 Nov – 2 Dec", "name": "The Peasants' Congress"}]
+}

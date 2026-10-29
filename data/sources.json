@@ -1,0 +1,20 @@
+[
+{"id": "elov1923", "kind": "primary", "url": "https://soviethistory.msu.edu/1917/bolsheviks-seize-power/bolsheviks-seize-power-texts/action-of-the-cruiser-aurora/",
+ "cite": "Report of the commissar of the cruiser Aurora, 7 November 1917, in B. Elov, ‘Rol petrogradskogo garnizona v oktiabrskie dni’, Krasnaia letopis’ 6 (1923), p. 120; English in Seventeen Moments in Soviet History.",
+ "note": "Orders were for blank shots on a signal from Peter-Paul, shrapnel only if necessary; ‘There was no occasion, however, for the latter, as the Winter Palace soon surrendered.’"},
+{"id": "gutenberg-3076", "kind": "primary", "url": "https://www.gutenberg.org/ebooks/3076",
+ "cite": "John Reed, Ten Days That Shook the World (1919), Project Gutenberg #3076.",
+ "note": "The text every quote is checked against. Used as a source when Reed contradicts himself."},
+{"id": "osm", "kind": "data", "url": "https://www.openstreetmap.org/copyright",
+ "cite": "OpenStreetMap contributors, via the OSM API v0.6 (ODbL).",
+ "note": "Footprints, element ids and versions, found and checked with tools/geocode.py and check_story.py --osm; and the distances used in measurements."},
+{"id": "tass-history", "kind": "reference", "url": "https://tass.com/history",
+ "cite": "TASS, ‘History’: the Petrograd Telegraph Agency (PTA) and its building on Pochtamtskaya (Post Office) Street.",
+ "note": "Says the PTA building was taken on 25 October (7 November) 1917 by Baltic seamen under Military Commissar Leonid Stark; gives no hour."},
+{"id": "tz-list-2021", "kind": "reference", "url": "https://mm.icann.org/pipermail/tz/2021-March/054958.html",
+ "cite": "tz mailing list, ‘Some time zone history (4)’, March 2021: discussion of the 1917 summer-time decrees and their calendar.",
+ "note": "Raises whether tzdb's 1917 dates are Old or New Style; November is inside the summer-time period either way."},
+{"id": "tzdb", "kind": "data", "url": "https://github.com/eggert/tz/blob/main/europe",
+ "cite": "IANA Time Zone Database, file europe: Rule Russia 1917 (Jul 1 23:00 +1:00; Dec 28 0:00, Decree No. 142 of 1917-12-22).",
+ "note": "Basis of meta.clock."}
+]
