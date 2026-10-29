@@ -108,7 +108,7 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
 RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'
-REPULSE_WORDS = r'crumpl|\bfell\b|fallen|driven back|repulsed|beaten off|thrown back|mowed|cut down'
+REPULSE_WORDS = r'crumpl|\bfell (back|dead|under)|fallen|driven back|repulsed|beaten off|thrown back|mowed|cut down'   # not a bare "fell": "fell in with the first ranks"
 ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|into)|burst (in|into)|rushed (in|into)|broke (in|into)|swarmed (in|into)|forced (their|a) way'
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'

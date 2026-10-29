@@ -66,6 +66,12 @@ TYPES = {
 }
 
 
+def typed(rec, k):
+    """rec[k] has the type TYPES gives the field"""
+    want = TYPES.get(k)
+    return want is None or isinstance(rec.get(k), want)
+
+
 def fields(F, rec, kind, where):
     if not isinstance(rec, dict):
         F.err('field.type', where, f'expected an object, got {type(rec).__name__}')
@@ -622,14 +628,18 @@ class Checker:
                         self.kit(r['kit'], sup[2], rw)
                     if 'say' in r:
                         self.say(r, sup[0], sup[1], rw)
+                    # the word checks read only fields of the right type (a wrong type is reported above)
+                    if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol')):
+                        continue
+                    here = r.get('place', e.get('loc'))
                     if 'form' in r or 'march' in r:
-                        self.formation(r, sup[2], rw, r.get('place', e.get('loc')))
+                        self.formation(r, sup[2], rw, here)
                     if any(k in r for k in ('fire', 'at', 'pose', 'assault', 'patrol')):
                         self.fighting(e, r, sup[2], rw)
                     if 'face' in r:
-                        self.facing(r, sup[2], rw)
+                        self.facing(r, sup[2], rw, here)
                     if r.get('inside'):
-                        self.indoors(r, sup[2], rw, r.get('place', e.get('loc')))
+                        self.indoors(r, sup[2], rw, here)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -732,6 +742,7 @@ class Checker:
                 F.err('field.missing', where, 'at (what the body fires at) needs fire')
             if r['at'] not in self.A and r['at'] not in self.P:
                 F.err('ref.unknown', where, f'at: no actor or place {r["at"]!r}')
+            self.count_ref(r['at'])
         if 'assault' in r:
             if r['assault'] not in L.ENUM['assault']:
                 F.err('field.enum', where, f'assault {r["assault"]!r} is not one of {sorted(L.ENUM["assault"])}')
@@ -761,14 +772,15 @@ class Checker:
         if any(k in r for k in ('form', 'march', 'assault', 'patrol')) or r.get('fire') is True:
             F.err('field.range', where, 'inside: a body indoors does not form up, march, assault, patrol or fire in the open')
 
-    def facing(self, r, text, where):
+    def facing(self, r, text, where, place=None):
         """what the body looks at, or trains its guns on ("staring at the hotel roof", "all the guns
         trained toward St. Isaac's"): a place or a body, with Reed's word for looking in the passage"""
         F, words = self.F, text + ' ' + (r.get('size') or '')
         if r['face'] not in self.A and r['face'] not in self.P:
             F.err('ref.unknown', where, f'face: no actor or place {r["face"]!r}')
-        elif r['face'] == r.get('place'):
+        elif r['face'] == (place or r.get('place')):
             F.err('field.range', where, 'face: a body faces something other than the place it stands at')
+        self.count_ref(r['face'])
         if not re.search(L.FACE_WORDS, words, re.I):
             F.err('form.not-in-text', where, f'face: the passage has no word for looking or training guns ({L.FACE_WORDS})')
 
@@ -821,11 +833,24 @@ class Checker:
             self.quote_ok(ref.get('sec'), ref['q'], w + '.ref')
 
     def presence(self):
-        """Who stays where between scenes (storylib.presence_spans). A `gone` must find someone."""
+        """Who stays where between scenes (storylib.presence_spans). A `gone` must find someone, and a
+        body indoors (`inside`, which a later entry inherits) does not form up, march, assault, patrol or
+        fire in the open."""
         spans, misses = L.presence_spans(self.events, self.actors, self.places)
         self.spans = spans
         for eid, who, pid in misses:
             self.F.err('presence.not-there', f'events/{eid}', f'gone: {who} is not at {pid} at this point')
+        for sp in spans:
+            if sp.get('inside') and (any(sp.get(k) for k in ('form', 'march', 'assault', 'patrol')) or sp.get('fire') is True):
+                self.F.err('field.range', f'events/{sp["ev"]}', f'{sp["who"]} at {sp["place"]} is inside (from an earlier entry): it does not form up, march, assault, patrol or fire in the open')
+
+    def count_ref(self, x):
+        """a place or an actor named by `at` or `face` is in use"""
+        if isinstance(x, str):
+            if x in self.P:
+                self.used['place'][x] += 1
+            elif x in self.A:
+                self.used['actor'][x] += 1
 
     def date_phrase(self, dp, cal, t, w):
         F = self.F

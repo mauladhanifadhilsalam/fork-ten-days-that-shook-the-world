@@ -329,6 +329,27 @@ class Implicit(unittest.TestCase):
         self.assertIn('form.not-in-text', got, got)   # but the passage has no word for indoors
 
 
+class Review(unittest.TestCase):
+    """defects the code review found in the checker"""
+    def test_a_list_where_a_word_belongs_is_reported_not_a_crash(self):
+        d = good()
+        ev(d, 'cornice')['present'][0]['pose'] = ['fallen']
+        self.assertIn('field.type', errors(d))
+
+    def test_face_own_place_when_the_place_is_implicit(self):
+        d = good()
+        r = ev(d, 'cornice')['present'][1]
+        r.pop('place'); r['face'] = 'winter-palace'   # the scene's place, the body's own
+        self.assertIn('field.range', errors(d))
+
+    def test_inside_inherited_by_a_later_ring(self):
+        d = good()
+        ev(d, 'dan-bell')['present'] = [{'who': 'red-guards', 'place': 'winter-palace', 'inside': True,
+                                         'ref': {'sec': 'IV', 'q': 'Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace'}}]
+        got = errors(d)
+        self.assertTrue(any(c == 'field.range' for c in got), got)   # the cornice's later ring inherits inside
+
+
 class Presence(unittest.TestCase):
     def spans(self, d):
         evs = L.sort_table('events', d['events'])

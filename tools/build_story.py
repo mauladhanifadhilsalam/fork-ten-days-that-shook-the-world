@@ -238,23 +238,34 @@ def clear(a, b):
 
 
 def out_of_walls(q):
-    """a point inside a building or the river (a pin) moved out to the open ground just past the
-    nearest edge, so a route starts or ends at the building's wall, not in it"""
+    """a point inside a building or the river (a pin) moved out to the nearest open ground past its
+    walls, so a route starts or ends at the building's wall, not in it. Out through the nearest edge of
+    what holds it, a little further if that lands in a neighbour it touches, else the nearest free point
+    on widening circles round it."""
     from shapely.geometry import Point as _Pt
+
+    def inside(x, y):
+        pt = _Pt(x, y)
+        return any(_obst[i].contains(pt) for i in _tree.query(pt))
+    if not inside(*q):
+        return q
     pt = _Pt(q)
-    for _ in range(3):
-        hit = [i for i in _tree.query(pt) if _obst[i].contains(pt)]
-        if not hit:
-            return (pt.x, pt.y)
-        g = _obst[hit[0]]
-        ring = g.exterior if hasattr(g, 'exterior') else None
-        if ring is None:
-            return q
+    hit = [i for i in _tree.query(pt) if _obst[i].contains(pt)]
+    ring = getattr(_obst[hit[0]], 'exterior', None) if hit else None
+    if ring is not None:
         b = ring.interpolate(ring.project(pt))
         dx, dy = b.x - pt.x, b.y - pt.y
         dl = math.hypot(dx, dy) or 1.0
-        pt = _Pt(b.x + dx / dl * 2.5, b.y + dy / dl * 2.5)
-    return (pt.x, pt.y)
+        for push in (2.5, 5.0, 8.0):
+            c = (b.x + dx / dl * push, b.y + dy / dl * push)
+            if not inside(*c):
+                return c
+    for r in range(2, 62, 2):
+        for k in range(24):
+            c = (q[0] + r * math.cos(k * math.pi / 12), q[1] + r * math.sin(k * math.pi / 12))
+            if not inside(*c):
+                return c
+    return q
 
 
 def shortcuts(p):

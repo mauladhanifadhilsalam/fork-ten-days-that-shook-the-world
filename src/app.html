@@ -898,7 +898,13 @@ function facingYaw(x, y, tx, ty) { return Math.atan2(tx - x, -(ty - y)); }   // 
 function faceXY(g) {
   if (!g.face) return null;
   var l = PL[g.face]; if (l && l.p) return l.p;
-  var h = GROUPS.filter(function (o) { return o.who === g.face && o !== g; })[0];
+  var me = PL[g.place] && PL[g.place].p, h = null;
+  GROUPS.forEach(function (o) {
+    if (o.who !== g.face || o === g || !PL[o.place] || !PL[o.place].p || !me) return;
+    var d = Math.hypot(PL[o.place].p[0] - me[0], PL[o.place].p[1] - me[1]);
+    if (!h || d < h.d) h = { d: d, o: o };
+  });
+  h = h && h.o;
   if (h && h.cx != null) return [h.cx, h.cy];
   return h && PL[h.place] && PL[h.place].p ? PL[h.place].p : null;
 }
@@ -922,13 +928,13 @@ function centreLines() {
 // the centre-line of the street nearest (x, y), the larger street first, `need` metres each way
 // from the nearest point on it, carried across junctions into the straightest way of its rank:
 // {f, b}, two polylines from that point, or null if no street is within 45 m
-function streetSpine(x, y, need) {
-  var L = centreLines(), best = null;
+function streetSpine(x, y, need, rankW) {
+  var L = centreLines(), best = null, rw = rankW || 15;
   L.forEach(function (st, si) {
     for (var i = 0; i + 1 < st.p.length; i++) {
       var a = st.p[i], b = st.p[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], l2 = dx * dx + dy * dy || 1;
       var t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (y - a[1]) * dy) / l2)), d = Math.hypot(x - a[0] - dx * t, y - a[1] - dy * t);
-      if (d <= 45 && (!best || d - 15 * st.r < best.sc)) best = { sc: d - 15 * st.r, si: si, i: i, t: t };
+      if (d <= 45 && (!best || d - rw * st.r < best.sc)) best = { sc: d - rw * st.r, si: si, i: i, t: t };
     }
   });
   if (!best) return null;
@@ -1110,7 +1116,7 @@ function layoutPlace(id, groups, t) {
     var best = null, fxy = faceXY(g), pk = (PL[g.place] || {}).kind;
     if (pk === 'bridge' || pk === 'street') {
       // "drawn across the Nevsky": on the street's axis, square to it (a wide bridge's shortest chord can run along the street)
-      var st = streetSpine(ax, ay, 12);
+      var lp = PL[g.place] && PL[g.place].p, st = streetSpine(pk === 'bridge' && lp ? lp[0] : ax, pk === 'bridge' && lp ? lp[1] : ay, 12, pk === 'bridge' ? 40 : 15);
       if (st && st.f.length > 1) {
         var c0 = st.f[0], c1 = st.f[Math.min(st.f.length - 1, 3)], tl = Math.hypot(c1[0] - c0[0], c1[1] - c0[1]);
         if (tl > 1) {
@@ -1142,7 +1148,7 @@ function layoutPlace(id, groups, t) {
     for (var j = 0; j < left && fi < figs.length; j++) {
       var along = (Math.floor(j / depth) - (cols - 1) / 2) * gap, back = (j % depth) * 1.6;
       var x = mx + ux * along - fx * back, y = my + uy * along - fy * back, kq = cellAt(x, y);
-      if (kq < 0 || !G.ok[kq]) continue;   // in a wall: the figure joins the rest below
+      if (kq < 0 || !free(kq)) continue;   // in a wall, or ground already taken (Reed's): the figure joins the rest below
       g.members.push({ k: figs[fi++], x: x, y: y, yaw: yaw + (hash(g.seed + j * 2.37) - 0.5) * 0.08, idle: 0.15 });
       used[kq] = 1;
     }
@@ -1314,7 +1320,9 @@ function layoutPlace(id, groups, t) {
     var lineG = !g.form && isCrowd(g) ? groups.filter(function (h) { return h.line; })[0] : null, aord = null;
     if (lineG) {
       var lx = lineG.line.c[0] + lineG.line.f[0] * 10, ly = lineG.line.c[1] + lineG.line.f[1] * 10;
-      aord = G.order.filter(function (kk) { return G.ok[kk]; }).sort(function (a, b) { return Math.hypot(cellX(G, a) - lx, cellY(G, a) - ly) - Math.hypot(cellX(G, b) - lx, cellY(G, b) - ly); });
+      var lc = lineG.line.c, lf = lineG.line.f, cells = [];
+      for (var kk = 0; kk < W * G.R.h; kk++) if (G.ok[kk] && (cellX(G, kk) - lc[0]) * lf[0] + (cellY(G, kk) - lc[1]) * lf[1] > 1.2) cells.push(kk);   // in front of it, not behind
+      aord = cells.sort(function (a, b) { return Math.hypot(cellX(G, a) - lx, cellY(G, a) - ly) - Math.hypot(cellX(G, b) - lx, cellY(G, b) - ly); }).slice(0, 4000);
     }
     var watched = !fxy && !g.form && !defend && (g.brief || isCrowd(g)) ? groups.filter(function (h) { return h !== g && h.form && h.members && h.members.length; }) : [];
     function faceWatch(x, y) {
@@ -1711,7 +1719,16 @@ function foeOf(g) {
   });
   return best ? best.h : null;
 }
-function sectionsOf(h) { return h.secs || [{ x: h.cx, y: h.cy, r: Math.max(2.5, Math.min(12, h.r * 0.7)) }]; }
+function sectionsOf(h) {
+  if (h.secs) return h.secs;
+  var m = h.members || [];
+  if (m.length > 12 && (h.form === 'line' || h.form === 'column' || h.form === 'ranks')) {   // a long body is aimed at in parts of about eight
+    var out = [];
+    for (var i = 0; i < m.length; i += 8) { var sx = 0, sy = 0, c = 0; for (var j = i; j < Math.min(m.length, i + 8); j++) { sx += m[j].x; sy += m[j].y; c++; } out.push({ x: sx / c, y: sy / c, r: 4 }); }
+    return out;
+  }
+  return [{ x: h.cx, y: h.cy, r: Math.max(2.5, Math.min(12, h.r * 0.7)) }];
+}
 // what a shooter of g standing at (x, y) aims at: the nearest part of the enemy body in the open, else
 // the wall nearest him of the building the enemy holds (or that g's `at` names, or g's own place)
 function aimFrom(g, foe, x, y) {
@@ -1719,7 +1736,10 @@ function aimFrom(g, foe, x, y) {
     var s = null; sectionsOf(foe).forEach(function (q) { if (!s || Math.hypot(q.x - x, q.y - y) < Math.hypot(s.x - x, s.y - y)) s = q; });
     return { x: s.x, y: s.y, r: s.r, h0: 0.15, h1: 0.8, ground: true };
   }
-  return wallTarget(foe ? foe.place : (g.at && PL[g.at] ? g.at : g.place), x, y);
+  if (foe) return wallTarget(foe.place, x, y);
+  if (g.at && PL[g.at]) return wallTarget(g.at, x, y);
+  var pk = (PL[g.place] || {}).kind;   // else the building it lays siege to, never one its own side holds
+  return (pk === 'building' || pk === 'station' || pk === 'complex') && holderBloc(rootOf(g.place), cur ? cur.t : '') !== g.bloc ? wallTarget(g.place, x, y) : null;
 }
 var WALLT = {};
 function wallTarget(pid, x, y) {
@@ -1741,7 +1761,7 @@ function besiegedIn(g, t) {
 // firing from the windows: up to a dozen, on the floors of the walls of the body's building that face
 // the enemy; with the enemy all round, on every side of it, each window firing at the part nearest it
 function windowsOf(g, foe) {
-  var recs = outlinesOf(g.place), secs = foe ? sectionsOf(foe) : [], fs = [];
+  var recs = outlinesOf(g.place), secs = foe ? sectionsOf(foe) : (g.at && PL[g.at] && PL[g.at].p ? [{ x: PL[g.at].p[0], y: PL[g.at].p[1], r: 10 }] : []), fs = [];
   if (!recs.length || !secs.length) return false;
   var each = Math.max(2, Math.ceil(14 / secs.length));
   secs.forEach(function (q) { facesOf(recs, q.x, q.y, 3.2).slice(0, 30).forEach(function (f, j) { if (j % Math.max(1, Math.floor(30 / each)) === 0) { f.q = q; fs.push(f); } }); });
@@ -1767,14 +1787,14 @@ function armFights() {
   WALLT = {};
   GROUPS.forEach(hoist);
   GROUPS.forEach(function (g) {
-    if (!g.pose) return;
-    g.members.forEach(function (m, i) { m.pose = g.pose; m.yaw = hash(g.seed + i * 4.1) * 6.283; m.idle = 0; m.carry = null; m.bike = false; });
+    if (!g.pose || !g.members) return;
+    g.members.forEach(function (m, i) { m.pose = g.pose; m.yaw = hash(g.seed + i * 4.1) * 6.283; m.idle = 0; m.carry = null; m.bike = false; delete m.s0; });
   });
   // under siege the defenders are in their building: a body at a building that the other side rings
   // round, or fires at, in the scene is inside it (its label on the building, its fire from the windows)
   GROUPS.forEach(function (g) {
     var pk = (PL[g.place] || {}).kind;
-    if (g.inside || g.form || (pk !== 'building' && pk !== 'station')) return;
+    if (!g.members || g.inside || g.form || (pk !== 'building' && pk !== 'station')) return;
     var shut = GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.place === g.place && h.form === 'ring'; }) ||
       GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.fire && (h.at === g.place || h.at === g.who); });
     if (!shut) return;
@@ -1783,6 +1803,7 @@ function armFights() {
   });
   // the bodies inside their buildings first, then everybody who fires at them
   GROUPS.forEach(function (g) {
+    if (!g.members) { g.fire = null; g.assault = null; g.patrol = false; return; }   // a ship: nothing to fire with
     if (g.fire === true && cur && (besiegedIn(g, cur.t) || (g.inside && !kitHas(g.kit, 'barricade')))) g.fire = 'windows';
     if (g.fire === 'windows' && !windowsOf(g, foeOf(g))) g.fire = null;
   });
@@ -1794,7 +1815,7 @@ function armFights() {
       if (!PK.armed[m.k] || m.pose || m.ox != null || (!g.fire && !g.assault)) return;
       // a carried assault pours into the building being stormed: it aims at its walls, wherever the enemy stands
       var T = g.assault === 'carried' && !g.fire ? wallTarget(foe ? foe.place : g.place, m.x, m.y) : aimFrom(g, foe, m.x, m.y); if (!T) return;
-      m.T = T; any = true;
+      m.T = T; any = true; delete m.s0;   // off the column's spine: it fights where it stands
       m.yaw = facingYaw(m.x, m.y, T.x + (hash(g.seed + i * 5.1) - 0.5) * T.r * 1.6, T.y + (hash(g.seed + i * 7.7) - 0.5) * T.r * 1.6);
       if (g.fire) {
         var low = bars.some(function (b) { return Math.hypot(b.x - m.x, b.y - m.y) < 7; });
@@ -1829,7 +1850,7 @@ function patrolOf(g, pr) {
   var st = streetSpine(pr.x, pr.y, 32); if (!st) return;
   var G = openGround(rootOf(g.place), false);
   function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var q = pts[i], k = G ? Math.floor((q[0] - G.R.x0) / G.R.cs) + Math.floor((q[1] - G.R.y0) / G.R.cs) * G.R.w : -1; if (G && (k < 0 || !G.ok[k])) break; out.push(q); } return out; }
-  var f = open(resample(st.f, 1)), b = open(resample(st.b, 1));
+  var f = open(resample(st.f, 1)).slice(0, 31), b = open(resample(st.b, 1)).slice(0, 31);   // 30 m each way
   var pts = b.slice(1).reverse().concat(f); if (pts.length < 12) return;
   var cum = [0]; for (var i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   pr.path = { p: pts, cum: cum, len: cum[cum.length - 1] }; pr.ph = hash(g.seed + pr.x) * pr.path.len * 2;
@@ -1850,7 +1871,8 @@ function assault(g, t, dt) {
   if (t >= A.next && free.length) {
     var k = carried ? Math.min(free.length, 2 + Math.floor(Math.random() * 3)) : Math.min(free.length, Math.max(4, Math.round(free.length * 0.3)));
     free.sort(function () { return Math.random() - 0.5; }).slice(0, k).forEach(function (m) {
-      var T = m.T, gx = T.x + (Math.random() - 0.5) * T.r, gy = T.y + (Math.random() - 0.5) * T.r, L = Math.hypot(gx - m.hx, gy - m.hy) || 1, stop = T.wall ? 0.6 : 3;
+      var T = m.T, gx = T.x + (Math.random() - 0.5) * T.r, gy = T.y + (Math.random() - 0.5) * T.r, L = Math.hypot(gx - m.hx, gy - m.hy) || 1, stop = Math.min(T.wall ? 0.6 : 3, L * 0.5);
+      if (L - stop < 1) return;   // already there
       m.run = { t0: t + Math.random() * 0.8, gx: m.hx + (gx - m.hx) * (L - stop) / L, gy: m.hy + (gy - m.hy) * (L - stop) / L, L: L - stop, out: 1,
         fall: !carried && A.dead < g.members.length * 0.35 && Math.random() < 0.45 ? 0.3 + Math.random() * 0.55 : 0, back: 0.5 + Math.random() * 0.35 };
       if (m.run.fall) A.dead++;
@@ -1931,7 +1953,7 @@ function scarAt(x, y, h, nx, ny, s, at, t0) {
     scarMesh = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ map: scarTex(), color: 0x2a2522, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -4 }), 240);
     scarMesh.count = 0; scarMesh.frustumCulled = false; scarMesh.renderOrder = 3; scene.add(scarMesh);
   }
-  if (SCARS.length >= 240) SCARS.shift();
+  if (SCARS.length >= 240) { var lv = SCARS.findIndex(function (q) { return q.t0 >= 0; }); if (lv < 0) return; SCARS.splice(lv, 1); }   // never a seeded one
   SCARS.push({ x: x, y: y, h: h, yaw: Math.atan2(nx, -ny), s: s, at: at, t0: t0 });
 }
 // a bombardment has been going on when its scene opens, and its holes are there in every later scene
@@ -1966,7 +1988,7 @@ function battle(t, FS) {
   if (!cur || intro) return;
   var shots = 0;
   GROUPS.forEach(function (g) {
-    if ((!g.fire && !g.assault && !g.patrol) || !arrived(g) || (g.foe && !arrived(g.foe))) return;   // nothing before both sides are there
+    if ((!g.fire && !g.assault && !g.patrol) || !g.members || !arrived(g) || (g.foe && !arrived(g.foe))) return;   // nothing before both sides are there
     assault(g, t, dt);
     if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path) patrolStep(g, pr, t); }); return; }
     if (g.windows) g.windows.forEach(function (w) {
@@ -2639,7 +2661,10 @@ function hiddenBy(cx, cy, ch, x, y, h) {
   for (var d = 3; d < Math.min(L, 260); d += 3) {
     var f = 1 - d / L, px = cx + (x - cx) * f, py = cy + (y - cy) * f, ph = ch + (h - ch) * f;
     var cell = BGRID[Math.floor(px / 100) + ',' + Math.floor(py / 100)]; if (!cell) continue;
-    for (var j = 0; j < cell.length; j++) { var rec = cell[j], b = rec.b; if (rec.h > ph && px >= b[0] && px <= b[2] && py >= b[1] && py <= b[3] && inRing(rec.r, px, py)) return true; }
+    for (var j = 0; j < cell.length; j++) {
+      var rec = cell[j], b = rec.b;
+      if (rec.h > ph && px >= b[0] && px <= b[2] && py >= b[1] && py <= b[3] && inRing(rec.r, px, py) && !rec.holes.some(function (q) { return inRing(q, px, py); })) return true;
+    }
   }
   return false;
 }
