@@ -252,7 +252,7 @@
  "ctl": [
   {"place": "mariinsky-palace", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "garrison", "size": "a line of soldiers, rifles ready", "n": 24, "kit": ["armoured", "banner", "barricade"], "ref": {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it, newly lettered in red paint: \"S.R.S.D.\" (Soviet Rabotchikh Soldatskikh Deputatov); all the guns trained toward St. Isaac's. A barricade had been heaped up across the mouth of Novaya Ulitza"}},
+  {"who": "garrison", "size": "a line of soldiers, rifles ready", "n": 24, "kit": ["armoured", "flag:1", "barricade"], "ref": {"sec": "IV", "q": "At the western corner of the Palace lay a big armoured car with a red flag flying from it, newly lettered in red paint: \"S.R.S.D.\" (Soviet Rabotchikh Soldatskikh Deputatov); all the guns trained toward St. Isaac's. A barricade had been heaped up across the mouth of Novaya Ulitza"}},
   {"who": "sailors", "size": "a crowd of soldiers and sailors", "n": 20, "brief": true, "ref": {"sec": "IV", "q": "Before the door of the Palace was a crowd of soldiers and sailors."}}]},
 {"id": "into-the-winter-palace", "t": "1917-11-07T14:30", "tq": "inferred", "tr": ["1917-11-07T13:30", "1917-11-07T16:00"], "cal": "none", "sec": "IV", "p": 100, "loc": "winter-palace", "witness": "seen", "actors": ["yunkers", "provisional-government"],
  "title": "Inside the besieged palace",
@@ -586,7 +586,7 @@
  "moves": [
   {"who": "reed", "from": "smolny", "to": "nevsky", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "red-guards", "place": "nevsky", "size": "irregular lines of four", "n": 40, "kit": ["banner"], "brief": true},
+  {"who": "red-guards", "place": "nevsky", "size": "irregular lines of four", "n": 40, "kit": ["flag:1"], "say": ["Peace! Land!"], "brief": true},
   {"who": "crowd", "place": "nevsky", "brief": true, "ref": {"sec": "VII", "q": "Half-fearful, half-contemptuous, the crowds on the sidewalk watched them pass, in hateful silence"}}]},
 {"id": "tsarskoye-limbo", "t": "1917-11-10T19:00", "tq": "inferred", "tr": ["1917-11-10T17:30", "1917-11-10T21:30"], "cal": "none", "sec": "VII", "p": 186, "loc": "catherine-palace", "witness": "seen", "actors": ["tsarskoye-rifles"],
  "title": "“Holding the city for Kerensky”",
@@ -1004,7 +1004,7 @@
   {"sec": "X", "q": "with blood-red flags over the dark ranks of workmen"}],
  "moves": [
   {"who": "reed", "from": "reed-lodging", "to": "zagorodny", "mode": "unknown", "rc": "none"},
-  {"who": "red-guards", "size": "two thousand Red Guards", "from": "moskovsky-gate", "to": "zagorodny", "mode": "march", "rc": "stated", "kit": ["banner"]}],
+  {"who": "red-guards", "size": "two thousand Red Guards", "from": "moskovsky-gate", "to": "zagorodny", "mode": "march", "rc": "stated", "kit": ["flag"]}],
  "present": [
   {"who": "crowd", "size": "silent crowds of bourgeois", "n": 40, "brief": true, "ref": {"sec": "X", "q": "between silent crowds of bourgeois, contemptuous but fearful"}}],
  "gone": [
@@ -1107,7 +1107,7 @@
   {"sec": "XII", "q": "Along the bank of the canal were drawn up in full marching order the soldiers of the Pavlovsky Regiment, with their band, which broke into the Marseillaise."},
   {"sec": "XII", "q": "So the great procession wound through the city, growing and unfurling ever new red banners lettered in gold."}],
  "moves": [
-  {"who": "peasants-congress", "with": ["pavlovsky"], "size": "the throng", "n": 90, "from": "fontanka-6", "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["torch", "banner"]},
+  {"who": "peasants-congress", "with": ["pavlovsky"], "size": "the throng", "n": 90, "from": "fontanka-6", "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["torch", "banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]},
   {"who": "reed", "from": "fontanka-6", "to": "smolny", "mode": "foot", "rc": "inferred"}]},
 {"id": "banners-intertwined", "t": "1917-11-29T21:00", "tq": "inferred", "tr": ["1917-11-29T19:00", "1917-11-29T23:59"], "cal": "none", "sec": "XII", "p": 307, "loc": "smolny-hall", "witness": "seen", "actors": ["peasants-congress", "tsay-ee-kah", "left-srs"],
  "title": "Two banners on one wall",

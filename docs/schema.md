@@ -113,7 +113,8 @@ Only sources actually read for this project go here: what locates a place, and w
 - `gap` declares that the text skips: the actor turns up somewhere new.
 - `ack` explains a speed the checker finds implausible but the text insists on.
 - `stay` means the body stays where it arrives (a presence, below, from the next scene on). Only bodies of people and ships stay; a person does not.
-- `kit` is what the body brings, from `fire | barricade | mg | gun | armoured | truck | car | banner | torch | bicycle | leaflets`, optionally with a count (`gun:4`). Each item needs its word in the scene's quotes ("batteries", "armoured", "flag", "papers"…).
+- `kit` is what the body brings, from `fire | barricade | mg | gun | armoured | truck | car | banner | flag | torch | bicycle | leaflets`, optionally with a count (`gun:4`). Each item needs its word in the scene's quotes ("batteries", "armoured", "flag", "papers"…). A `banner` is carried on two poles and a `flag` on one; Reed's word decides which. A count is drawn as given ("a red flag" is `flag:1`); without one the map draws a few. In a body with an armoured car, its flag flies from the car.
+- `say` is the words on the banners and flags, one text each, verbatim from Reed and within 1,500 characters of the passage: the peasants' "Long live the union of the revolutionary and toiling masses!". It needs a `banner` or a `flag` in `kit`, and no more texts than a counted kit has banners and flags. A banner without `say` is drawn plain: Reed does not say what it read.
 - `n` is how many figures to draw. It needs `size`, the phrase it reads; it is a display choice, not a head count.
 
 **Control**
@@ -129,11 +130,11 @@ Only sources actually read for this project go here: what locates a place, and w
 
 Who stands where between scenes. Reed's text keeps people at a place until it removes them, and the map keeps them there too.
 
-`present[]`: `{who, place?, size?, n?, kit?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
+`present[]`: `{who, place?, size?, n?, kit?, say?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
 - `who` is a body: a unit, a school, a crowd, a ship, an organ or a party. Never a single person.
 - The evidence is Reed's: `ref` `{sec, q}` is the passage that puts them there; without it, the scene's own quotes. Either way the body must be named there, or within 1,500 characters, under one of its `reed[]` spellings.
-- `size`, `n` and `kit` as for moves; the kit's words must be in the evidence passage.
-- `brief: true` keeps them for this scene only: a crowd watching, a column passing.
+- `size`, `n`, `kit` and `say` as for moves; the kit's words must be in the evidence passage.
+- `brief: true` keeps them for this scene only: a crowd watching, a column passing. If the same body already stands at the place, the brief entry adds to it for that scene and the map draws the two as one.
 
 `gone[]`: `{who, place?, ref?}` — the text has them leave `place` (default `loc`) after this scene: "the cannon gone", "the sentries in the Square had all disappeared". The checker errors if nobody of that body is there.
 

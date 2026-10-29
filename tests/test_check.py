@@ -20,7 +20,8 @@ SECTIONS = {
     'IV': ['It was 10.40 P. M. when Dan rang the bell. We walked down the Nevsky to the Duma, on Wednesday, '
            'November 7th, and on Thursday, November 16th, nothing happened.',
            'Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace where two '
-           'shells from the battleship _Avrora_ had struck. Smolny was ablaze with lights. John Reed.'],
+           'shells from the battleship _Avrora_ had struck. Smolny was ablaze with lights. John Reed.',
+           'Sailors went up the Nevsky. A red flag crudely lettered in gold, “Peace! Land!” floated over them.'],
     'App.III.7': ['At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency. '
                   'At 1.35 the Post Office was occupied by the Military Revolutionary Committee of the '
                   'Provisional Government.'],
@@ -85,7 +86,9 @@ def good():
         {'id': 'reed-walks', 't': '1917-11-07T20:30', 'tq': 'inferred', 'tr': ['1917-11-07T20:00', '1917-11-07T21:00'], 'cal': 'NS',
          'dp': 'Wednesday, November 7th', 'sec': 'IV', 'loc': 'duma', 'witness': 'seen', 'title': 'Down the Nevsky',
          'why': 'Before the bell at 10.40.', 'sum': 'Reed walks to the Duma.', 'q': 'We walked down the Nevsky to the Duma',
-         'moves': [{'who': 'reed', 'from': 'smolny', 'via': ['nevsky'], 'to': 'duma', 'mode': 'foot', 'rc': 'stated'}]},
+         'moves': [{'who': 'reed', 'from': 'smolny', 'via': ['nevsky'], 'to': 'duma', 'mode': 'foot', 'rc': 'stated'}],
+         'present': [{'who': 'sailors', 'place': 'nevsky', 'kit': ['flag:1'], 'say': ['Peace! Land!'], 'brief': True,
+                      'ref': {'sec': 'IV', 'q': 'A red flag crudely lettered in gold'}}]},
         {'id': 'dan-bell', 't': '1917-11-07T22:40', 'tq': 'stated', 'tp': 'It was 10.40 P. M.', 'cal': 'none', 'sec': 'IV', 'loc': 'duma',
          'witness': 'seen', 'title': 'The bell', 'sum': 'Dan rings the bell.', 'q': 'It was 10.40 P. M. when Dan rang the bell.',
          'present': [{'who': 'pg', 'place': 'winter-palace', 'ref': {'sec': 'App.III.7', 'q': 'the Military Revolutionary Committee of the Provisional Government'}}]},
@@ -254,6 +257,11 @@ Breaks.test_kit_not_in_text = case('kit.not-in-text', mutate=lambda d: ev(d, 'te
 Breaks.test_kit_enum = case('field.enum', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'kit': ['cannonball']}), only=True)
 Breaks.test_n_needs_size = case('field.missing', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].pop('size'), only=True)
 Breaks.test_n_range = case('field.range', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'n': 500}), only=True)
+# what a banner or a flag says: Reed's words, near the passage, on a banner or a flag he counts
+Breaks.test_say_needs_a_flag = case('field.missing', mutate=lambda d: ev(d, 'reed-walks')['present'][0].pop('kit'), only=True)
+Breaks.test_say_more_than_flags = case('field.range', mutate=lambda d: ev(d, 'reed-walks')['present'][0].update({'say': ['Peace! Land!', 'Peace!']}), only=True)
+Breaks.test_say_not_near = case('phrase.not-near', mutate=lambda d: ev(d, 'reed-walks')['present'][0].update({'say': ['All power to the Soviets!']}), only=True)
+Breaks.test_flag_is_not_a_banner = case('kit.not-in-text', mutate=lambda d: ev(d, 'reed-walks')['present'][0].update({'kit': ['banner:1']}), only=True)
 Breaks.test_tag_shooting = case('tag.shooting', mutate=lambda d: ev(d, 'dan-bell').update({'tags': ['shooting']}), only=True)
 Breaks.test_geo_stage = case('geo.stage', mutate=lambda d: pl(d, 'duma').update({'stage': [59.95, 30.33]}), only=True)
 Breaks.test_stay_kind = case('presence.kind', mutate=lambda d: ev(d, 'reed-walks')['moves'][0].update({'stay': True}), only=True)

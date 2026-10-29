@@ -915,7 +915,7 @@ function layoutPlace(id, groups, t) {
     function kitN(name, dflt) { for (var i = 0; i < kit.length; i++) { var p = kit[i].split(':'); if (p[0] === name) return p[1] ? +p[1] : dflt; } return 0; }
     // machine guns and fires close in front of the place; vehicles and guns where there is room
     var nMg = kitN('mg', 2), nFire = kitN('fire', 1), nGun = kitN('gun', 1), nArm = kitN('armoured', 1), nTruck = kitN('truck', 1), nCar = kitN('car', 1);
-    var i, ix, k;
+    var i, ix, k, carFlags = 0;
     for (i = 0; i < nMg; i++) {
       ix = pick(cur + i * 3, 0.9); if (ix < 0) break; k = G.order[ix]; take(k, 0.9);
       var mx = cellX(G, k), my = cellY(G, k), my2 = yawAt(mx, my);
@@ -935,7 +935,7 @@ function layoutPlace(id, groups, t) {
         var at = pick(cur + 18 + j * 25, v[2]); if (at < 0) return;
         var kk = G.order[at]; take(kk, v[2]);
         var vx = cellX(G, kk), vy = cellY(G, kk), yaw = v[0] === 'gun' ? yawAt(vx, vy) : facingYaw(vx, vy, G.cx, G.cy) + Math.PI / 2 + (hash(seed + j) - 0.5);
-        g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw });
+        g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw, flag: v[0] === 'armoured' && !carFlags && kitNum(kit, 'flag') ? !!(carFlags = 1) : false });
         if (v[0] === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: vx, y: vy, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2 });
       }
     });
@@ -952,20 +952,23 @@ function layoutPlace(id, groups, t) {
       var bx = cellX(G, k), by = cellY(G, k);
       g.props.push({ k: i % 2 ? 'barricade2' : 'barricade', x: bx, y: by, yaw: facingYaw(bx, by, G.cx, G.cy) });
     }
-    // flags and banners in a few hands, torches in every other hand, a bicycle for each cyclist
-    carryKit(g.members, kit);
+    // flags and banners in a few hands (a flag on the car, if there is one), torches in every other hand, a bicycle for each cyclist
+    carryKit(g.members, kit, g.say, carFlags);
     var sx = 0, sy = 0; g.members.forEach(function (mm) { sx += mm.x; sy += mm.y; });
     g.cx = g.members.length ? sx / g.members.length : G.sx; g.cy = g.members.length ? sy / g.members.length : G.sy;
     var r = 4; g.members.forEach(function (mm) { r = Math.max(r, Math.hypot(mm.x - g.cx, mm.y - g.cy)); }); g.r = r;
   });
 }
 function stageScene(e, noReed) {
-  var idx = seq.indexOf(e), byPlace = {};
+  var idx = seq.indexOf(e), byPlace = {}, briefs = {};
   GROUPS = [];
+  function on(p) { return p.from <= idx && (p.to == null || idx < p.to); }
+  // a brief entry is the body already there plus what Reed adds, for this scene: draw it once
+  (S.presence || []).forEach(function (p) { if (p.brief && on(p)) briefs[p.who + '|' + p.place] = 1; });
   (S.presence || []).forEach(function (p, pi) {
-    if (p.from > idx || (p.to != null && idx >= p.to)) return;
+    if (!on(p) || (!p.brief && briefs[p.who + '|' + p.place])) return;
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
-    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, brief: p.to === p.from + 1 && p.ev === e.id, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
     GROUPS.push(g);
     if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
   });
@@ -992,12 +995,25 @@ var SHORT = { 'red-guards': 'Red Guards', sailors: 'Sailors', garrison: 'Soldier
 function groupLabel(who) { return SHORT[who] || actorName(who); }
 
 function kitHas(kit, name) { return (kit || []).some(function (k) { return k.split(':')[0] === name; }); }
-function carryKit(list, kit) {
+function kitNum(kit, name) {   // 0: not in the kit; -1: in it, with no count; else the count
+  for (var i = 0; i < (kit || []).length; i++) { var p = kit[i].split(':'); if (p[0] === name) return p[1] ? +p[1] : -1; }
+  return 0;
+}
+// banners (two poles) and flags (one) in a few hands: as many as Reed counts, else a few; his
+// words for what they say go on the banners first, then on the flags. carFlags: flags already
+// flying from the body's cars
+function carryKit(list, kit, say, carFlags) {
   var n = list.length; if (!n) return;
-  if (kitHas(kit, 'banner')) {
-    var nb = Math.max(1, Math.round(n / 15)), step = Math.max(1, Math.floor(n / nb));
-    for (var b = 0; b < nb; b++) list[Math.min(n - 1, b * step + (step >> 1))].carry = n > 20 ? 'banner' : 'flag';
+  var texts = (say || []).slice(), nb = kitNum(kit, 'banner'), nf = kitNum(kit, 'flag');
+  function hand(count, what) {
+    var step = Math.max(1, Math.floor(n / Math.max(1, count)));
+    for (var b = 0; b < count; b++) {
+      var c = list[Math.min(n - 1, b * step + (step >> 1))]; if (c.carry) continue;
+      c.carry = what; if (texts.length) c.say = texts.shift();
+    }
   }
+  if (nb) hand(nb > 0 ? nb : Math.max(1, Math.round(n / 15), texts.length), 'banner');
+  if (nf) hand(Math.max(0, (nf > 0 ? nf : Math.max(1, Math.round(n / 20), texts.length)) - (carFlags || 0)), 'flag');
   if (kitHas(kit, 'torch')) list.forEach(function (m, i) { if (i % 2 && !m.carry) m.carry = 'torch'; });
   if (kitHas(kit, 'bicycle')) list.forEach(function (m) { m.bike = true; });
 }
@@ -1026,7 +1042,7 @@ function moverOf(o) {
   else if (m.fig) list = members(m.fig, Math.min(m.n || 12, veh ? 6 : 72), hashStr(m.who + m.from));
   (m.wfig || []).forEach(function (w) { list = list.concat(members(w[0], Math.min(w[1], 40), hashStr(m.who + 'w'))); });
   var mm = list.map(function (k, i) { return { k: k, i: i }; });
-  carryKit(mm, m.kit);
+  carryKit(mm, m.kit, m.say);
   var guns = 0; (m.kit || []).forEach(function (k) { var p = k.split(':'); if (p[0] === 'gun') guns = p[1] ? +p[1] : 1; });
   return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, cols: mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
 }
@@ -1088,16 +1104,57 @@ function drawMover(mv, FS, t) {
     if (mv.cav && mv.guns) key = 'cavalry';
     put(key, p[0], 0, -p[1], p[2], FS, i * 1.3, walking, walking ? 0 : 0.3);
     if (mm.k !== 'reed') patch(p[0], p[1], 0.95 * FS, mv.bloc);
-    if (mm.carry) carried(mm.carry, p[0], p[1], p[2], FS, t, i);
+    if (mm.carry) carried(mm.carry, p[0], p[1], p[2], FS, t, i, mm.say);
     if (mm.bike) put('bicycle', p[0] + Math.cos(p[2]) * 0.5 * FS, 0, -p[1] - Math.sin(p[2]) * 0.5 * FS, p[2], FS, 0, 0, 0);
     if (mm.k === 'reed') { reedGlow.position.set(p[0], 0.8, -p[1]); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
   });
 }
+// a banner lettered with Reed's words for it: red cloth, gold letters, readable from either side
+// Reed's words on a banner (two poles, the size of the plain one) or a flag (one pole, the
+// flag's size): red cloth lettered in gold, readable from both sides. Pooled, one per carrier.
+var LETTERED = {}, letterPool = {}, letterUsed = {};
+function lettered(text, flag) {
+  var key = (flag ? 'f|' : 'b|') + text;
+  if (!LETTERED[key]) {
+    var W = flag ? 512 : 768, H = flag ? 332 : 256, cw = flag ? 1.0 : 1.95, ch = 0.65;
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var c = cv.getContext('2d');
+    c.fillStyle = flag ? '#b3261e' : '#a8241c'; c.fillRect(0, 0, W, H);
+    if (!flag) { c.strokeStyle = '#d2a945'; c.lineWidth = 7; c.strokeRect(14, 14, W - 28, H - 28); }
+    c.fillStyle = '#e9c45c'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    var words = text.toUpperCase().split(' '), lines = [], line = '', size = flag ? (text.length > 24 ? 40 : 84) : (text.length > 30 ? 46 : 72), maxW = W - 70;
+    c.font = '700 ' + size + 'px "Old Standard TT", Georgia, serif';
+    words.forEach(function (w) { var tryL = line ? line + ' ' + w : w; if (c.measureText(tryL).width > maxW && line) { lines.push(line); line = w; } else line = tryL; });
+    lines.push(line);
+    lines.forEach(function (l, i) { c.fillText(l, W / 2, H / 2 + (i - (lines.length - 1) / 2) * size * 1.12); });
+    var tex = new THREE.CanvasTexture(cv); tex.encoding = THREE.sRGBEncoding; tex.anisotropy = 4;
+    var mat = new THREE.MeshLambertMaterial({ map: tex }), cloth = new THREE.PlaneGeometry(cw, ch);
+    var g = new THREE.Group(), front = new THREE.Mesh(cloth, mat), back = new THREE.Mesh(cloth, mat);
+    var cx = flag ? 0.02 + cw / 2 : 0, cy = flag ? 2.6 - 0.06 - ch / 2 : 2.35;
+    front.position.set(cx, cy, 0.012); back.position.set(cx, cy, -0.012); back.rotation.y = Math.PI;
+    var pm = new THREE.MeshLambertMaterial({ color: 0x4b3526 }), ph = flag ? 2.6 : 2.8, poleGeo2 = new THREE.BoxGeometry(0.04, ph, 0.04); poleGeo2.translate(0, ph / 2, 0);
+    g.add(front); g.add(back);
+    (flag ? [0] : [-1.0, 1.0]).forEach(function (px) { var pole = new THREE.Mesh(poleGeo2, pm); pole.position.x = px; g.add(pole); });
+    LETTERED[key] = g;
+  }
+  var pool = letterPool[key] = letterPool[key] || [], k = letterUsed[key] = (letterUsed[key] || 0) + 1;
+  if (!pool[k - 1]) { var cl = LETTERED[key].clone(); scene.add(cl); pool.push(cl); }
+  return pool[k - 1];
+}
+function letteredDone() {
+  Object.keys(letterPool).forEach(function (t) { letterPool[t].forEach(function (g, i) { g.visible = i < (letterUsed[t] || 0); }); letterUsed[t] = 0; });
+}
 // a flag, a banner or a torch in a figure's right hand
-function carried(what, x, y, yaw, FS, t, i) {
+function carried(what, x, y, yaw, FS, t, i, say) {
   var rx = Math.cos(yaw) * 0.36 * FS, rz = -Math.sin(yaw) * 0.36 * FS;
-  if (what === 'banner') put('banner', x + Math.sin(yaw) * 0.4 * FS, 0.2 * FS, -y + Math.cos(yaw) * 0.4 * FS, yaw, FS, i, 0, 0);
-  else if (what === 'flag') put('flag', x + rx, 0.5 * FS, -y + rz, yaw, FS, i, 0, 0);
+  if (what === 'banner' && say) {
+    var lb = lettered(say, false);
+    lb.position.set(x + Math.sin(yaw) * 0.4 * FS, 0.2 * FS, -y + Math.cos(yaw) * 0.4 * FS); lb.rotation.y = yaw; lb.scale.setScalar(FS);
+  } else if (what === 'banner') put('banner', x + Math.sin(yaw) * 0.4 * FS, 0.2 * FS, -y + Math.cos(yaw) * 0.4 * FS, yaw, FS, i, 0, 0);
+  else if (what === 'flag' && say) {
+    var lf = lettered(say, true);
+    lf.position.set(x + rx, 0.5 * FS, -y + rz); lf.rotation.y = yaw; lf.scale.setScalar(FS);
+  } else if (what === 'flag') put('flag', x + rx, 0.5 * FS, -y + rz, yaw, FS, i, 0, 0);
   else if (what === 'torch') { put('torch', x + rx, 0.45 * FS, -y + rz, yaw, FS, 0, 0, 0); flames.push([x + rx, 2.4 * FS, -y + rz, 0.55 * FS, i]); }
 }
 
@@ -1224,17 +1281,20 @@ function drawPeople(now, FS) {
   reedGlow.visible = false;
   GROUPS.forEach(function (g) {
     if (!g.ship && !g.reed && g.members && g.members.length) patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc);
-    (g.props || []).forEach(function (pr) { put(pr.k, pr.x, pr.ship ? SHIP_Y : 0, -pr.y, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0); });
+    (g.props || []).forEach(function (pr) {
+      put(pr.k, pr.x, pr.ship ? SHIP_Y : 0, -pr.y, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
+      if (pr.flag) put('flag', pr.x - Math.sin(pr.yaw) * 1.9 * FS, 2.05 * FS, -pr.y - Math.cos(pr.yaw) * 1.9 * FS, pr.yaw, FS * 0.8, g.seed, 0, 0);   // flying from the car
+    });
     (g.members || []).forEach(function (mm, i) {
       var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS;
       put(mm.k, x, 0, -y, mm.yaw, FS, g.seed + i * 1.7, 0, mm.idle);
-      if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i);
+      if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i, mm.say);
       if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * FS, 0, -y - Math.sin(mm.yaw) * 0.5 * FS, mm.yaw, FS, 0, 0, 0);
       if (mm.k === 'reed') { reedGlow.position.set(x, 0.8, -y); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
     });
   });
   movers.forEach(function (mv) { drawMover(mv, FS, t); });
-  flushInst(); flushPatches();
+  flushInst(); flushPatches(); letteredDone();
 }
 
 // ---------- sun ----------
@@ -1678,7 +1738,7 @@ function groundLie(G, x, y, r) {
   return { open: f / n, ratio: l1 / l2, axis: 0.5 * Math.atan2(2 * sxy, sxx - syy) };
 }
 function flyTo(fr, dur) {
-  if (REDUCED || !dur) { controls.target.copy(fr.target); camera.position.copy(fr.pos); controls.update(); return; }
+  if (REDUCED || !dur) { flight = null; controls.target.copy(fr.target); camera.position.copy(fr.pos); controls.update(); return; }
   flight = { t0: performance.now(), dur: dur, fromT: controls.target.clone(), fromP: camera.position.clone(), toT: fr.target, toP: fr.pos };
 }
 function ease(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
@@ -2001,7 +2061,7 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
-  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); } };
+  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); } };
 // in a Claude artifact viewer, keep the open scene across republishes
 var hot = window.claude && window.claude.hot;
 if (hot && hot.snapshot) { try { hot.snapshot(function () { return { ev: cur && cur.id }; }); } catch (e) { } }

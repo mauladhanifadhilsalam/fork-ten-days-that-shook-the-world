@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL,
+    'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
 }
 
@@ -578,6 +578,8 @@ class Checker:
             self.count_n(m, mw)
             if 'kit' in m and pos is not None:
                 self.kit(m['kit'], self.scene_text(e), mw)
+            if 'say' in m and pos is not None:
+                self.say(m, e['sec'], pos, mw)
             if m.get('stay'):
                 to = self.P.get(m.get('to'), {})
                 if to and not to.get('ll'):
@@ -616,6 +618,8 @@ class Checker:
                     self.count_n(r, rw)
                     if 'kit' in r:
                         self.kit(r['kit'], sup[2], rw)
+                    if 'say' in r:
+                        self.say(r, sup[0], sup[1], rw)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -667,6 +671,20 @@ class Checker:
                 self.F.err('field.enum', where, f'kit {k!r} is not one of {sorted(L.ENUM["kit"])} (optionally with :count)')
             elif not re.search(L.KIT_WORDS[name], text, re.I):
                 self.F.err('kit.not-in-text', where, f'kit {name!r}: the passage has no word for it ({L.KIT_WORDS[name]})')
+
+    def say(self, r, sec, pos, where):
+        """words on a banner or a flag: Reed's, verbatim, within 1,500 characters of the passage, no more
+        of them than the banners and flags the kit has"""
+        carry = [L.kit_item(k) for k in r.get('kit', []) if isinstance(k, str) and k.split(':')[0] in ('banner', 'flag')]
+        if not carry:
+            self.F.err('field.missing', where, 'say (the words on a banner or a flag) needs a banner or a flag in kit')
+        elif all(n is not None for _, n in carry) and isinstance(r['say'], list) and len(r['say']) > sum(n for _, n in carry):
+            self.F.err('field.range', where, f'say has {len(r["say"])} texts for {sum(n for _, n in carry)} banners and flags')
+        for t in r['say']:
+            if not isinstance(t, str) or not t.strip():
+                self.F.err('field.type', where, 'say holds the words on each banner')
+            elif not self.book.near(sec, pos, t):
+                self.F.err('phrase.not-near', where, f'say {t!r} is not within 1,500 characters of the passage')
 
     def count_n(self, r, where):
         if 'n' in r:

@@ -467,11 +467,13 @@ for sp in spans:
         continue
     kind = T_actors.get(sp['who'], {}).get('kind')
     rec = {'who': sp['who'], 'place': sp['place'], 'from': a, 'to': b, 'ev': sp['ev']}
+    if sp['end_by'] == 'brief':
+        rec['brief'] = True   # the sum of the body already there and the one Reed adds, for one scene
     if kind == 'ship':
         rec['ship'] = True
     else:
         rec['fig'], rec['n'] = figures(sp['who'], sp.get('size'), sp.get('n'))
-    for k in ('size', 'kit'):
+    for k in ('size', 'kit', 'say'):
         if k in sp:
             rec[k] = sp[k]
     presence.append(rec)
@@ -486,7 +488,7 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['doc'] = e['doc']
     mv = []
     for m in e.get('moves', []):
-        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit') if k in m}
+        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say') if k in m}
         if T_actors.get(m['who'], {}).get('kind') not in ('person', 'ship'):
             r['fig'], r['n'] = figures(m['who'], m.get('size'), m.get('n'))
         wf = [list(figures(w)) for w in m.get('with', []) if T_actors.get(w, {}).get('kind') not in ('person', 'ship')]

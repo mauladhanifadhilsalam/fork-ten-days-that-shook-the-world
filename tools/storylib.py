@@ -34,9 +34,9 @@ FIELDS = {
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
-    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'ack'],
+    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'ack'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'kit', 'brief', 'ref'],
+    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'brief', 'ref'],
     'gone': ['who', 'place', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
 }
@@ -78,7 +78,7 @@ ENUM = {
     'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
-    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'torch', 'bicycle', 'leaflets'},
+    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'torch', 'bicycle', 'leaflets'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons'},
 }
@@ -89,7 +89,7 @@ PRESENT_KINDS = {'unit', 'school', 'crowd', 'ship', 'organ', 'party'}
 KIT_WORDS = {
     'fire': r'fire|blaze', 'barricade': r'barricad|wood-pile|lumber|breastwork|piling', 'mg': r'machine.gun|rapid.fir',
     'gun': r'cannon|field-gun|field-piece|batter(y|ies)|artillery|three-inch', 'armoured': r'armou?red', 'truck': r'truck|lorr',
-    'car': r'automobile|motor|\bcars?\b', 'banner': r'banner|flag', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
+    'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
 }
 SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire'
@@ -506,7 +506,7 @@ def presence_spans(events, actors, places):
 
     def merge(sp, rec):
         """a later word on the same body adds to what is known: its kit joins the kit already there"""
-        for k in ('size', 'n'):
+        for k in ('size', 'n', 'say'):
             if k in rec:
                 sp[k] = rec[k]
         if rec.get('kit'):
