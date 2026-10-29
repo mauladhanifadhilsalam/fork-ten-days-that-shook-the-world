@@ -46,9 +46,9 @@ def good():
         'zones': {'city': [59.83, 30.15, 60.03, 30.55], 'front': [59.5, 29.95, 59.85, 30.75], 'moscow': [55.55, 37.35, 55.95, 37.85]},
         'speed_kmh': {'foot': 6, 'march': 5, 'cavalry': 12, 'cab': 15, 'tram': 15, 'car': 45, 'truck': 30, 'armoured': 25, 'rail': 45, 'ship': 20, 'air': 150, 'unknown': 45},
         'blocs': {'soviet': 'for', 'government': 'the deposed government'},
-        'tags': ['measure']},
+        'tags': ['background']},
         'days': [{'d': '1917-11-07', 'os': '1917-10-25', 'label': '7 Nov', 'name': 'The rising'}]}
-    sources = [{'id': 'elov1923', 'kind': 'primary', 'cite': 'Elov 1923'},
+    sources = [{'id': 'ref1917', 'kind': 'reference', 'cite': 'A reference work on Petrograd in 1917'},
                {'id': 'tzdb', 'kind': 'data', 'cite': 'IANA tz database'}]
     actors = [
         {'id': 'reed', 'kind': 'person', 'bloc': 'observer', 'track': True, 'name': 'John Reed', 'reed': ['John Reed']},
@@ -61,14 +61,15 @@ def good():
         {'id': 'smolny', 'kind': 'building', 'zone': 'city', 'll': [59.947473, 30.395867], 'acc': 60, 'conf': 'named', 'exists': True,
          'osm': 'relation/2133719', 'geo': g, 'name': 'Smolny Institute', 'reed': ['Smolny']},
         {'id': 'telegraph-agency', 'kind': 'building', 'zone': 'city', 'll': [59.9333, 30.3200], 'acc': 200, 'conf': 'conjectural',
-         'exists': None, 'geo': g, 'ctl0': {'state': 'held', 'holder': 'pg', 'as_of': '1917-11-06', 'src': ['elov1923']},
+         'exists': None, 'src': ['ref1917'], 'geo': g,
+         'ctl0': {'state': 'held', 'holder': 'pg', 'as_of': '1917-11-06', 'ref': {'sec': 'App.III.7', 'q': 'occupied the Telegraph Agency'}},
          'name': 'Telegraph Agency', 'reed': ['Telegraph Agency'], 'ident': 'Address unknown.'},
         {'id': 'nevsky', 'kind': 'street', 'zone': 'city', 'll': [59.9345, 30.3300], 'acc': 2000, 'conf': 'named', 'geo': g,
          'name': 'Nevsky Prospekt', 'reed': ['Nevsky']},
         {'id': 'duma', 'kind': 'building', 'zone': 'city', 'll': [59.9339, 30.3290], 'acc': 30, 'conf': 'named', 'exists': True,
          'osm': 'way/1', 'geo': g, 'name': 'City Duma', 'reed': ['Duma']},
         {'id': 'winter-palace', 'kind': 'building', 'zone': 'city', 'll': [59.9405, 30.3145], 'acc': 60, 'conf': 'named', 'exists': True,
-         'osm': 'way/2', 'geo': g, 'ctl0': {'state': 'held', 'holder': 'pg', 'as_of': '1917-11-07', 'src': ['elov1923']},
+         'osm': 'way/2', 'geo': g, 'ctl0': {'state': 'held', 'holder': 'pg', 'as_of': '1917-11-07', 'ev': 'dan-bell'},
          'name': 'Winter Palace', 'reed': ['Palace']},
         {'id': 'pulkovo', 'kind': 'town', 'zone': 'front', 'll': [59.7714, 30.327], 'acc': 800, 'conf': 'named', 'geo': g,
          'name': 'Pulkovo', 'reed': ['Pulkovo']},
@@ -90,9 +91,7 @@ def good():
          'sum': 'Stucco on the pavement.',
          'q': ['Underfoot the sidewalk was littered with broken stucco', 'two shells from the battleship _Avrora_ had struck'],
          'moves': [{'who': 'reed', 'from': 'duma', 'to': 'winter-palace', 'mode': 'foot', 'rc': 'inferred'}],
-         'ctl': [{'place': 'winter-palace', 'state': 'held', 'holder': 'mrc'}],
-         'check': [{'claim': 'two shells from the battleship Avrora had struck', 'v': 'differs', 'src': ['elov1923'],
-                    'rec': 'The commissar reports blanks only.'}]},
+         'ctl': [{'place': 'winter-palace', 'state': 'held', 'holder': 'mrc'}]},
         {'id': 'holtzman', 't': '1917-11-13T02:55', 'tq': 'approx', 'tr': ['1917-11-13T02:30', '1917-11-13T03:00'],
          'tp': "almost three o'clock in the morning", 'cal': 'none', 'sec': 'IX', 'loc': 'smolny', 'witness': 'seen',
          'title': 'Kerensky is smashed', 'sum': 'Holtzman runs in with the telegram.',
@@ -189,8 +188,6 @@ CASES = {
     'quote.not-found': dict(mutate=_set(lambda d: ev(d, 'dan-bell'), 'q', 'It was 10.40 P. M. when Dan rang the bells.'), only=True),
     'quote.not-unique': dict(mutate=_set(lambda d: ev(d, 'dan-bell'), 'q', 'the'), only=True),
     'quote.order': dict(mutate=lambda d: ev(d, 'cornice').update({'q': list(reversed(ev(d, 'cornice')['q']))}), only=True),
-    'claim.not-in-quote': dict(mutate=lambda d: ev(d, 'cornice')['check'][0].update({'claim': 'three shells'}), only=True),
-    'check.source-required': dict(mutate=lambda d: ev(d, 'cornice')['check'][0].pop('src'), only=True),
     'phrase.not-near': dict(mutate=_set(lambda d: ev(d, 'holtzman'), 'tp', 'half-past four in the afternoon'), only=True),
     'spelling.not-in-book': dict(mutate=_set(lambda d: d['actors'][0], 'reed', ['Trotsky']), only=True),
     'time.format': dict(mutate=_set(lambda d: ev(d, 'telegraph-occupied'), 't', '1917-11-07 01:00')),
@@ -220,15 +217,16 @@ CASES = {
     'ctl.kind': dict(mutate=lambda d: ev(d, 'cornice')['ctl'].append({'place': 'nevsky', 'state': 'held', 'holder': 'mrc'}), only=True),
     'ctl.state': dict(mutate=lambda d: ev(d, 'cornice')['ctl'][0].update({'state': 'besieged'}), only=True),
     'ctl0.after-first': dict(mutate=lambda d: pl(d, 'winter-palace')['ctl0'].update({'as_of': '1917-11-09'}), only=True),
-    'context.quoted': dict(mutate=lambda d: ev(d, 'dan-bell').update({'witness': 'context', 'src': ['elov1923']})),
     'evidence.missing': dict(mutate=lambda d: d['actors'][1]['stance'][0].pop('ref'), only=True),
-    'stance.order': dict(mutate=lambda d: d['actors'][1]['stance'].append({'from': '1917-11-01', 's': 'support', 'src': ['elov1923']}), only=True),
+    'stance.order': dict(mutate=lambda d: d['actors'][1]['stance'].append({'from': '1917-11-01', 's': 'support', 'ev': 'dan-bell'}), only=True),
     'speed.implausible': dict(mutate=lambda d: ev(d, 'dan-bell').update({'moves': [{'who': 'reed', 'from': 'duma', 'to': 'pulkovo', 'mode': 'foot', 'rc': 'none'},
                                                                                    {'who': 'reed', 'from': 'pulkovo', 'to': 'duma', 'mode': 'foot', 'rc': 'none'}]})),
 }
 for code, kw in CASES.items():
     setattr(Breaks, 'test_' + code.replace('.', '_').replace('-', '_'), case(code, **kw))
 Breaks.test_ref_unknown_place_src = case('ref.unknown', mutate=_set(lambda d: pl(d, 'duma'), 'src', ['nobody']), only=True)
+Breaks.test_event_without_a_quote = case('field.missing', mutate=_del(lambda d: ev(d, 'dan-bell'), 'q'), only=True)
+Breaks.test_no_fact_checks = case('field.unknown', mutate=_set(lambda d: ev(d, 'cornice'), 'check', []), only=True)
 
 
 class Parsers(unittest.TestCase):

@@ -88,13 +88,11 @@
    },
    "tags": [
      "background",
-     "contradiction",
      "flashback",
-     "measure",
      "moscow",
      "rumour"
    ],
-   "note": "A seed dataset for a 3D map of Reed's book, not of the revolution: it records what Reed says, how he knows it, and where the record disagrees."
+   "note": "A seed dataset for a 3D map of Reed's book, not of the revolution. It follows Reed authoritatively: what he says happened, where, when, and how he knew it."
  },
  "days": [
   {"d": "1917-09-28", "os": "1917-09-15", "label": "Sept–Oct", "name": "Background"},

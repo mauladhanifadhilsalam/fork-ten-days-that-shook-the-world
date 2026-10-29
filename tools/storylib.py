@@ -24,18 +24,17 @@ FIELDS = {
     'day': ['d', 'os', 'label', 'name'],
     'source': ['id', 'kind', 'url', 'cite', 'note'],
     'actor': ['id', 'kind', 'bloc', 'track', 'part_of', 'seat', 'wd', 'name', 'reed', 'ru', 'stance', 'note'],
-    'stance': ['from', 's', 'ev', 'src', 'ref', 'note'],
+    'stance': ['from', 's', 'ev', 'ref', 'note'],
     'place': ['id', 'kind', 'zone', 'in', 'll', 'acc', 'conf', 'exists', 'osm', 'site_osm', 'wd', 'src', 'geo', 'ctl0',
               'name', 'reed', 'ru', 'addr1917', 'addr_now', 'ident', 'today', 'note'],
     'geo': ['m', 'at', 'q', 'osm_v', 'on', 'src', 'note'],
-    'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'src', 'ref'],
-    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags', 'src',
-              'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'check'],
+    'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
+    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags',
+              'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
     'move': ['who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'ack'],
-    'ctl': ['place', 'state', 'holder', 'by', 'basis'],
-    'check': ['claim', 'v', 'src', 'rec', 'cf', 'note'],
+    'ctl': ['place', 'state', 'holder', 'by'],
 }
 REQUIRED = {
     'day': ['d', 'os', 'label', 'name'],
@@ -45,16 +44,15 @@ REQUIRED = {
     'place': ['id', 'kind', 'zone', 'conf', 'geo', 'name', 'reed'],
     'geo': ['m'],
     'ctl0': ['state', 'as_of'],
-    'event': ['id', 't', 'tq', 'cal', 'loc', 'witness', 'title', 'sum'],
+    'event': ['id', 't', 'tq', 'cal', 'sec', 'loc', 'witness', 'title', 'sum', 'q'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'q'],
     'move': ['who', 'from', 'to', 'mode', 'rc'],
     'ctl': ['place', 'state'],
-    'check': ['claim', 'v'],
 }
-PROSE = {'cite', 'name', 'note', 'title', 'why', 'sum', 'q', 'ident', 'today', 'rec', 'ru', 'reed',
+PROSE = {'cite', 'name', 'note', 'title', 'why', 'sum', 'q', 'ident', 'today', 'ru', 'reed',
          'addr1917', 'addr_now'}
-NESTED_LIST = {'stance', 'also', 'moves', 'ctl', 'check'}   # one line per item
+NESTED_LIST = {'stance', 'also', 'moves', 'ctl'}   # one line per item
 NESTED_ONE = {'geo', 'ctl0', 'doc'}                         # one line for the whole object
 
 ENUM = {
@@ -68,16 +66,14 @@ ENUM = {
     'place.conf': {'named', 'identified', 'conjectural', 'unlocated'},
     'geo.m': {'osm', 'wikidata', 'plan1916', 'secondary', 'hand', 'pending'},
     'state': {'held', 'besieged', 'contested', 'neutral', 'unknown'},
-    'event.tq': {'stated', 'doc', 'approx', 'day', 'inferred', 'secondary'},
+    'event.tq': {'stated', 'doc', 'approx', 'day', 'inferred'},
     'cal': {'NS', 'OS', 'none'},
-    'event.witness': {'seen', 'told', 'reported', 'document', 'context'},
+    'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
-    'ctl.basis': {'text', 'record'},
-    'check.v': {'agrees', 'partly', 'differs', 'disputed', 'unchecked'},
 }
 HOLDABLE = {'building', 'complex', 'square', 'bridge', 'station', 'district', 'town', 'area'}
-LIMITS = {'title': 60, 'sum': 350, 'q': 320, 'note': 500, 'rec': 400, 'why': 300, 'ident': 400}
+LIMITS = {'title': 60, 'sum': 350, 'q': 320, 'note': 500, 'why': 300, 'ident': 400}
 ID_RE = re.compile(r'^[a-z0-9]+(?:-[a-z0-9]+)*$')
 OSM_RE = re.compile(r'^(node|way|relation)/\d+$')
 WD_RE = re.compile(r'^Q\d+$')
@@ -131,7 +127,7 @@ def _order(rec, kind):
 
 
 def _sub(kind_of, key):
-    return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl', 'check': 'check',
+    return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl',
             'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc'}.get(key)
 
 

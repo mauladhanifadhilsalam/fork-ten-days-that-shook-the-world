@@ -109,16 +109,14 @@
  "q": "As night fell the great hall filled with soldiers and workmen, a monstrous dun mass, deep-humming in a blue haze of smoke.",
  "moves": [
   {"who": "reed", "from": "kazan-cathedral", "to": "smolny", "mode": "unknown", "rc": "none"}]},
-{"id": "telegraph-agency-taken", "t": "1917-11-07T01:00", "tq": "stated", "tp": "At 1 A. M.", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "telegraph-agency", "witness": "reported", "tags": ["contradiction"],
+{"id": "telegraph-agency-taken", "t": "1917-11-07T01:00", "tq": "stated", "tp": "At 1 A. M.", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "telegraph-agency", "witness": "reported",
  "title": "The Telegraph Agency occupied",
  "sum": "Reed’s chronology of the night: a detachment from Smolny takes the Petrograd Telegraph Agency.",
  "q": "At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency.",
  "moves": [
   {"who": "mrc", "size": "a detachment of soldiers and sailors", "from": "smolny", "to": "telegraph-agency", "mode": "unknown", "rc": "none"}],
  "ctl": [
-  {"place": "telegraph-agency", "state": "held", "holder": "mrc"}],
- "check": [
-  {"claim": "At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency", "v": "disputed", "src": ["gutenberg-3076", "tass-history"], "rec": "In Reed’s own Chapter III, Zorin says “toward four in the morning” that a regiment is still on the march to capture the Telegraph Agency. TASS’s history says Baltic seamen under Commissar Leonid Stark took the building on 7 Nov, without an hour.", "cf": [{"sec": "III", "q": "another the Telegraph Agency"}]}]},
+  {"place": "telegraph-agency", "state": "held", "holder": "mrc"}]},
 {"id": "post-office-taken", "t": "1917-11-07T01:35", "tq": "stated", "tp": "At 1.35", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "post-office", "witness": "reported",
  "title": "The Post Office occupied",
  "sum": "Reed’s chronology: the Main Post Office is occupied.",
@@ -184,14 +182,12 @@
  "q": "At dawn the State Bank was surrounded.",
  "ctl": [
   {"place": "state-bank", "state": "besieged", "holder": "provisional-government", "by": "mrc"}]},
-{"id": "kerensky-leaves", "t": "1917-11-07T09:00", "tq": "stated", "tp": "About 9 A. M.", "cal": "none", "sec": "App.IV.1", "p": 124, "loc": "winter-palace", "witness": "reported", "actors": ["provisional-government"],
+{"id": "kerensky-leaves", "t": "1917-11-07T09:00", "tq": "stated", "tp": "About 9 A. M.", "cal": "none", "sec": "App.IV.1", "p": 124, "loc": "general-staff", "witness": "reported", "actors": ["provisional-government"],
  "title": "Kerensky leaves for the front",
  "sum": "Reed’s chronology: about nine Kerensky leaves the capital for the front.",
  "q": "About 9 A. M. Kerensky left for the Front",
  "moves": [
-  {"who": "kerensky", "from": "winter-palace", "to": "gatchina", "mode": "car", "rc": "none", "gap": true}],
- "check": [
-  {"claim": "About 9 A. M. Kerensky left for the Front", "v": "unchecked", "src": ["ruwiki-kerensky"], "cf": [{"sec": "IV", "q": "We had to send to the English Hospital and borrow some."}], "note": "Reed’s chronology has him at the Staff until dawn but does not say where he left from. The record has him leave from the Winter Palace, with an American embassy car under the US flag, and the palace officer’s story of gasoline borrowed for his car (cf) points the same way. The record gives no hour, so the 9 A.M. stays unchecked."}]},
+  {"who": "kerensky", "from": "general-staff", "to": "gatchina", "mode": "car", "rc": "none"}]},
 {"id": "palace-cordon", "t": "1917-11-07T10:00", "tq": "stated", "tp": "at 10 A. M.", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "winter-palace", "witness": "reported", "actors": ["mrc"],
  "title": "A cordon round the Winter Palace",
  "sum": "Reed’s chronology: at ten a cordon of troops is drawn about the Winter Palace.",
@@ -291,7 +287,7 @@
  "why": "Just before Reed leaves Smolny on the truck.",
  "sum": "Through the door of the Military Revolutionary Committee Reed glimpses men bent over a map.",
  "q": "we caught a glimpse of dishevelled men bending over a map under the glare of a shaded electric-light"},
-{"id": "truck-ride", "t": "1917-11-08T00:20", "tq": "inferred", "tr": ["1917-11-07T23:15", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 111, "loc": "znamensky-square", "witness": "seen", "actors": ["mrc"], "tags": ["contradiction"],
+{"id": "truck-ride", "t": "1917-11-08T00:20", "tq": "inferred", "tr": ["1917-11-07T23:15", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 111, "loc": "znamensky-square", "witness": "seen", "actors": ["mrc"],
  "title": "Proclamations from a truck",
  "why": "After the passes are made out at Smolny, before the Duma march.",
  "sum": "On an MRC truck Reed helps fling the proclamation of the Provisional Government’s fall into the streets, down the Suvorovsky and the Nevsky.",
@@ -299,10 +295,8 @@
  "also": [
   {"sec": "IV", "q": "We turned into Znamensky Square, dark and almost deserted"}],
  "moves": [
-  {"who": "reed", "from": "smolny", "via": ["suvorovsky", "znamensky-square", "nevsky"], "to": "city-duma", "mode": "truck", "rc": "stated"}],
- "check": [
-  {"claim": "plunging down through the dark street with a tail of white papers", "v": "disputed", "src": ["gutenberg-3076"], "rec": "Reed’s caption to the proclamation’s facsimile, in the same chapter, says they distributed it “just after the surrender of the Winter Palace”; the narrative puts the ride before the storming.", "cf": [{"sec": "IV", "q": "which we helped to distribute from a motor-truck just after the surrender of the Winter Palace"}]}]},
-{"id": "duma-march", "t": "1917-11-08T00:45", "tq": "inferred", "tr": ["1917-11-08T00:15", "1917-11-08T01:30"], "cal": "none", "sec": "IV", "p": 113, "loc": "kazan-bridge", "witness": "seen", "actors": ["duma", "schreider", "mensheviki", "srs"], "tags": ["measure"],
+  {"who": "reed", "from": "smolny", "via": ["suvorovsky", "znamensky-square", "nevsky"], "to": "city-duma", "mode": "truck", "rc": "stated"}]},
+{"id": "duma-march", "t": "1917-11-08T00:45", "tq": "inferred", "tr": ["1917-11-08T00:15", "1917-11-08T01:30"], "cal": "none", "sec": "IV", "p": 113, "loc": "kazan-bridge", "witness": "seen", "actors": ["duma", "schreider", "mensheviki", "srs"],
  "title": "The march to die in the Winter Palace",
  "why": "After the truck reaches the Duma, before the storming.",
  "sum": "The Duma, the Mayor and the Mensheviki and SRs set out to die with the ministers. Sailors stop them at the Ekaterina Canal, under 200 m from the Duma door, and they turn back.",
@@ -337,23 +331,19 @@
  "q": "the sailors brought them safely to Peter-Paul",
  "moves": [
   {"who": "provisional-government", "with": ["sailors"], "from": "winter-palace", "to": "peter-paul", "mode": "foot", "rc": "none"}]},
-{"id": "womens-battalion-removed", "t": "1917-11-08T03:00", "tq": "inferred", "tr": ["1917-11-08T02:30", "1917-11-08T03:15"], "cal": "none", "sec": "IV", "p": 119, "loc": "winter-palace", "witness": "told", "actors": ["womens-battalion"], "tags": ["contradiction"],
+{"id": "womens-battalion-removed", "t": "1917-11-08T03:00", "tq": "inferred", "tr": ["1917-11-08T02:30", "1917-11-08T03:15"], "cal": "none", "sec": "IV", "p": 119, "loc": "winter-palace", "witness": "told", "actors": ["womens-battalion"],
  "title": "The Women’s Battalion",
  "why": "Told on the quay as Reed leaves the palace, just before “It was now after three in the morning”.",
  "sum": "A Commissar tells Reed the women soldiers were found huddled in a back room, marched to the Finland Station and sent to their camp at Levashovo.",
  "q": "So finally we marched them up to the Finland Station and put them on a train for Levashovo, where they have a camp.",
  "moves": [
-  {"who": "womens-battalion", "from": "winter-palace", "to": "finland-station", "mode": "foot", "rc": "none"}],
- "check": [
-  {"claim": "we marched them up to the Finland Station", "v": "disputed", "src": ["gutenberg-3076"], "rec": "The Duma commission Reed quotes in App. IV §4 found that the women were first taken to the Pavlovsky Regiment’s barracks, where some were badly treated, and only later were most of them at Levashovo.", "cf": [{"sec": "App.IV.4", "q": "the girls had been at first taken to the barracks of the Pavlovsky Regiment"}]}]},
-{"id": "broken-stucco", "t": "1917-11-08T03:10", "tq": "approx", "tr": ["1917-11-08T03:00", "1917-11-08T03:40"], "tp": "It was now after three in the morning", "cal": "none", "sec": "IV", "p": 119, "loc": "palace-embankment", "witness": "seen", "actors": ["avrora"], "tags": ["contradiction"],
+  {"who": "womens-battalion", "from": "winter-palace", "to": "finland-station", "mode": "foot", "rc": "none"}]},
+{"id": "broken-stucco", "t": "1917-11-08T03:10", "tq": "approx", "tr": ["1917-11-08T03:00", "1917-11-08T03:40"], "tp": "It was now after three in the morning", "cal": "none", "sec": "IV", "p": 119, "loc": "palace-embankment", "witness": "seen", "actors": ["avrora"],
  "title": "Broken stucco",
  "sum": "Leaving the palace, Reed walks over stucco knocked off the cornice, “the only damage done by the bombardment”.",
  "q": ["Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace where two shells from the battleship Avrora had struck", "It was now after three in the morning."],
  "moves": [
-  {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}],
- "check": [
-  {"claim": "two shells from the battleship Avrora had struck", "v": "differs", "src": ["elov1923", "gutenberg-3076"], "rec": "The Aurora’s commissar reports orders for blank shots on a signal from Peter-Paul, with shrapnel only “if necessary”, and “no occasion” for it, because the palace surrendered. Reed’s own appendix speaks of blanks and “only three small shrapnels”. And the Avrora was a cruiser, as Reed himself calls her in Chapter III.", "cf": [{"sec": "App.IV.1", "q": "only three small shrapnels"}, {"sec": "III", "q": "the names of the leading Bolshevik cruisers of the Baltic Fleet"}]}]},
+  {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}]},
 {"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "city-duma", "witness": "seen", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
  "title": "The Committee for Salvation is formed",
  "why": "Reed walks from the palace to the Duma “after three”.",
@@ -399,14 +389,12 @@
  "title": "The proclamation on peace",
  "sum": "The Congress votes the proclamation to the peoples on peace; one hand goes up against and comes down again.",
  "q": "It was exactly 10:35 when Kameniev asked all in favour of the proclamation to hold up their cards."},
-{"id": "kerensky-luga", "t": "1917-11-08T23:00", "tq": "approx", "tr": ["1917-11-08T19:00", "1917-11-09T04:00"], "tp": "On the night of November 8th", "cal": "NS", "dp": "the night of November 8th", "sec": "App.IV.2", "p": 125, "loc": "luga", "witness": "reported", "tags": ["contradiction"],
+{"id": "kerensky-luga", "t": "1917-11-08T23:00", "tq": "approx", "tr": ["1917-11-08T19:00", "1917-11-09T04:00"], "tp": "On the night of November 8th", "cal": "NS", "dp": "the night of November 8th", "sec": "App.IV.2", "p": 125, "loc": "luga", "witness": "reported",
  "title": "Kerensky at Luga",
  "sum": "Shouted down by the soldiers at Ostrov and kept from Pskov, Kerensky reaches Luga by car on the night of 8 Nov.",
  "q": ["Kerensky did not arrive at Pskov.", "On the night of November 8th he arrived by automobile at Luga, where he was well received by the Death Battalions stationed there."],
  "moves": [
-  {"who": "kerensky", "from": "ostrov", "to": "luga", "mode": "car", "rc": "none"}],
- "check": [
-  {"claim": "Kerensky did not arrive at Pskov.", "v": "disputed", "src": ["gutenberg-3076"], "rec": "Reed contradicts himself. In Chapter V the press prints a prikaz “launched by him at Pskov”. Chapter VI has Kerensky in Gatchina by the night of 8–9 Nov. This appendix instead sends him from Luga to the South-West Front and Moghilev.", "cf": [{"sec": "V", "q": "a prikaz launched by him at Pskov"}]}]},
+  {"who": "kerensky", "from": "ostrov", "to": "luga", "mode": "car", "rc": "none"}]},
 {"id": "land-decree", "t": "1917-11-09T02:00", "tq": "stated", "tp": "At two o’clock", "cal": "none", "sec": "V", "p": 145, "loc": "smolny-hall", "witness": "seen", "actors": ["congress"],
  "title": "The Land Decree",
  "sum": "The Land Decree passes with one vote against, the peasant delegates wild with joy.",
@@ -415,7 +403,7 @@
  "title": "The Council of People’s Commissars",
  "sum": "Kameniev reads the decree forming the Council of People’s Commissars.",
  "q": "At 2.30 A. M. fell a tense hush. Kameniev was reading the decree of the Constitution of Power"},
-{"id": "gatchina-falls", "t": "1917-11-09T04:00", "tq": "inferred", "tr": ["1917-11-08T20:00", "1917-11-09T08:00"], "cal": "none", "sec": "VI", "p": 156, "loc": "gatchina", "witness": "reported", "actors": ["kerensky", "krasnov"], "tags": ["measure"],
+{"id": "gatchina-falls", "t": "1917-11-09T04:00", "tq": "inferred", "tr": ["1917-11-08T20:00", "1917-11-09T08:00"], "cal": "none", "sec": "VI", "p": 156, "loc": "gatchina", "witness": "reported", "actors": ["kerensky", "krasnov"],
  "title": "Gatchina falls to Kerensky",
  "why": "“During the night” before Friday the 9th.",
  "sum": "Gatchina falls in the night to Kerensky’s “loyal regiments”, Krasnov’s Cossacks, and becomes his headquarters.",
@@ -426,9 +414,7 @@
   {"who": "kerensky", "from": "luga", "to": "gatchina", "mode": "car", "rc": "none", "gap": true},
   {"who": "krasnov-cossacks", "from": "ostrov", "to": "gatchina", "mode": "rail", "rc": "none"}],
  "ctl": [
-  {"place": "gatchina", "state": "held", "holder": "krasnov-cossacks"}],
- "check": [
-  {"claim": "Gatchina, about thirty kilometers south-west", "v": "differs", "src": ["osm"], "rec": "Gatchina is about 43 km from the Winter Palace in a straight line (the palace’s OSM pin and a hand pin in the town, ±2 km), and a little west of due south."}]},
+  {"place": "gatchina", "state": "held", "holder": "krasnov-cossacks"}]},
 {"id": "tram-home", "t": "1917-11-09T06:55", "tq": "approx", "tr": ["1917-11-09T06:30", "1917-11-09T07:05"], "tp": "It was almost seven", "cal": "none", "sec": "V", "p": 150, "loc": "reed-lodging", "witness": "seen",
  "title": "Home by the delegates’ tram",
  "sum": "Near seven, Reed rides home on the trams kept at Smolny for the delegates; at his apartment-house an armed citizens’ patrol stops them.",
@@ -503,15 +489,13 @@
  "q": "South and southwest they poured through the shabby streets toward the Moskovsky Gate, men, women and children, with rifles, picks, spades, rolls of wire",
  "moves": [
   {"who": "workers", "size": "men, women and children", "from": "putilov-works", "to": "moskovsky-gate", "mode": "march", "rc": "none"}]},
-{"id": "antonov-to-narva", "t": "1917-11-10T15:00", "tq": "inferred", "tr": ["1917-11-10T13:00", "1917-11-10T16:30"], "cal": "none", "sec": "VII", "p": 181, "loc": "narvskaya-zastava", "witness": "told", "by": "trusishka", "actors": ["antonov", "dybenko", "red-guards"], "tags": ["measure"],
+{"id": "antonov-to-narva", "t": "1917-11-10T15:00", "tq": "inferred", "tr": ["1917-11-10T13:00", "1917-11-10T16:30"], "cal": "none", "sec": "VII", "p": 181, "loc": "narvskaya-zastava", "witness": "told", "by": "trusishka", "actors": ["antonov", "dybenko", "red-guards"],
  "title": "Antonov inspects the trenches",
  "why": "Reed hears it from Trusishka, who went with them; Reed himself “made for the Tsarskoye Selo station”.",
  "sum": "Antonov and Dybenko drive from Smolny to the Narva Gate. A tyre bursts on the Nevsky, so they take an Italian-flagged taxi. A few hundred workmen wait in trenches for the Cossacks.",
  "q": "Arrived at Narvskaya Zastava, about ten miles out, Antonov called for the commandant of the Red Guard.",
  "moves": [
-  {"who": "antonov", "with": ["dybenko"], "from": "smolny", "via": ["suvorovsky", "nevsky"], "to": "narvskaya-zastava", "mode": "car", "rc": "inferred"}],
- "check": [
-  {"claim": "Arrived at Narvskaya Zastava, about ten miles out", "v": "differs", "src": ["osm"], "rec": "The Narva Gate is about 5 km from the Winter Palace and about 8 km from Smolny in a straight line (between their OSM pins and a hand pin at the gate): nearer five miles than ten."}]},
+  {"who": "antonov", "with": ["dybenko"], "from": "smolny", "via": ["suvorovsky", "nevsky"], "to": "narvskaya-zastava", "mode": "car", "rc": "inferred"}]},
 {"id": "peace-land-flag", "t": "1917-11-10T16:15", "tq": "approx", "tr": ["1917-11-10T15:30", "1917-11-10T17:15"], "tp": "The early twilight of winter was falling", "cal": "none", "sec": "VII", "p": 181, "loc": "nevsky", "witness": "seen", "actors": ["red-guards"],
  "title": "“Peace! Land!”",
  "sum": "On the way to the Tsarskoye Selo station Reed passes young Red Guards marching up the Nevsky under a gold-lettered red flag.",
@@ -619,9 +603,7 @@
  "title": "A Red Cross car",
  "why": "During the siege, before the storming in the afternoon.",
  "sum": "Williams, inside the Exchange, rides out in a Red Cross car “ostensibly full of wounded”, which goes by devious ways to the yunkers’ headquarters.",
- "q": "Albert Rhys Williams was in the Telephone Exchange. He went out with the Red Cross automobile, which was ostensibly full of wounded.",
- "check": [
-  {"claim": "He went out with the Red Cross automobile", "v": "unchecked", "note": "Its goal, “the Mikhailovsky yunker school, headquarters of the counter-revolution”, could be the Engineers’ Castle or the Mikhailovsky Artillery School; no move is drawn."}]},
+ "q": "Albert Rhys Williams was in the Telephone Exchange. He went out with the Red Cross automobile, which was ostensibly full of wounded."},
 {"id": "field-guns-vladimir", "t": "1917-11-11T11:30", "tq": "stated", "tp": "At half-past eleven", "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["vladimir-yunkers", "red-guards", "petrograd-cossacks"],
  "title": "Field-guns at the Vladimir school",
  "sum": "Three field-pieces arrive; the yunkers shoot down two Soviet envoys under a white flag, and the bombardment begins.",
@@ -663,9 +645,7 @@
   {"who": "yunkers", "from": "engineers-castle", "to": "kronstadt", "mode": "unknown", "rc": "none"}],
  "ctl": [
   {"place": "engineers-castle", "state": "held", "holder": "mrc"},
-  {"place": "pavlovsk-school", "state": "held", "holder": "mrc"}],
- "check": [
-  {"claim": "All the other schools surrendered without resistance", "v": "partly", "src": ["ruwiki-pavlovsk-school"], "rec": "The Pavlovsk school, which falls here with the others, had been surrounded and disarmed on the night of 6–7 November NS and took no part in the rising; its officers went to Peter-Paul.", "cf": [{"sec": "VIII", "q": "The Pavlovsk school was surrounded."}, {"sec": "VI", "q": "Fourteen yunkers of the Pavlovsk school have been stripped and tortured by the Bolshevik guards."}]}]},
+  {"place": "pavlovsk-school", "state": "held", "holder": "mrc"}]},
 {"id": "kazan-debate-nov11", "t": "1917-11-11T16:50", "tq": "approx", "tr": ["1917-11-11T16:15", "1917-11-11T17:30"], "tp": "Dusk was already falling", "cal": "none", "sec": "VIII", "p": 195, "loc": "kazan-cathedral", "witness": "seen", "actors": ["workers"],
  "title": "Debate at the Kazan Cathedral",
  "sum": "At dusk on the almost empty Nevsky a crowd argues before the Kazan Cathedral: “To hell with Kerensky!”",
@@ -738,9 +718,7 @@
   {"who": "krasnov-cossacks", "from": "tsarskoye-selo", "to": "gatchina", "mode": "cavalry", "rc": "none"},
   {"who": "pulkovo-detachment", "from": "pulkovo", "to": "tsarskoye-selo", "mode": "march", "rc": "none"}],
  "ctl": [
-  {"place": "tsarskoye-selo", "state": "held", "holder": "mrc"}],
- "check": [
-  {"claim": "The Cossacks retreated towards Gatchina and Colpinno.", "v": "unchecked", "cf": [{"sec": "IX", "q": "fell back toward Pavlovsk II and Gatchina"}, {"sec": "IX", "q": "The Colpinno detachment was on our left"}, {"sec": "App.IX.3", "q": "the line Ligovo-Pulkovo-Colpinno"}], "note": "Read as towns, a retreat cannot run toward both: Kolpino lies north-east of Tsarskoye Selo, Gatchina south-west. But Colpinno also names a sector of the front: a Soviet detachment formed there, Order No. I has it “on our left”, and Krasnov’s truce offer names “the line Ligovo-Pulkovo-Colpinno”. The bulletin may mean a retreat along the front. Not settled."}]},
+  {"place": "tsarskoye-selo", "state": "held", "holder": "mrc"}]},
 {"id": "holtzman-telegram", "t": "1917-11-13T02:55", "tq": "approx", "tr": ["1917-11-13T02:30", "1917-11-13T03:00"], "tp": "almost three o’clock in the morning", "cal": "none", "sec": "VIII", "p": 207, "loc": "smolny", "witness": "seen", "actors": ["holtzman", "mrc"],
  "title": "“Kerensky is smashed!”",
  "sum": "Leaving the hall, Reed is met by Holtzman of the MRC, who reads out a pencilled telegram from the Pulkovo staff. It is dated in the Old Style.",
@@ -758,23 +736,19 @@
  "title": "Vera Slutskaya killed",
  "why": "The driver, that afternoon: “early this morning”.",
  "sum": "The driver points out the barren hill where the Bolshevik councillor Vera Slutskaya was killed by a shell from Kerensky’s armoured train “early this morning”.",
- "q": ["here was where Vera Slutskaya died", "It happened early this morning."],
- "check": [
-  {"claim": "It happened early this morning.", "v": "differs", "src": ["ruwiki-slutskaya"], "rec": "She was killed on 30 October Old Style, 12 November NS, the day of the Pulkovo battle; the driver, on the 13th, says “this morning”."}]},
+ "q": ["here was where Vera Slutskaya died", "It happened early this morning."]},
 {"id": "first-snow", "t": "1917-11-13T08:30", "tq": "approx", "tr": ["1917-11-13T07:00", "1917-11-13T10:00"], "tp": "Early in the morning", "cal": "none", "sec": "IX", "p": 219, "loc": "smolny", "witness": "seen",
  "title": "First snow",
  "sum": "Early in the morning, walking up to Smolny, Reed sees the first snow: “Good for the health!” says the soldier at the door.",
  "q": "Going up the long wooden sidewalk from the outer gate I saw the first thin, hesitating snow-flakes fluttering down from the grey, windless sky.",
  "moves": [
   {"who": "reed", "from": "nicolai-station", "to": "smolny", "mode": "unknown", "rc": "none"}]},
-{"id": "order-number-one", "t": "1917-11-13T09:38", "tq": "doc", "tp": "38 minutes past 9 a. m.", "cal": "NS", "dp": "November 13, 1917", "sec": "IX", "p": 217, "loc": "pulkovo", "witness": "document", "actors": ["muraviov", "pulkovo-detachment"], "tags": ["contradiction"],
+{"id": "order-number-one", "t": "1917-11-13T09:38", "tq": "doc", "tp": "38 minutes past 9 a. m.", "cal": "NS", "dp": "November 13, 1917", "sec": "IX", "p": 217, "loc": "pulkovo", "witness": "document", "actors": ["muraviov", "pulkovo-detachment"],
  "title": "Order Number I",
  "sum": "Muraviov’s order to the Pulkovo detachment: the enemy is routed and falling back on Pavlovsk II and Gatchina; advanced units hold the north-east edge of Tsarskoye Selo and Alexandrovskaya station.",
  "q": ["November 13, 1917. 38 minutes past 9 a. m. After a cruel fight the troops of the Pulkovo detachment completely routed the counter-revolutionary forces", "Our advanced units occupied the northeastern extremity of Tsarskoye Selo and the station Alexandrovskaya."],
  "ctl": [
-  {"place": "alexandrovskaya", "state": "held", "holder": "mrc"}],
- "check": [
-  {"claim": "Our advanced units occupied the northeastern extremity of Tsarskoye Selo", "v": "disputed", "src": ["gutenberg-3076"], "rec": "The MRC bulletin Reed prints says Tsarskoye Selo “was entirely occupied” by midnight of the 12th. Ten hours later this order has only its north-eastern edge taken, and goes on to order the town occupied.", "cf": [{"sec": "App.IX.1", "q": "was entirely occupied by the troops of the Soviets"}]}]},
+  {"place": "alexandrovskaya", "state": "held", "holder": "mrc"}]},
 {"id": "state-bank-commissar", "t": "1917-11-13T10:30", "tq": "inferred", "tr": ["1917-11-13T09:30", "1917-11-13T11:30"], "cal": "none", "sec": "IX", "p": 222, "loc": "state-bank", "witness": "seen", "actors": ["mrc"],
  "title": "Volunteers at the ledgers",
  "why": "Between Smolny in the early morning and Smolny about noon.",
@@ -844,16 +818,14 @@
   {"sec": "IX", "q": "It was dark when we came to the barracks of the Second Tsarskoye Selo Rifles"}],
  "moves": [
   {"who": "reed", "from": "romanov-crossroads", "to": "tsarskoye-rifles-barracks", "mode": "foot", "rc": "stated"}]},
-{"id": "dybenko-to-gatchina", "t": "1917-11-13T19:30", "tq": "inferred", "tr": ["1917-11-13T18:30", "1917-11-13T21:00"], "cal": "none", "sec": "IX", "p": 234, "loc": "tsarskoye-soviet", "witness": "seen", "actors": ["dybenko"], "tags": ["contradiction"],
+{"id": "dybenko-to-gatchina", "t": "1917-11-13T19:30", "tq": "inferred", "tr": ["1917-11-13T18:30", "1917-11-13T21:00"], "cal": "none", "sec": "IX", "p": 234, "loc": "tsarskoye-soviet", "witness": "seen", "actors": ["dybenko"],
  "title": "Dybenko goes to conquer Kerensky",
  "why": "After dark, back from the Rifles in their staff car.",
  "sum": "Back at the Soviet, Reed sees Dybenko climb alone into a car and drive off to Gatchina.",
- "q": "Alone, he climbed in the rear seat, and was off-off to Gatchina, to conquer Kerensky. Toward nightfall he arrived at the outskirts of the town, and went on afoot.",
+ "q": "Alone, he climbed in the rear seat, and was off-off to Gatchina, to conquer Kerensky.",
  "moves": [
   {"who": "reed", "from": "tsarskoye-rifles-barracks", "to": "tsarskoye-soviet", "mode": "car", "rc": "none"},
-  {"who": "dybenko", "from": "tsarskoye-soviet", "to": "gatchina", "mode": "car", "rc": "none"}],
- "check": [
-  {"claim": "Toward nightfall he arrived at the outskirts of the town", "v": "disputed", "src": ["gutenberg-3076"], "rec": "Reed sees Dybenko drive off only after Reed has come back from the Rifles’ barracks, which he reached when “it was dark”; yet Dybenko reaches Gatchina “toward nightfall”.", "cf": [{"sec": "IX", "q": "It was dark when we came to the barracks"}]}]},
+  {"who": "dybenko", "from": "tsarskoye-soviet", "to": "gatchina", "mode": "car", "rc": "none"}]},
 {"id": "my-petrograd", "t": "1917-11-13T22:00", "tq": "inferred", "tr": ["1917-11-13T20:00", "1917-11-13T23:59"], "cal": "none", "sec": "IX", "p": 235, "loc": "pulkovo", "witness": "seen", "actors": ["red-guards", "workers"],
  "title": "“My Petrograd!”",
  "why": "The night ride back from Tsarskoye.",
@@ -867,9 +839,7 @@
 {"id": "krasnov-deposition", "t": "1917-11-14T03:00", "tq": "doc", "tp": "about three o’clock (A. M.)", "cal": "NS", "dp": "Gatchina, November 14, 1917", "sec": "IX", "p": 234, "loc": "gatchina", "witness": "document", "actors": ["krasnov", "kerensky", "dybenko"],
  "title": "Krasnov’s deposition",
  "sum": "General Krasnov’s statement: at three Kerensky summons him, accuses him of betrayal, and hears that his own Cossacks mean to hand him to the sailors.",
- "q": "To-day, about three o’clock (A. M.), I was summoned by the Supreme Commander (Kerensky).",
- "check": [
-  {"claim": "about three o’clock (A. M.)", "v": "unchecked", "note": "The “(A. M.)” is bracketed in Reed’s reprint, like the “(Kerensky)” after it: a gloss, probably the translator’s, not necessarily Krasnov’s."}]},
+ "q": "To-day, about three o’clock (A. M.), I was summoned by the Supreme Commander (Kerensky)."},
 {"id": "kerensky-flees", "t": "1917-11-14T03:30", "tq": "inferred", "tr": ["1917-11-14T03:15", "1917-11-14T05:00"], "cal": "none", "sec": "IX", "p": 235, "loc": "gatchina", "witness": "reported", "actors": ["kerensky"],
  "title": "Kerensky flees",
  "why": "Krasnov: “Half an hour later the Cossacks came to tell me that Kerensky was not in his quarters.”",
@@ -891,15 +861,13 @@
  "q": "That same day the White Guards and yunkers in the Kremlin surrendered, and were allowed to march out unharmed.",
  "ctl": [
   {"place": "kremlin", "state": "held", "holder": "mossoviet"}]},
-{"id": "nicolai-railroad-southwest", "t": "1917-11-16T12:00", "tq": "inferred", "tr": ["1917-11-13T00:00", "1917-11-19T23:59"], "cal": "none", "sec": "X", "p": 241, "loc": "nicolai-station", "witness": "reported", "actors": ["mrc", "sailors", "red-guards"], "tags": ["measure"],
+{"id": "nicolai-railroad-southwest", "t": "1917-11-16T12:00", "tq": "inferred", "tr": ["1917-11-13T00:00", "1917-11-19T23:59"], "cal": "none", "sec": "X", "p": 241, "loc": "nicolai-station", "witness": "reported", "actors": ["mrc", "sailors", "red-guards"],
  "title": "Trains “southwest” to Moscow",
  "why": "“For the past week”, written of the days before Reed’s own trip to Moscow.",
  "sum": "For a week the MRC and the railwaymen have held the Nicolai Railroad and sent train after train of sailors and Red Guards toward Moscow.",
  "q": "For the past week the Petrograd Military Revolutionary Committee, aided by the rank and file of the Railway Workers, had seized control of the Nicolai Railroad, and hurled trainload after trainload of sailors and Red Guards southwest",
  "moves": [
-  {"who": "sailors", "with": ["red-guards"], "size": "trainload after trainload of sailors and Red Guards", "from": "nicolai-station", "to": "moscow-station", "mode": "rail", "rc": "none"}],
- "check": [
-  {"claim": "hurled trainload after trainload of sailors and Red Guards southwest", "v": "differs", "src": ["osm"], "rec": "The Nicolai line runs south-east: Moscow’s station lies on a bearing of about 134° from Petrograd’s (OSM pins)."}]},
+  {"who": "sailors", "with": ["red-guards"], "size": "trainload after trainload of sailors and Red Guards", "from": "nicolai-station", "to": "moscow-station", "mode": "rail", "rc": "none"}]},
 {"id": "zagorodny-homecoming", "t": "1917-11-16T18:00", "tq": "approx", "tr": ["1917-11-16T16:30", "1917-11-16T21:00"], "tp": "On the evening of November 16th", "cal": "NS", "dp": "the evening of November 16th", "sec": "X", "p": 239, "loc": "zagorodny", "witness": "seen", "actors": ["red-guards"],
  "title": "The Red Guards come home",
  "sum": "Two thousand Red Guards march down the Zagorodny Prospekt behind a band playing the Marseillaise, home from defending Red Petrograd.",
@@ -919,22 +887,22 @@
  "q": "I sat one evening in a traktir--a kind of lower-class inn--across the street from the gates of Smolny; a low-ceilinged, loud place called “Uncle Tom’s Cabin,” much frequented by Red Guards.",
  "moves": [
   {"who": "reed", "from": "zagorodny", "to": "uncle-toms-cabin", "mode": "unknown", "rc": "none", "gap": true}]},
-{"id": "moscow-train", "t": "1917-11-21T19:00", "tq": "inferred", "tr": ["1917-11-20T18:30", "1917-11-21T19:30"], "tp": "About seven o’clock in the evening", "cal": "none", "sec": "X", "p": 242, "loc": "nicolai-station", "witness": "seen", "tags": ["moscow"], "src": ["ruwiki-kremlin-necropolis"],
+{"id": "moscow-train", "t": "1917-11-19T19:00", "tq": "inferred", "tr": ["1917-11-17T18:30", "1917-11-25T19:30"], "tp": "About seven o’clock in the evening", "cal": "none", "sec": "X", "p": 242, "loc": "nicolai-station", "witness": "seen", "tags": ["moscow"],
  "title": "The train to Moscow",
- "why": "Reed gives the hour, not the day. The train ran “all night long” and through the next day “until dark”, and they arrived the day before the funeral, which the record puts on 23 November: so the 20th or the 21st.",
+ "why": "Reed gives the hour, not the day. He decided to go once the Kremlin had been Bolshevik “for two days” (it surrendered on the 15th), and the Commissars who had just resigned were on the train: so the 17th at the earliest. The 19th is an estimate; Reed gives no date.",
  "sum": "About seven in the evening Reed’s train pulls out of the Nicolai Station, drawn by a weak wood-burning engine, with soldiers on the roof and debates in the corridors.",
  "q": "About seven o’clock in the evening we drew out of the station, an immense long train drawn by a weak little locomotive burning wood",
  "moves": [
   {"who": "reed", "from": "uncle-toms-cabin", "to": "nicolai-station", "mode": "unknown", "rc": "none", "gap": true}]},
-{"id": "hotel-national", "t": "1917-11-22T15:00", "tq": "inferred", "tr": ["1917-11-22T06:00", "1917-11-22T19:00"], "cal": "none", "sec": "X", "p": 244, "loc": "hotel-national", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"], "src": ["ruwiki-kremlin-necropolis"],
+{"id": "hotel-national", "t": "1917-11-20T18:00", "tq": "inferred", "tr": ["1917-11-18T16:00", "1917-11-26T22:00"], "cal": "none", "sec": "X", "p": 244, "loc": "hotel-national", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"],
  "title": "Rooms at the Hotel National",
- "why": "The day before the funeral (Rogov invites them to march “next morning”), which the record puts on 23 November.",
+ "why": "After a night and the next day on the train (“all night long”, then “until dark”): the evening after the departure.",
  "sum": "After a night and a day on the train and a sleigh down the shell-pocked Tverskaya, the Hotel National takes them in, as foreigners under the MRC’s protection.",
  "q": "At the big Hotel National they finally took us in; for we were foreigners, and the Military Revolutionary Committee had promised to protect the dwellings of foreigners....",
  "moves": [
   {"who": "reed", "from": "nicolai-station", "to": "moscow-station", "mode": "rail", "rc": "none"},
   {"who": "reed", "from": "moscow-station", "to": "hotel-national", "mode": "unknown", "rc": "none"}]},
-{"id": "banners-sewn", "t": "1917-11-22T18:00", "tq": "inferred", "tr": ["1917-11-22T15:00", "1917-11-22T22:00"], "cal": "none", "sec": "X", "p": 244, "loc": "moscow-soviet", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"], "src": ["ruwiki-kremlin-necropolis"],
+{"id": "banners-sewn", "t": "1917-11-20T20:00", "tq": "inferred", "tr": ["1917-11-18T17:00", "1917-11-26T23:00"], "cal": "none", "sec": "X", "p": 244, "loc": "moscow-soviet", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"],
  "title": "Banners for the funeral",
  "why": "After dinner on the day of arrival; “Late in the evening” comes the Nobles’ Club.",
  "sum": "In the state salon of the Moscow Soviet half a hundred women sew red and black banners for the funeral; Rogov invites Reed to march with the Central Executive Committee next morning.",
@@ -943,7 +911,7 @@
   {"sec": "X", "q": "He invited us to march with the Central Executive Committee in the funeral procession next morning"}],
  "moves": [
   {"who": "reed", "from": "hotel-national", "to": "moscow-soviet", "mode": "unknown", "rc": "none"}]},
-{"id": "nobles-club-meeting", "t": "1917-11-23T00:15", "tq": "approx", "tr": ["1917-11-22T22:00", "1917-11-23T01:30"], "tp": "about midnight", "cal": "none", "sec": "X", "p": 246, "loc": "nobles-club", "witness": "seen", "actors": ["bolsheviki", "workers"], "tags": ["moscow"], "src": ["ruwiki-kremlin-necropolis"],
+{"id": "nobles-club-meeting", "t": "1917-11-21T00:15", "tq": "approx", "tr": ["1917-11-18T22:00", "1917-11-27T01:30"], "tp": "about midnight", "cal": "none", "sec": "X", "p": 246, "loc": "nobles-club", "witness": "seen", "actors": ["bolsheviki", "workers"], "tags": ["moscow"],
  "title": "Nogin jeered at the Nobles’ Club",
  "sum": "The Moscow Bolsheviki meet in the Nobles’ Club theatre over the Commissars who resigned. The workers arrive about midnight, shout Nogin down, and cheer Bukharin.",
  "q": "Scarcely had the meeting formally opened before Nogin was assailed with a tempest of jeers and angry shouts.",
@@ -951,7 +919,7 @@
   {"sec": "X", "q": "Late in the evening I went to the Dvorianskoye Sobranie"}],
  "moves": [
   {"who": "reed", "from": "moscow-soviet", "to": "nobles-club", "mode": "unknown", "rc": "none"}]},
-{"id": "brotherhood-grave-dug", "t": "1917-11-23T01:30", "tq": "inferred", "tr": ["1917-11-23T00:30", "1917-11-23T05:00"], "cal": "none", "sec": "X", "p": 248, "loc": "brotherhood-grave", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"], "src": ["ruwiki-kremlin-necropolis"],
+{"id": "brotherhood-grave-dug", "t": "1917-11-21T01:30", "tq": "inferred", "tr": ["1917-11-19T00:30", "1917-11-27T05:00"], "cal": "none", "sec": "X", "p": 248, "loc": "brotherhood-grave", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"],
  "title": "Digging the Brotherhood Grave",
  "why": "After the Nobles’ Club meeting, which the workers reached “about midnight”; the night before the funeral.",
  "sum": "At night by the Kremlin wall, by firelight, hundreds dig two great pits for tomorrow’s burial.",
@@ -959,12 +927,10 @@
  "also": [
   {"sec": "X", "q": "Late in the night we went through the empty streets and under the Iberian Gate to the great Red Square"}],
  "moves": [
-  {"who": "reed", "from": "nobles-club", "via": ["iberian-gate", "red-square"], "to": "brotherhood-grave", "mode": "foot", "rc": "stated"}],
- "check": [
-  {"claim": "five hundred proletarians", "v": "differs", "src": ["ruwiki-kremlin-necropolis"], "rec": "238 coffins were lowered on the day, 240 burials in 1917 in all (citing Abramov 1988)."}]},
-{"id": "moscow-funeral", "t": "1917-11-23T12:00", "tq": "secondary", "tr": ["1917-11-23T08:00", "1917-11-23T17:00"], "cal": "none", "sec": "X", "p": 250, "loc": "red-square", "witness": "seen", "actors": ["mossoviet", "workers"], "tags": ["moscow"], "src": ["ruwiki-kremlin-necropolis"],
+  {"who": "reed", "from": "nobles-club", "via": ["iberian-gate", "red-square"], "to": "brotherhood-grave", "mode": "foot", "rc": "stated"}]},
+{"id": "moscow-funeral", "t": "1917-11-21T12:00", "tq": "inferred", "tr": ["1917-11-19T08:00", "1917-11-27T17:00"], "cal": "none", "sec": "X", "p": 250, "loc": "red-square", "witness": "seen", "actors": ["mossoviet", "workers"], "tags": ["moscow"],
  "title": "The funeral on Red Square",
- "why": "Reed gives no date; the record puts the funeral on 10 November Old Style, 23 November NS. “All the long day”.",
+ "why": "The morning after the arrival (Rogov invites them to march “next morning”); Reed gives no date. “All the long day”.",
  "sum": "All day the red-bannered procession enters Red Square by the Iberian Gate and leaves by the Nikolskaya while the coffins are lowered into the pits.",
  "q": "All the long day the funeral procession passed, coming in by the Iberian Gate and leaving the Square by way of the Nikolskaya",
  "also": [
@@ -991,7 +957,7 @@
  "why": "The session at Fontanka 6 that Reed dates “on Wednesday afternoon”, after the morning’s agreement.",
  "sum": "At Fontanka 6 Tchernov goes between the Congress and the old Executive’s rump meeting; when he warns the Congress against the agreement, laughter drives him from the platform and the room.",
  "q": "He was interrupted by a great burst of laughter; and realising the situation, he left the platform and the room, taking his popularity with him...."},
-{"id": "peasants-extraordinary-session", "t": "1917-11-29T16:00", "tq": "approx", "tr": ["1917-11-29T14:30", "1917-11-29T17:00"], "tp": "Late in the afternoon", "cal": "OS", "dp": "Thursday, November 16th", "sec": "XII", "p": 305, "loc": "fontanka-6", "witness": "seen", "actors": ["peasants-congress"], "tags": ["contradiction"],
+{"id": "peasants-extraordinary-session", "t": "1917-11-29T16:00", "tq": "approx", "tr": ["1917-11-29T14:30", "1917-11-29T17:00"], "tp": "Late in the afternoon", "cal": "OS", "dp": "Thursday, November 16th", "sec": "XII", "p": 305, "loc": "fontanka-6", "witness": "seen", "actors": ["peasants-congress"],
  "title": "A holiday feeling",
  "sum": "The Congress meets in extraordinary session in a holiday mood. Reed dates it “Thursday, November 16th”, an Old Style date (= 29 Nov), just after a New Style “November 28th”.",
  "q": "Late in the afternoon of Thursday, November 16th, the Congress met in extraordinary session.",

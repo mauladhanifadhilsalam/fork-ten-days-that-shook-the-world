@@ -18,7 +18,7 @@ data/meta.json         text and PDF pins, calendar rule, clock, map zones, move 
 data/sources.json      the sources actually consulted
 data/actors.json       64 factions, bodies, units, people and crowds, with stance over time
 data/places.json       75 places in the city, at the front, off-map, and in Moscow (text only)
-data/events.json       138 scenes: time and its quality, verbatim quote, witness type, moves, control changes, claim checks
+data/events.json       138 scenes: time and its quality, verbatim quote, witness type, moves, control changes
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf
 tools/fmt_story.py     writes the canonical layout; --check, --pages
@@ -27,7 +27,9 @@ tools/storylib.py      shared schema, layout, quote normalisation, date and time
 tests/test_check.py    one failing fixture per error code, plus mutation tests on the real data
 ```
 
-## What the data asserts, and how far to trust it
+## What the data asserts
+
+**The data follows Reed authoritatively.** The map portrays his account as he wrote it, sympathies included; it is not a fact-check. Every event, time, move and change of control comes from his text. Outside sources only locate his places and set the 1917 clock. Where two of his own passages disagree, the main narrative wins over his appendices, captions and the documents he prints.
 
 Every scene quotes Reed verbatim, and the validator proves each quote occurs exactly once in the named section of Gutenberg #3076. Each scene also says:
 
@@ -38,7 +40,6 @@ Every scene quotes Reed verbatim, and the validator proves each quote occurs exa
   - `document`: something he prints.
 - **how its time is known** (`tq`): stated, on a document, a part-of-day phrase, the day only, inferred with a reason, or from another source. Times carry bounds (`tr`). Reed gives about sixty clock times in 121,000 words, so most times are estimates and are labelled as such.
 - **which calendar its dates use** (`cal`). Reed keeps to New Style, but the documents he prints sometimes use Old Style, and the validator catches the difference (weekdays included).
-- **where Reed contradicts himself or the record** (`check`), quoting both passages. Verdicts other than `unchecked` cite a source that was actually read. Three of them rest on reference works (Russian Wikipedia, the Encyclopaedia of St Petersburg) and are marked as such in `data/sources.json`.
 
 Places carry three separate things:
 - the identification (`conf`: named, identified, conjectural or unlocated, with the reasoning in `ident` and any source read for it in `src`);
@@ -69,7 +70,7 @@ python3 -I -m unittest discover -s tests
 python3 -I tools/fmt_story.py --check data
 ```
 
-The measurement tables (speeds, Reed's daily distances, sun against "dusk" and "twilight", every weekday–date pair, control timelines, claims):
+The measurement tables (speeds, Reed's daily distances, sun against "dusk" and "twilight", every weekday–date pair, control timelines):
 
 ```bash
 python3 -I tools/check_story.py --report

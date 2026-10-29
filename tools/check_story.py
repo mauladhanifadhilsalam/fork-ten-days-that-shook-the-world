@@ -1,5 +1,9 @@
 """Check the Ten Days data against its schema, Reed's text, the calendar, the map and itself.
 
+The data follows Reed authoritatively: every event, time, move and change of control comes from his
+text. Outside sources only locate his places and set the 1917 clock, so nothing here checks Reed
+against other accounts; it checks that the data says what Reed says.
+
 usage: python3 -I tools/check_story.py [--data data] [--text cache/sections.json] [--report] [--strict]
                                        [--osm] [--cache cache] [--pdf PDF] [--only CODE[,CODE…]]
 
@@ -9,8 +13,8 @@ Unlike the Raskolnikov build, this fails: every finding below ERROR level makes 
   2  environment problem: no sections.json (run tools/text.py cache), the text's hash differs from
      meta.text.body_sha256, a network failure under --osm, or no PDF reader under --pdf
 
---report prints the measurements that test the text (speeds, sun, weekday/date pairs, Reed's walks)
-as Markdown. --osm fetches every OSM element named in places.json from the OSM API (one request a
+--report prints the measurements (speeds, sun, weekday/date pairs, Reed's walks, coverage, control
+timelines) as Markdown. --osm fetches every OSM element named in places.json from the OSM API (one request a
 second, cached in CACHE/osm) and checks the pin against its footprint. --pdf checks the convenience
 page numbers `p` against the marxists.org PDF.
 """
@@ -54,9 +58,9 @@ TYPES = {
     'ident': STR, 'today': STR, 'm': STR, 'at': STR, 'osm_v': INT, 'on': STR, 'state': STR, 'holder': STR,
     'by': STR, 'as_of': STR, 't': STR, 'tq': STR, 'tr': LIST, 'tp': STR, 'cal': STR, 'dp': STR, 'sec': STR,
     'p': INT, 'loc': STR, 'witness': STR, 'tags': LIST, 'why': STR, 'sum': STR, 'also': LIST, 'doc': DICT,
-    'moves': LIST, 'ctl': LIST, 'check': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
-    'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR, 'basis': STR, 'claim': STR,
-    'v': STR, 'rec': STR, 'cf': LIST, 'd': STR, 'os': STR, 'label': STR, 'actors': LIST,
+    'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
+    'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
+    'd': STR, 'os': STR, 'label': STR, 'actors': LIST,
 }
 
 
@@ -221,15 +225,12 @@ class Checker:
         return t
 
     def evidence(self, rec, where):
-        """stance and ctl0 entries must point at an event, a source or a passage."""
+        """stance and ctl0 entries must point at Reed: an event, or a passage of his."""
         F = self.F
-        if not any(k in rec for k in ('ev', 'src', 'ref')):
-            F.err('evidence.missing', where, 'needs ev, src or ref')
+        if not any(k in rec for k in ('ev', 'ref')):
+            F.err('evidence.missing', where, 'needs ev or ref')
         if 'ev' in rec and rec['ev'] not in self.E:
             F.err('ref.unknown', where, f'no event {rec["ev"]!r}')
-        for s in rec.get('src', []):
-            if s not in self.S:
-                F.err('ref.unknown', where, f'no source {s!r}')
         if 'ref' in rec and isinstance(rec['ref'], dict):
             if fields(F, rec['ref'], 'ref', where + '.ref'):
                 if isinstance(rec['ref'].get('sec'), str) and isinstance(rec['ref'].get('q'), str):
@@ -330,8 +331,6 @@ class Checker:
                     F.err('stance.order', sw, 'stance entries must be in time order')
                 last = t or last
                 self.evidence(st, sw)
-                for s in st.get('src', []):
-                    used['source'][s] += 1
 
         for p in self.places:
             w = f'places/{p.get("id")}'
@@ -387,6 +386,10 @@ class Checker:
             g = p.get('geo')
             if isinstance(g, dict) and fields(F, g, 'geo', w + '.geo'):
                 enum(F, g, 'm', 'geo.m', w + '.geo')
+                if g.get('m') == 'osm':   # an OSM-derived pin cites the OSM source
+                    if 'osm' not in self.S:
+                        F.err('ref.unknown', w + '.geo', 'geo.m "osm" needs the source "osm" in sources.json')
+                    used['source']['osm'] += 1
                 if g.get('m') == 'pending':
                     F.err('geo.pending', w, 'coordinates still pending; run tools/geocode.py')
                 for s in g.get('src', []):
@@ -400,8 +403,6 @@ class Checker:
                     F.err('ctl.kind', w, f'a {p.get("kind")} cannot be held')
                 self.in_range(c0.get('as_of', ''), w + '.ctl0', 'as_of')
                 self.evidence(c0, w + '.ctl0')
-                for s in c0.get('src', []):
-                    used['source'][s] += 1
         self.cycles()
 
         tags = set(meta.get('tags', []))
@@ -466,8 +467,6 @@ class Checker:
             F.err('field.missing', w, f'tq {tq!r} needs tp, the time phrase as Reed writes it')
         if tq == 'inferred' and 'why' not in e:
             F.err('field.missing', w, 'tq "inferred" needs why')
-        if tq == 'secondary' and not e.get('src'):
-            F.err('field.missing', w, 'tq "secondary" needs src')
         if t and tq in ('stated', 'doc') and 'tp' in e:
             c = L.parse_tp(e['tp'])
             if not c:
@@ -476,10 +475,6 @@ class Checker:
                 F.err('time.tp-mismatch', w, f'tp {e["tp"]!r} means {sorted(c)}, but t is {e["t"]}')
         if t and 'dp' in e:
             self.date_phrase(e['dp'], e.get('cal'), t, w)
-        for s in e.get('src', []):
-            if s not in self.S:
-                F.err('ref.unknown', w, f'no source {s!r}')
-            used['source'][s] += 1
         for g in e.get('tags', []):
             if g not in tags:
                 F.err('field.enum', w, f'tag {g!r} is not in meta.tags')
@@ -498,17 +493,9 @@ class Checker:
             used['actor'][e['by']] += 1
 
         # the text
-        pos, ctx = None, e.get('witness') == 'context'
-        if ctx:
-            if 'q' in e or 'sec' in e:
-                F.err('context.quoted', w, 'a context event is not in Reed: no sec or q')
-            if not e.get('src'):
-                F.err('field.missing', w, 'a context event needs src')
-        else:
-            if 'sec' not in e or 'q' not in e:
-                F.err('field.missing', w, 'needs sec and q (only witness "context" may omit them)')
-            else:
-                pos = self.quote_ok(e['sec'], e['q'], w)
+        pos = None
+        if 'sec' in e and 'q' in e:   # both required: an event that is not in Reed has no place here
+            pos = self.quote_ok(e['sec'], e['q'], w)
         if pos is not None:
             for k in ('tp', 'dp'):
                 if k in e and not self.book.near(e['sec'], pos, e[k]):
@@ -577,7 +564,6 @@ class Checker:
             cw = f'{w}.ctl[{i}]'
             if not fields(F, c, 'ctl', cw):
                 continue
-            enum(F, c, 'basis', 'ctl.basis', cw)
             pl = self.P.get(c.get('place'))
             if pl is None:
                 F.err('ref.unknown', cw, f'no place {c.get("place")!r}')
@@ -585,29 +571,6 @@ class Checker:
                 F.err('ctl.kind', cw, f'a {pl.get("kind")} cannot be held')
             used['place'][c.get('place')] += 1
             self.control_state(c, cw)
-            if c.get('basis') == 'record' and not e.get('src'):
-                F.err('field.missing', cw, 'basis "record" needs the event to carry src')
-
-        # claims
-        joined = L.norm(' '.join(L.segments(e.get('q', ''))))
-        for i, c in enumerate(e.get('check', [])):
-            kw = f'{w}.check[{i}]'
-            if not fields(F, c, 'check', kw):
-                continue
-            enum(F, c, 'v', 'check.v', kw)
-            if isinstance(c.get('claim'), str) and L.norm(c['claim']) not in joined:
-                F.err('claim.not-in-quote', kw, 'the claim must be a verbatim piece of q')
-            if c.get('v') not in ('unchecked', None) and not c.get('src'):
-                F.err('check.source-required', kw, f'verdict {c.get("v")!r} needs src (a source actually read)')
-            if c.get('v') in ('partly', 'differs', 'disputed') and not c.get('rec'):
-                F.err('field.missing', kw, 'say what the record says in rec')
-            for s in c.get('src', []):
-                if s not in self.S:
-                    F.err('ref.unknown', kw, f'no source {s!r}')
-                used['source'][s] += 1
-            for j, r in enumerate(c.get('cf', [])):
-                if fields(F, r, 'ref', f'{kw}.cf[{j}]') and isinstance(r.get('q'), str):
-                    self.quote_ok(r.get('sec'), r['q'], f'{kw}.cf[{j}]')
 
     def date_phrase(self, dp, cal, t, w):
         F = self.F
@@ -960,10 +923,10 @@ def report(C, F):
     print('| section | events | of which Reed saw |\n|---|---|---|')
     cov = defaultdict(lambda: [0, 0])
     for e in C.events:
-        k = e.get('sec', '(context)')
+        k = e.get('sec')
         cov[k][0] += 1
         cov[k][1] += e.get('witness') == 'seen'
-    order = list(C.book.secs) + ['(context)']
+    order = list(C.book.secs)
     for k in sorted(cov, key=lambda x: order.index(x) if x in order else 999):
         print(f'| {k} | {cov[k][0]} | {cov[k][1]} |')
 
@@ -976,12 +939,6 @@ def report(C, F):
                 who = c.get('holder', '')
                 steps.append(f'{s}{":" + who if who else ""}{" by " + c["by"] if c.get("by") else ""} ({eid})')
         print(f'- **{pid}**: ' + ' → '.join(steps))
-
-    print('\n## Claims checked against the record\n')
-    print('| event | claim | verdict | sources |\n|---|---|---|---|')
-    for e in C.events:
-        for c in e.get('check', []):
-            print(f'| {e["id"]} | {c.get("claim", "")[:60]} | {c.get("v")} | {", ".join(c.get("src", []))} |')
     print()
 
 
