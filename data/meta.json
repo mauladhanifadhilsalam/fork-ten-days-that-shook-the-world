@@ -67,6 +67,7 @@
      "foot": 6,
      "march": 5,
      "cavalry": 12,
+     "cab": 15,
      "tram": 15,
      "car": 45,
      "truck": 30,

@@ -16,9 +16,9 @@ docs/assessment.md     the critical assessment: verdict, what the book gives, Re
 docs/schema.md         field reference for the data files
 data/meta.json         text and PDF pins, calendar rule, clock, map zones, move speeds, timeline days
 data/sources.json      the sources actually consulted
-data/actors.json       63 factions, bodies, units, people and crowds, with stance over time
-data/places.json       74 places in the city, at the front, off-map, and in Moscow (text only)
-data/events.json       134 scenes: time and its quality, verbatim quote, witness type, moves, control changes, claim checks
+data/actors.json       64 factions, bodies, units, people and crowds, with stance over time
+data/places.json       75 places in the city, at the front, off-map, and in Moscow (text only)
+data/events.json       138 scenes: time and its quality, verbatim quote, witness type, moves, control changes, claim checks
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf
 tools/fmt_story.py     writes the canonical layout; --check, --pages
@@ -38,10 +38,10 @@ Every scene quotes Reed verbatim, and the validator proves each quote occurs exa
   - `document`: something he prints.
 - **how its time is known** (`tq`): stated, on a document, a part-of-day phrase, the day only, inferred with a reason, or from another source. Times carry bounds (`tr`). Reed gives about sixty clock times in 121,000 words, so most times are estimates and are labelled as such.
 - **which calendar its dates use** (`cal`). Reed keeps to New Style, but the documents he prints sometimes use Old Style, and the validator catches the difference (weekdays included).
-- **where Reed contradicts himself or the record** (`check`), quoting both passages. Verdicts other than `unchecked` cite a source that was actually read.
+- **where Reed contradicts himself or the record** (`check`), quoting both passages. Verdicts other than `unchecked` cite a source that was actually read. Three of them rest on reference works (Russian Wikipedia, the Encyclopaedia of St Petersburg) and are marked as such in `data/sources.json`.
 
 Places carry three separate things:
-- the identification (`conf`: named, identified, conjectural or unlocated, with the reasoning in `ident`);
+- the identification (`conf`: named, identified, conjectural or unlocated, with the reasoning in `ident` and any source read for it in `src`);
 - where the pin came from (`geo`);
 - how precise it is (`acc`, metres).
 

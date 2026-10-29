@@ -44,7 +44,7 @@ def good():
         'clock': {'petrograd': {'offset_min': 181.3, 'src': ['tzdb']}},
         'range': ['1917-09-01', '1917-12-31'],
         'zones': {'city': [59.83, 30.15, 60.03, 30.55], 'front': [59.5, 29.95, 59.85, 30.75], 'moscow': [55.55, 37.35, 55.95, 37.85]},
-        'speed_kmh': {'foot': 6, 'march': 5, 'cavalry': 12, 'tram': 15, 'car': 45, 'truck': 30, 'armoured': 25, 'rail': 45, 'ship': 20, 'air': 150, 'unknown': 45},
+        'speed_kmh': {'foot': 6, 'march': 5, 'cavalry': 12, 'cab': 15, 'tram': 15, 'car': 45, 'truck': 30, 'armoured': 25, 'rail': 45, 'ship': 20, 'air': 150, 'unknown': 45},
         'blocs': {'soviet': 'for', 'government': 'the deposed government'},
         'tags': ['measure']},
         'days': [{'d': '1917-11-07', 'os': '1917-10-25', 'label': '7 Nov', 'name': 'The rising'}]}
@@ -228,6 +228,7 @@ CASES = {
 }
 for code, kw in CASES.items():
     setattr(Breaks, 'test_' + code.replace('.', '_').replace('-', '_'), case(code, **kw))
+Breaks.test_ref_unknown_place_src = case('ref.unknown', mutate=_set(lambda d: pl(d, 'duma'), 'src', ['nobody']), only=True)
 
 
 class Parsers(unittest.TestCase):

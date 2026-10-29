@@ -53,7 +53,7 @@ Only sources actually read for this project go here. A claim marked `differs` wi
 
 ## places.json
 
-`{id, kind, zone, in?, ll, acc, conf, exists, osm?, site_osm?, wd?, geo, ctl0?, name, reed[], ru?, addr1917?, addr_now?, ident?, today?, note?}`
+`{id, kind, zone, in?, ll, acc, conf, exists, osm?, site_osm?, wd?, src?, geo, ctl0?, name, reed[], ru?, addr1917?, addr_now?, ident?, today?, note?}`
 
 | field | meaning |
 |---|---|
@@ -64,12 +64,13 @@ Only sources actually read for this project go here. A claim marked `differs` wi
 | `conf` | how sure the identification is:<br>• `named`: Reed names it and the site is certain;<br>• `identified`: Reed's name needed interpreting, and `ident` says how ("Military Hotel" is the Astoria);<br>• `conjectural`: our guess, with the reasoning in `ident`;<br>• `unlocated`: no position. |
 | `exists` | does the 1917 structure substantially survive? `true`, `false` or `null` (not known) |
 | `osm` | the surviving element (`way/…`, `relation/…`, `node/…`). Required for a surviving building, station or complex. Forbidden when `exists` is false; use `site_osm` (what stands on the site now) instead. |
+| `src` | sources read for the identification, the 1917 address or the building's survival (`ident`, `addr1917`, `exists`, `today`). The pin's own provenance goes in `geo`. |
 | `geo` | where the pin came from: `{m, at?, q?, osm_v?, on?, src?, note?}`. `m` is `osm | wikidata | plan1916 | secondary | hand | pending`:<br>• `osm`: the pin lies inside the OSM element, with `at` saying whether the hand-placed hint was kept or the pin was moved inside the footprint;<br>• `wikidata`: a Wikidata coordinate;<br>• `plan1916`: read off the 1916 plan;<br>• `secondary`: from a source in `src`;<br>• `hand`: placed by hand from the description;<br>• `pending`: fails the check. |
 | `ctl0` | who held the place before the first change in the data: `{state, holder?, by?, as_of, ev | src | ref}` |
 | `addr1917`, `addr_now` | addresses then and now. Geocode with `addr_now`: Znamenskaya is now Vosstaniya, the Ekaterininsky is now the Griboyedov Canal. |
 | `ident`, `today` | how it was identified; what is on the site now |
 
-`conf` (identification), `geo` (provenance of the coordinate) and `acc` (precision) are three different things, and are kept apart on purpose.
+`conf` and `src` (identification), `geo` (provenance of the coordinate) and `acc` (precision) are different things, and are kept apart on purpose.
 
 ## events.json
 
@@ -99,7 +100,7 @@ Only sources actually read for this project go here. A claim marked `differs` wi
 
 `moves[]`: `{who, with?, size?, from, via?, to, mode, rc, t0?, gap?, ack?}`.
 
-- `mode` is `foot | march | cavalry | tram | car | truck | armoured | rail | ship | air | unknown`.
+- `mode` is `foot | march | cavalry | cab | tram | car | truck | armoured | rail | ship | air | unknown`. `cab` is a horse cab (izvozchik).
 - `rc` is the route confidence:
   - `stated`: the text gives the streets;
   - `inferred`: our routing;
@@ -123,7 +124,7 @@ Only sources actually read for this project go here. A claim marked `differs` wi
 `check[]`: `{claim, v, src?, rec?, cf?, note?}`.
 
 - `claim` is a verbatim piece of `q`.
-- `v` is `agrees | partly | differs | disputed | unchecked`. Anything but `unchecked` needs `src`, a source actually read. `partly`, `differs` and `disputed` also need `rec`, what the record says.
+- `v` is `agrees | partly | differs | disputed | unchecked`. Anything but `unchecked` needs `src`, a source actually read. `partly`, `differs` and `disputed` also need `rec`, what the record says. An `unchecked` claim may still carry `src`, when a source was read but does not settle it (it gives no hour, say).
 - `cf[]` points to other Reed passages that bear on the claim, including where Reed contradicts himself.
 
 ## What the checker measures (`--report`)

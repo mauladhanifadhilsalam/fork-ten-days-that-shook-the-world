@@ -380,6 +380,10 @@ class Checker:
                 F.err('geo.osm-forbidden', w, 'exists:true: use osm, not site_osm')
             if 'wd' in p and not L.WD_RE.match(p['wd']):
                 F.err('field.pattern', w, 'wd is a Wikidata id like Q123')
+            for s in p.get('src', []):   # sources for the identification, the 1917 address, survival
+                if s not in self.S:
+                    F.err('ref.unknown', w, f'no source {s!r}')
+                used['source'][s] += 1
             g = p.get('geo')
             if isinstance(g, dict) and fields(F, g, 'geo', w + '.geo'):
                 enum(F, g, 'm', 'geo.m', w + '.geo')
