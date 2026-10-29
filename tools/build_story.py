@@ -30,6 +30,7 @@ DATA, MAP, GRAPH, OUT = sys.argv[1:5]
 meta = L.load_json(os.path.join(DATA, 'meta.json'))
 T = {k: L.load_json(os.path.join(DATA, k + '.json')) for k in ('sources', 'actors', 'places', 'events')}
 PICS = L.load_json(os.path.join(DATA, 'pictures.json')) if os.path.exists(os.path.join(DATA, 'pictures.json')) else []
+PIC_ORDER = ['facsimile', 'photo', 'document', 'portrait', 'building', 'equipment']
 with open(MAP, encoding='utf-8') as f:
     M = json.load(f)
 with open(GRAPH, 'rb') as f:
@@ -535,8 +536,8 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         else:
             r['cap'], r['by'], r['date'] = p['caption'], p.get('author', ''), p.get('date', '')
         pics.append(r)
-    if pics:
-        rec['pics'] = pics
+    if pics:   # Reed's facsimiles first, then the event as photographed, then the people, places and things
+        rec['pics'] = sorted(pics, key=lambda r: PIC_ORDER.index(r['k']))
     events.append(rec)
 print(f"tour: {len(events)} of {len(events_all)} scenes (Petrograd only); presence spans {len(presence)} of {len(spans)}")
 

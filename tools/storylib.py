@@ -94,7 +94,7 @@ KIT_WORDS = {
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
 }
 # How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
-FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching', 'line': r'\ba line\b|\bline of\b|cordon',
+FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramping', 'line': r'\ba line\b|\bline of\b|cordon',
               'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation'}
 MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|filing'
 SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire'

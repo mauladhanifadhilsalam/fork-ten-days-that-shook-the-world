@@ -52,7 +52,7 @@
  "moves": [
   {"who": "reed", "from": "mariinsky-palace", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "stated"}],
  "present": [
-  {"who": "yunkers", "place": "morskaya", "size": "Two companies of yunkers", "brief": true},
+  {"who": "yunkers", "place": "morskaya", "size": "Two companies of yunkers", "form": "column", "march": true, "brief": true, "ref": {"sec": "III", "q": "Two companies of yunkers passed swinging up the Morskaya, tramping stiffly in their long coats and singing an oldtime crashing chorus, such as the soldiers used to sing under the Tsar"}},
   {"who": "crowd", "place": "nevsky", "brief": true, "ref": {"sec": "III", "q": "Up the Nevsky in the sour twilight crowds were battling for the latest papers"}}]},
 {"id": "cinema-kazan-nov5", "t": "1917-11-05T18:30", "tq": "inferred", "tr": ["1917-11-05T17:00", "1917-11-05T21:00"], "cal": "none", "sec": "III", "p": 82, "loc": "kazan-cathedral", "witness": "seen",
  "title": "A film by the Kazan Cathedral",

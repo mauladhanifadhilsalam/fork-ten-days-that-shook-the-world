@@ -158,6 +158,8 @@ A presence also ends, after the scene, when control of its place (or of a place 
 | `ref` | for a facsimile, Reed's own caption, quote-checked like every other quotation |
 | `caption`, `author`, `date` | for anything else: what it shows and when, in our words, and who took it. A photograph illustrates a scene; it is not evidence for it. |
 
+A card shows its scene's pictures in this order: Reed's facsimiles, then photographs, documents, portraits, buildings and equipment. The `license` text gives the rule in words ("its photographer, Yakov Steinberg, died in 1942", "a postcard published in the Russian Empire before 1917") and then Commons' own templates. A picture whose Commons date is wrong says so in `note`.
+
 ## The tour
 
 `tools/build_story.py` gives the page only the scenes Reed sets in Petrograd (zone `city`). The front, Moscow and the off-map scenes stay in the data, and in every check, but are not toured. A move that leaves the city is still drawn, as an arc.
