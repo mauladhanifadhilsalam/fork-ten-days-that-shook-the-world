@@ -322,7 +322,8 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <ul>
         <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
         <li>Each body stands on a patch of its side’s colour. Defenders of a building face out; everybody else faces in.</li>
-        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as 140, a crowd as 60. Uniforms follow photographs of Petrograd in 1917: the soldier’s grey-brown greatcoat, the yunkers’ red shoulder-straps, the sailors’ crossed cartridge belts, the Red Guard’s armband.</li>
+        <li>Where Reed says how a body stands, it stands so in that scene: “an interminable column of soldiers” down the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours, not his.</li>
+        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Uniforms follow photographs of Petrograd in 1917 and Reed’s own words: the soldier’s grey-brown greatcoat, “the red shoulder-straps of the <i>yunker</i>-schools”, the sailors’ crossed cartridge belts, the Red Guard’s armband.</li>
         <li>Fires burn after dark. Muzzle flashes and smoke appear only in scenes where Reed reports firing.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -1582,7 +1583,7 @@ function moverOf(o) {
   var m = o.m, a = AC[m.who] || {}, veh = VEH[m.mode] || null, list = [];
   if (m.who === 'reed') list = ['reed'];
   else if (a.kind === 'person') list = [PERSON_FIG[a.bloc] || 'intelligent'];
-  else if (m.fig) list = members(m.fig, Math.min(m.n || 12, veh ? 6 : 72), hashStr(m.who + m.from));
+  else if (m.fig) list = members(m.fig, Math.min(m.n || 12, veh ? 6 : 150), hashStr(m.who + m.from));
   (m.wfig || []).forEach(function (w) { list = list.concat(members(w[0], Math.min(w[1], 40), hashStr(m.who + 'w'))); });
   var mm = list.map(function (k, i) { return { k: k, i: i }; });
   carryKit(mm, m.kit, m.say);
