@@ -316,7 +316,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
         <li>Each body stands on a patch of its side’s colour. Defenders of a building face out; everybody else faces in.</li>
         <li>Where Reed says how a body stands, it stands so in that scene: “an interminable column of soldiers” down the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours, not his.</li>
-        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Uniforms follow photographs of Petrograd in 1917 and Reed’s own words: the soldier’s grey-brown greatcoat, “the red shoulder-straps of the <i>yunker</i>-schools”, the sailors’ crossed cartridge belts, the Red Guard’s armband.</li>
+        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>Fires burn after dark. Muzzle flashes and smoke appear only in scenes where Reed reports firing.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -1104,7 +1104,7 @@ function layoutPlace(id, groups, t) {
         var at = pick(cur + 18 + j * 25, v[2]); if (at < 0) return;
         var kk = G.order[at]; take(kk, v[2]);
         var vx = cellX(G, kk), vy = cellY(G, kk), yaw = v[0] === 'gun' ? yawAt(vx, vy) : facingYaw(vx, vy, G.cx, G.cy) + Math.PI / 2 + (hash(seed + j) - 0.5);
-        g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw, flag: v[0] === 'armoured' && !carFlags && kitNum(kit, 'flag') ? !!(carFlags = 1) : false });
+        g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw, flags: v[0] === 'armoured' && !carFlags && kitNum(kit, 'flag') ? (carFlags = Math.min(2, Math.max(1, kitNum(kit, 'flag')))) : 0 });
         if (v[0] === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: vx, y: vy, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2 });
       }
     });
@@ -1474,7 +1474,11 @@ function drawPeople(now, FS) {
     if (!g.ship && !g.reed && g.members && g.members.length) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
     (g.props || []).forEach(function (pr) {
       put(pr.k, pr.x, pr.ship ? SHIP_Y : 0, -pr.y, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
-      if (pr.flag) put('flag', pr.x - Math.sin(pr.yaw) * 1.9 * FS, 2.05 * FS, -pr.y - Math.cos(pr.yaw) * 1.9 * FS, pr.yaw, FS * 0.8, g.seed, 0, 0);   // flying from the car
+      // flying from the car: one at the back, or two from the turrets ("two red flags flying from the turret")
+      for (var fl = 0; fl < (pr.flags || 0); fl++) {
+        var lx = pr.flags > 1 ? (fl ? 0.52 : -0.52) : 0, lz = pr.flags > 1 ? -1.05 : -1.9, cs = Math.cos(pr.yaw), sn = Math.sin(pr.yaw);
+        put('flag', pr.x + (lx * cs + lz * sn) * FS, (pr.flags > 1 ? 2.6 : 2.05) * FS, -pr.y + (-lx * sn + lz * cs) * FS, pr.yaw, FS * 0.8, g.seed + fl, 0, 0);
+      }
     });
     (g.members || []).forEach(function (mm, i) {
       var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS;

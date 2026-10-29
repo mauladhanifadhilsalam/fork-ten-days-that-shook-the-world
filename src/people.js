@@ -3,11 +3,15 @@
 // draw a whole crowd of one kind with a single instanced mesh and swing legs, arms and flags in the
 // vertex shader. Units: metres, y up, the model faces +z.
 //
-// Uniforms and colours follow photographs of Petrograd in 1917 (see docs/assessment.md): the Russian
-// soldier's grey-brown greatcoat with the rolled coat worn as a bandolier; the yunkers' long coats
-// with the "red shoulder-straps of the yunker-schools" (Reed); Baltic sailors in black pea coats and
-// peakless caps, machine-gun belts crossed on the chest; Red Guards in workmen's clothes with an arm
-// band and a rifle; the Don Cossack's red trouser stripe; Reed's "elephant-coloured" armoured cars.
+// Shapes follow photographs of Petrograd in 1917, and colours Reed's words or the few colour sources
+// there are; docs/uniforms.md has the file behind each and says which colours are assumed. The
+// soldier's long belted greatcoat, the rolled coat worn as a bandolier, a papakha light or dark or a
+// peaked cap; the yunkers' "red shoulder-straps of the yunker-schools" (Reed); the Women's Battalion
+// in light lambswool hats; Baltic sailors in black pea coats and peakless caps, some with machine-gun
+// belts crossed on the chest (a period image, not one the photographs checked show on a sailor); Red
+// Guards in workmen's clothes, with a red arm band that is the map's marker, not a documented one;
+// the Don Cossack's red stripe on dark-blue trousers; peasants' foot-cloths and bast shoes; Reed's
+// "elephant-coloured" armoured cars.
 // Bundled into the page by tools/bundle.py, which inlines this file where app.html says so.
 var PEOPLE = (function (THREE) {
   'use strict';
@@ -147,14 +151,15 @@ var PEOPLE = (function (THREE) {
   var FIG = {
     soldier: person({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: C.furGrey, rifle: true, skatka: '#5c5747' }),
     soldier2: person({ coat: C.shinel, len: 'long', hat: 'furazhka', hatCol: C.khaki, rifle: true, skatka: '#5c5747' }),
+    soldier3: person({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: '#8a8580', rifle: true }),
     yunker: person({ coat: C.yunker, len: 'long', hat: 'furazhka', hatCol: '#5a5a55', band: C.red, rifle: true, boards: C.red }),
     officer: person({ coat: C.officer, len: 'long', hat: 'furazhka', hatCol: '#62604f', band: C.red, boards: C.gold, sabre: true, beltCol: '#5a3d26' }),
-    sailor: person({ coat: C.navy, len: 'short', hat: 'sailor', hatCol: '#141518', rifle: true, belts: C.brass, beltCol: C.black, collar: '#33476b' }),
+    sailor: person({ coat: C.navy, len: 'short', hat: 'sailor', hatCol: '#141518', rifle: true, beltCol: C.black, collar: '#dcdde2' }),   // the striped vest at the neck
     sailor2: person({ coat: C.navy, len: 'mid', hat: 'sailor', hatCol: C.navy, rifle: true, belts: C.brass, beltCol: C.black }),
     redguard: person({ coat: '#2e2b27', len: 'mid', legs: '#24221f', hat: 'cap', hatCol: '#3b3732', rifle: true, armband: C.red, beltCol: C.leather }),
     redguard2: person({ coat: '#3a3833', len: 'short', legs: '#2a2825', hat: 'cap', hatCol: '#2d2b28', rifle: true, armband: C.red, skatka: '#4a4339' }),
     cossack: person({ coat: '#5f5b49', len: 'long', legs: '#252c42', hat: 'papakha', hatCol: C.fur, rifle: true, lampas: C.red, sabre: true }),
-    womansoldier: person({ coat: C.shinel, len: 'long', hat: 'furazhka', hatCol: C.khaki, rifle: true, skatka: '#5c5747' }),
+    womansoldier: person({ coat: C.shinel, len: 'long', hat: 'papakha', hatCol: '#cfcac0', rifle: true, skatka: '#5c5747' }),
     worker: person({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e' }),
     worker2: person({ coat: '#353531', len: 'mid', legs: '#272522', hat: 'cap', hatCol: '#454038', beard: '#4e3f30' }),
     workerwoman: person({ coat: '#5a4a40', len: 'short', skirt: '#35302d', hat: 'scarf', hatCol: '#a03a2c', belt: false }),
@@ -163,13 +168,13 @@ var PEOPLE = (function (THREE) {
     bourgeois2: person({ coat: '#2b2a2f', len: 'long', legs: '#25252a', hat: 'fedora', hatCol: '#3a3632', collar: '#5c4838', belt: false }),
     bourgeoiswoman: person({ coat: '#3b2b38', len: 'long', skirt: '#2d2530', hat: 'ladyhat', hatCol: '#1d1b1f', band: '#d6cdb9', collar: '#5a4636', belt: false }),
     intelligent: person({ coat: '#2d3340', len: 'long', legs: '#262a33', hat: 'furazhka', hatCol: '#22293b', band: '#6f8fb8', belt: false }),
-    peasant: person({ coat: '#8a7357', len: 'long', legs: '#3d352b', hat: 'fur', hatCol: '#56473a', beard: '#6b5944', sash: '#9b2a20', belt: false }),
+    peasant: person({ coat: '#7b6d5a', len: 'long', legs: '#c2b79c', boots: '#a88e5c', hat: 'fur', hatCol: '#56473a', beard: '#6b5944', sash: '#9b2a20', belt: false }),   // foot-cloths, bast shoes
     child: person({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e', belt: false }),
     reed: person({ coat: '#25221f', len: 'long', legs: '#1f1d1b', hat: 'fedora', hatCol: '#2a2724', band: '#111', belt: false, notebook: true, scarfNeck: '#cfc7b4' })
   };
   var FIG_SCALE = { womansoldier: 0.94, workerwoman: 0.94, workerwoman2: 0.94, bourgeoiswoman: 0.95, child: 0.62 };
   // a type's variants, so a body of men is not a row of clones
-  var VARIANTS = { soldier: ['soldier', 'soldier2'], sailor: ['sailor', 'sailor2'], redguard: ['redguard', 'redguard2'], worker: ['worker', 'worker2'],
+  var VARIANTS = { soldier: ['soldier', 'soldier2', 'soldier3'], sailor: ['sailor', 'sailor2'], redguard: ['redguard', 'redguard2'], worker: ['worker', 'worker2'],
     workerwoman: ['workerwoman', 'workerwoman2'], bourgeois: ['bourgeois', 'bourgeois2'] };
 
   // ---------- animals and vehicles ----------
@@ -301,7 +306,7 @@ var PEOPLE = (function (THREE) {
 
   // the cruiser Aurora, at her real size (126.8 m by 16.8 m): three funnels, two masts
   function avrora() {
-    var m = new Model(), hull = '#5f6468', hull2 = '#4c5155', deck = '#8f8068', fun = '#6b6f72';
+    var m = new Model(), hull = '#7b8084', hull2 = '#6c7175', deck = '#8f8068', fun = '#80858a';   // grey overall, as in the photographs of 1909-14
     var L = 126.8, B = 16.8, segs = 16;
     for (var i = 0; i < segs; i++) {
       var z0 = -L / 2 + i * L / segs, z1 = z0 + L / segs, zm = (z0 + z1) / 2, u = (zm + L / 2) / L;

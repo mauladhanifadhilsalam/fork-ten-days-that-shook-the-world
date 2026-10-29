@@ -334,7 +334,8 @@
  "present": [
   {"who": "red-guards", "place": "smolny", "kit": ["fire:2"], "ref": {"sec": "IV", "q": "It was cold, and at the outer gate the Red Guards had built themselves a bon-fire."}},
   {"who": "garrison", "place": "smolny", "size": "the four rapid-fire guns on each side of the doorway", "n": 16, "kit": ["mg:8"], "ref": {"sec": "IV", "q": "The canvas covers had been taken off the four rapid-fire guns on each side of the doorway, and the ammunition-belts hung snakelike from their breeches."}},
-  {"who": "garrison", "place": "smolny", "kit": ["armoured:4"], "ref": {"sec": "IV", "q": "A dun herd of armoured cars stood under the trees in the court-yard, engines going."}}]},
+  {"who": "garrison", "place": "smolny", "kit": ["armoured:4"], "ref": {"sec": "IV", "q": "A dun herd of armoured cars stood under the trees in the court-yard, engines going."}},
+  {"who": "garrison", "place": "smolny", "kit": ["flag:2"], "ref": {"sec": "IV", "q": "an enormous elephant-coloured armoured automobile, with two red flags flying from the turret, lumbered out with screaming siren"}}]},
 {"id": "bund-leaves-congress", "t": "1917-11-07T23:45", "tq": "inferred", "tr": ["1917-11-07T22:50", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 110, "loc": "smolny-hall", "witness": "seen", "actors": ["bund", "mensheviki", "srs", "congress"],
  "title": "The moderates walk out",
  "why": "Late in the opening session, before the MRC room and the truck.",
