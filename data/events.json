@@ -990,7 +990,7 @@
   {"sec": "VIII", "q": "On the way a mob set upon one party, killing eight more _yunkers_"},
   {"sec": "VIII", "q": "More than a hundred Red Guards and soldiers had fallen"}],
  "moves": [
-  {"who": "vladimir-yunkers", "size": "about two hundred", "from": "vladimir-school", "to": "peter-paul", "mode": "foot", "rc": "none"}]},
+  {"who": "vladimir-yunkers", "size": "about two hundred", "from": "vladimir-school", "to": "peter-paul", "mode": "foot", "rc": "inferred"}]},
 {"id": "telephone-exchange-retaken", "t": "1917-11-11T15:30", "tq": "inferred", "tr": ["1917-11-11T12:30", "1917-11-11T17:00"], "cal": "none", "sec": "VIII", "p": 193, "loc": "telephone-exchange", "witness": "told", "by": "williams", "actors": ["williams", "antonov", "sailors", "yunkers"],
  "title": "The Exchange stormed",
  "why": "“Until afternoon”.",
@@ -1007,15 +1007,12 @@
 {"id": "engineers-castle-falls", "t": "1917-11-11T16:30", "tq": "inferred", "tr": ["1917-11-11T16:00", "1917-11-11T18:00"], "cal": "none", "sec": "VIII", "p": 193, "loc": "engineers-castle", "witness": "reported", "actors": ["engineers-yunkers", "pavlovsk-yunkers", "red-guards"],
  "title": "The last schools give up",
  "why": "“Two hours later” than the Vladimir surrender at half-past two.",
- "sum": "Two hours after the Vladimir school the victors march toward the Engineers’ Castle, and a dozen Duma members set out to hand them the Committee for Salvation’s latest proclamation. The other schools surrender without resistance; their yunkers are sent unharmed to Peter-Paul and Cronstadt.",
+ "sum": "Two hours after the Vladimir school the victors march toward the Engineers’ Castle, and a dozen Duma members set out to hand them the Committee for Salvation’s latest proclamation. The other schools surrender without resistance.",
  "q": ["Two hours later the Duma got a telephone message that the victors were marching toward the Injinierny Zamok", "All the other schools surrendered without resistance"],
  "also": [
-  {"sec": "VIII", "q": "the yunkers were sent unharmed to Peter-Paul and Cronstadt"},
   {"sec": "VIII", "q": "A dozen members immediately set out to distribute among them armfuls of the latest proclamation of the Committee for Salvation."}],
  "moves": [
-  {"who": "yunkers", "from": "engineers-castle", "to": "kronstadt", "mode": "unknown", "rc": "none"},
-  {"who": "red-guards", "size": "the victors", "n": 30, "from": "vladimir-school", "to": "engineers-castle", "mode": "march", "rc": "none"},
-  {"who": "yunkers", "from": "engineers-castle", "to": "peter-paul", "mode": "unknown", "rc": "none"},
+  {"who": "red-guards", "size": "the victors", "n": 30, "from": "vladimir-school", "to": "engineers-castle", "mode": "march", "rc": "inferred"},
   {"who": "duma", "size": "A dozen members", "n": 12, "from": "city-duma", "to": "engineers-castle", "mode": "unknown", "rc": "none", "kit": ["leaflets"]}],
  "ctl": [
   {"place": "engineers-castle", "state": "held", "holder": "mrc"},
@@ -1025,6 +1022,14 @@
  "gone": [
   {"who": "red-guards", "place": "vladimir-school"},
   {"who": "red-guards", "place": "grebetskaya-corner"}]},
+{"id": "schools-yunkers-sent", "t": "1917-11-11T16:40", "tq": "inferred", "tr": ["1917-11-11T16:30", "1917-11-11T18:00"], "cal": "none", "sec": "VIII", "p": 193, "loc": "engineers-castle", "witness": "reported", "actors": ["engineers-yunkers", "pavlovsk-yunkers"],
+ "title": "Sent unharmed to Peter-Paul and Cronstadt",
+ "why": "After the schools had surrendered, which Reed tells after the victors’ march on the Engineers’ Castle.",
+ "sum": "The yunkers of the schools that surrendered are sent unharmed to Peter-Paul and to Cronstadt.",
+ "q": "the yunkers were sent unharmed to Peter-Paul and Cronstadt",
+ "moves": [
+  {"who": "yunkers", "from": "engineers-castle", "to": "kronstadt", "mode": "unknown", "rc": "none"},
+  {"who": "yunkers", "from": "engineers-castle", "to": "peter-paul", "mode": "unknown", "rc": "none"}]},
 {"id": "kazan-debate-nov11", "t": "1917-11-11T16:50", "tq": "approx", "tr": ["1917-11-11T16:15", "1917-11-11T17:30"], "tp": "Dusk was already falling", "cal": "none", "sec": "VIII", "p": 195, "loc": "kazan-cathedral", "witness": "seen", "actors": ["crowd"],
  "title": "Debate at the Kazan Cathedral",
  "sum": "At dusk on the almost empty Nevsky a crowd argues before the Kazan Cathedral: “To hell with Kerensky!”",

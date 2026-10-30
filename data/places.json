@@ -36,7 +36,7 @@
  "reed": ["the Nevsky in front of the door", "the whole street before the Duma building"],
  "ru": "Невский проспект у входа в Городскую думу",
  "ident": "Reed’s “the Nevsky in front of the door” of the City Duma, and “the whole street before the Duma building”: the Nevsky before the Duma tower at the corner of Dumskaya Street, where the entrance (OSM node 11387262121) faces the Nevsky. The Duma’s own pin is inside the building, nearer Dumskaya Street, so its bodies are drawn there."},
-{"id": "engineers-castle", "kind": "building", "zone": "city", "ll": [59.9401, 30.3378], "acc": 60, "conf": "identified", "exists": true, "osm": "relation/238571",
+{"id": "engineers-castle", "kind": "building", "zone": "city", "ll": [59.9401, 30.3378], "acc": 60, "stage": [59.93986, 30.33803], "conf": "identified", "exists": true, "osm": "relation/238571",
  "geo": {"m": "osm", "at": "hint", "q": "Михайловский замок", "osm_v": 37, "on": "2026-10-29"},
  "ctl0": {"state": "held", "holder": "engineers-yunkers", "as_of": "1917-11-01", "ev": "engineers-castle-falls"},
  "name": "Engineers’ Castle (Nikolaevsky Engineering School)",

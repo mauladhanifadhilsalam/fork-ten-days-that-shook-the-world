@@ -1817,19 +1817,22 @@ function hoist(g) {
 }
 function armFights() {
   WALLT = {};
-  GROUPS.forEach(hoist);
   GROUPS.forEach(function (g) {
     if (!g.pose || !g.members) return;
     g.members.forEach(function (m, i) { m.pose = g.pose; m.yaw = hash(g.seed + i * 4.1) * 6.283; m.idle = 0; m.carry = null; m.bike = false; delete m.s0; });
   });
   // under siege the defenders are in their building: a body at a building that the other side rings
-  // round, or fires at, in the scene is inside it (its label on the building, its fire from the windows).
-  // Not when the ones firing hold the building: "When the relief came it was met by a blast of
-  // rifle-fire", and the relief lies in the street
+  // round, fires at or storms in the scene is inside it (its label on the building, its fire from the
+  // windows), and so is one whose building is besieged ("Albert Rhys Williams was in the Telephone
+  // Exchange"), or taken from it in the scene. Not when the ones firing hold the building: "When the
+  // relief came it was met by a blast of rifle-fire", and the relief lies in the street
   GROUPS.forEach(function (g) {
     var pk = (PL[g.place] || {}).kind, hb = holderBloc(rootOf(g.place), cur ? cur.t : '');
     if (!g.members || g.inside || g.form || (pk !== 'building' && pk !== 'station')) return;
-    var shut = GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.place === g.place && h.form === 'ring'; }) ||
+    var st = cur && holdAt(rootOf(g.place), cur.t);
+    var shut = GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.place === g.place && (h.form === 'ring' || h.assault); }) ||
+      st && st.state === 'besieged' && st.holder && !opposed(g.bloc, blocOf(st.holder)) && SIDE[g.bloc] && st.by && opposed(g.bloc, blocOf(st.by)) ||
+      st && st.ev === cur.id && st.t === cur.t && st.holder && opposed(g.bloc, blocOf(st.holder)) ||
       GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.fire && (h.at === g.place || h.at === g.who) && !(SIDE[hb] && SIDE[hb] === SIDE[h.bloc]); });
     if (!shut) return;
     g.inside = true;
@@ -1840,6 +1843,14 @@ function armFights() {
     if (!g.members) { g.fire = null; g.assault = null; g.patrol = false; return; }   // a ship: nothing to fire with
     if (g.fire === true && cur && (besiegedIn(g, cur.t) || (g.inside && !kitHas(g.kit, 'barricade')))) g.fire = 'windows';
     if (g.fire === 'windows' && !windowsOf(g, foeOf(g))) g.fire = null;
+  });
+  GROUPS.forEach(hoist);   // once it is known who is inside: the white flag at a window
+  // besiegers keep their barricades between them and the walls when they are not firing too ("who lay
+  // behind barricades of barrels, boxes and tin sheets in the middle of the Morskaya")
+  GROUPS.forEach(function (g) {
+    if (g.fire || g.inside || !g.members || !g.members.length) return;
+    var bars = (g.props || []).filter(function (p) { return /^barricade/.test(p.k); }), hb = holderBloc(rootOf(g.place), cur ? cur.t : '');
+    if (bars.length && hb && opposed(g.bloc, hb)) shield(g, bars, wallTarget(g.place, g.cx, g.cy));
   });
   GROUPS.forEach(function (g) {
     if ((!g.fire && !g.assault && !g.patrol) || g.fire === 'windows') return;
