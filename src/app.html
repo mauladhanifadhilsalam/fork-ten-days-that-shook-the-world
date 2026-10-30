@@ -2555,8 +2555,8 @@ function markTimeline() {
 // ---------- camera ----------
 var flight = null, closeAfter = null;
 var stageLight = new THREE.PointLight(0xffd9a0, 0, 330, 1.2); scene.add(stageLight);
-// While a body walks a long route, the camera comes down and keeps pace with it, unless the
-// reader takes the controls. follow: {mv, d (distance), pol}
+// While a body walks its route (the scene's action, or a long ride), the camera comes down and keeps
+// pace with it, unless the reader takes the controls. follow: {mv, d (distance), pol}
 var follow = null;
 function followMover(e) {
   var list = movers.filter(function (mv) { return !mv.arc && mv.o.total > 650; });
@@ -2565,6 +2565,30 @@ function followMover(e) {
   var big = list.slice().sort(function (a, b) { return b.list.length - a.list.length; })[0];
   var mv = reed || big, mps = mv.o.total / Math.max(1, walkMs(e, mv.o.total) / speed / 1000);   // metres a second on screen
   return { mv: mv, d: Math.min(650, Math.max(PHONE ? 320 : 260, mps * 2.2)), pol: 1.0 };
+}
+// the body whose march is the scene: the largest that moves on the streets, not Reed, unless Reed's own
+// route is much the longer (the truck ride, the ambulance: his journey is the scene)
+function actionMover(e) {
+  var best = null, reed = 0;
+  movers.forEach(function (mv) {
+    if (mv.arc) return;
+    if (mv.m.who === 'reed') { reed = Math.max(reed, mv.o.total); return; }
+    var w = mv.list.length + mv.guns * 8 + (mv.veh ? 6 : 0);
+    if (mv.o.total < 150 || w < 3) return;
+    if (!best || w > best.w) best = { mv: mv, w: w };
+  });
+  return best && !(reed > 650 && reed > 2 * best.mv.o.total) ? best.mv : null;
+}
+// a view of (x, y) from d metres, behind and to one side of the way (dx, dy) it is heading
+function frameAt(x, y, d, pol, dx, dy) {
+  var cur3 = camera.position.clone().sub(controls.target), back = new THREE.Vector3(-dx, 0, dy);
+  if (back.lengthSq() < 1) back.set(cur3.x, 0, cur3.z);
+  if (back.lengthSq() < 1) back.set(0, 0, 1);
+  back.normalize();
+  var l = back.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), 0.8), r = back.clone().applyAxisAngle(new THREE.Vector3(0, 1, 0), -0.8);
+  var dir = l.dot(cur3) > r.dot(cur3) ? l : r, t = new THREE.Vector3(x, 0, -y);
+  var pos = t.clone().add(dir.multiplyScalar(Math.sin(pol) * d)); pos.y = Math.cos(pol) * d;
+  return { target: t, pos: pos };
 }
 function frameFor(e) {
   var box = new THREE.Box3(), l = PL[rootOf(e.loc)] || PL[e.loc];
@@ -2801,9 +2825,21 @@ function select(id, opts) {
   // a long walk is followed from above, unless the scene has its own local action and the long move is
   // only an arc (whose body just turns up at the end)
   var local = MOVES.some(function (o) { return o.e === e && o.m.who !== 'reed' && o.line.visible && o.total <= 650 && near(o.m.to, e.loc, 300); });
-  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(local && o.m.draw !== 'street'); });
+  var people = GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); });
+  // a ride of Reed's with no route (an arc: he just turns up) is not the scene when there are people
+  // at its place to look at
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || (o.m.who === 'reed' && people))); });
+  var act = REDUCED ? null : actionMover(e);
   closeAfter = null; follow = null;
-  if (close && !long) flyTo(close, opts.instant ? 0 : 1800);
+  if (act) {
+    // the scene's own action is a body on the move ("came through the Red Arch at a jingling trot"):
+    // the camera picks it up where it sets out, keeps pace with it, then comes down to the scene
+    var a0 = act.o.pts[0], a1 = act.o.pts[act.o.pts.length - 1];
+    follow = { mv: act, d: PHONE ? 320 : 260, pol: 0.75 };   // from high enough to see down the streets
+    flyTo(frameAt(a0.x, -a0.z, follow.d, follow.pol, a1.x - a0.x, -(a1.z - a0.z)), opts.instant ? 0 : 1800);
+    // then down to the scene, if that is where it ends; else it stays with the body where it got to
+    closeAfter = close && Math.hypot(close.target.x - a1.x, close.target.z - a1.z) < 150 ? close : null;
+  } else if (close && !long) flyTo(close, opts.instant ? 0 : 1800);
   else {
     flyTo(frameFor(e), opts.instant ? 0 : 1800);
     follow = REDUCED ? null : followMover(e);
@@ -3039,7 +3075,7 @@ function boot(state) {
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
   finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); },
-  movers: function () { return movers; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
+  movers: function () { return movers; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
   // run the fighting for the last `secs` seconds at 60 frames a second, as a real browser would, so a slow test renderer shows its steady state
