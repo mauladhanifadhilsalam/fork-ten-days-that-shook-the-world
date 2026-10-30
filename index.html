@@ -2232,12 +2232,14 @@ function armFights() {
     g.members.forEach(function (m, i) { m.pose = g.pose; m.yaw = hash(g.seed + i * 4.1) * 6.283; m.idle = 0; m.carry = null; m.bike = false; delete m.s0; });
   });
   // under siege the defenders are in their building: a body at a building that the other side rings
-  // round, or fires at, in the scene is inside it (its label on the building, its fire from the windows)
+  // round, or fires at, in the scene is inside it (its label on the building, its fire from the windows).
+  // Not when the ones firing hold the building: "When the relief came it was met by a blast of
+  // rifle-fire", and the relief lies in the street
   GROUPS.forEach(function (g) {
-    var pk = (PL[g.place] || {}).kind;
+    var pk = (PL[g.place] || {}).kind, hb = holderBloc(rootOf(g.place), cur ? cur.t : '');
     if (!g.members || g.inside || g.form || (pk !== 'building' && pk !== 'station')) return;
     var shut = GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.place === g.place && h.form === 'ring'; }) ||
-      GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.fire && (h.at === g.place || h.at === g.who); });
+      GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.fire && (h.at === g.place || h.at === g.who) && !(SIDE[hb] && SIDE[hb] === SIDE[h.bloc]); });
     if (!shut) return;
     g.inside = true;
     var l = PL[g.place]; if (l && l.p) { g.cx = l.p[0]; g.cy = l.p[1]; }
@@ -2252,6 +2254,7 @@ function armFights() {
     if ((!g.fire && !g.assault && !g.patrol) || g.fire === 'windows') return;
     var foe = foeOf(g), bars = (g.props || []).filter(function (p) { return /^barricade/.test(p.k); }), any = false;
     g.foe = foe;
+    if (g.fire && bars.length) shield(g, bars, aimFrom(g, foe, g.cx, g.cy));
     g.members.forEach(function (m, i) {
       if (!PK.armed[m.k] || m.pose || m.ox != null || (!g.fire && !g.assault)) return;
       // a carried assault pours into the building being stormed: it aims at its walls, wherever the enemy stands
@@ -2284,6 +2287,25 @@ function armFights() {
     if (g.patrol && !g.form && cars.length && g.members.length <= 2 * cars.length) { g.ride = cars[0]; g.members = []; }
   });
   seedScars(cur);
+}
+// a body that fires from behind its barricades has them between it and what it fires at, just in front
+// of its first men ("sailors, who lay behind barricades of barrels, boxes and tin sheets in the middle of
+// the Morskaya"), spread across its front
+function shield(g, bars, T) {
+  var arm = g.members.filter(function (m) { return PK.armed[m.k] && !m.pose && m.ox == null; });
+  if (!T || !arm.length) return;
+  var cx = 0, cy = 0; arm.forEach(function (m) { cx += m.x; cy += m.y; }); cx /= arm.length; cy /= arm.length;
+  var dx = T.x - cx, dy = T.y - cy, dl = Math.hypot(dx, dy), front = -1e9, lo = 1e9, hi = -1e9;
+  if (dl < 12) return;
+  dx /= dl; dy /= dl;
+  arm.forEach(function (m) { var s = (m.x - cx) * dx + (m.y - cy) * dy, p = (m.y - cy) * dx - (m.x - cx) * dy; front = Math.max(front, s); lo = Math.min(lo, p); hi = Math.max(hi, p); });
+  if (front + 2.2 > dl - 4) return;
+  var G = openGround(rootOf(g.place), false);
+  bars.forEach(function (b, i) {
+    var p = bars.length > 1 ? lo + (hi - lo) * i / (bars.length - 1) : (lo + hi) / 2, x = cx + dx * (front + 2.2) - dy * p, y = cy + dy * (front + 2.2) + dx * p;
+    if (G) { var k = Math.floor((x - G.R.x0) / G.R.cs) + Math.floor((y - G.R.y0) / G.R.cs) * G.R.w; if (k < 0 || !G.ok[k]) return; }
+    b.x = x; b.y = y; b.yaw = facingYaw(x, y, T.x, T.y);
+  });
 }
 // an armoured car cruising back and forth: down the street it stands in, 30 m each way. The cars of
 // 1917 had a driver at each end, so it does not turn
@@ -3057,7 +3079,9 @@ function closeFrame(e) {
     mx /= 2 * shots.length; my /= 2 * shots.length;
     shots.forEach(function (q) { sp2 = Math.max(sp2, Math.hypot(q[0] - mx, q[1] - my), Math.hypot(q[2] - mx, q[3] - my)); });
     target.set(mx, 0, -my);
-    dist = Math.max(PHONE ? 190 : 150, Math.min(PHONE ? 380 : 320, sp2 * 2.4)); pol = 0.78;
+    // far enough back that both ends of the line of fire show beside the card
+    var half = Math.tan(camera.fov * Math.PI / 360) * camera.aspect * (PHONE ? 0.8 : 0.5);
+    dist = Math.max(PHONE ? 190 : 150, Math.min(PHONE ? 520 : 440, sp2 / half)); pol = 0.78;
     if (Math.hypot(c2, s2) / shots.length > 0.45) {
       var la = 0.5 * Math.atan2(s2, c2), across = new THREE.Vector3(-Math.sin(la), 0, -Math.cos(la));
       if (across.dot(dir) < 0) across.negate();
