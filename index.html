@@ -1752,9 +1752,17 @@ function layoutPlace(id, groups, t) {
           if (sv && sv.f.length > 1 && Math.hypot(sv.f[0][0] - vx, sv.f[0][1] - vy) < 16) { var q1 = sv.f[1]; yaw = facingYaw(sv.f[0][0], sv.f[0][1], q1[0], q1[1]) + (hash(seed + j * 3) < 0.5 ? 0 : Math.PI); }
         }
         g.props.push({ k: v[0], x: vx, y: vy, yaw: yaw, flags: v[0] === 'armoured' && !carFlags && kitNum(kit, 'flag') ? (carFlags = Math.min(2, Math.max(1, kitNum(kit, 'flag')))) : 0 });
+        if (g.patrol && v[0] !== 'gun') {   // the street it will cruise up and down is kept clear of the others
+          var sp = streetSpine(vx, vy, 32);
+          if (sp) [sp.f, sp.b].forEach(function (half) { resample(half, 2).slice(0, 16).forEach(function (q) { var kq = cellAt(q[0], q[1]); if (kq >= 0) take(kq, 3); }); });
+        }
         if (v[0] === 'gun') for (var cr = 0; cr < 3 && fi < figs.length; cr++) g.members.push({ k: figs[fi++], x: vx, y: vy, ox: -Math.sin(yaw) * 2.9 + Math.cos(yaw) * (cr - 1) * 0.9, oy: Math.cos(yaw) * 2.9 + Math.sin(yaw) * (cr - 1) * 0.9, yaw: yaw, idle: 0.2 });
       }
     });
+    // an armoured car's crew is inside it ("thrust their bayonets into its loop-holes"): a body that is no
+    // more than its cars' crews is its cars
+    var nArmUp = g.props.filter(function (p) { return p.k === 'armoured'; }).length;
+    if (nArmUp && !g.form && figs.length - fi <= 2 * nArmUp) fi = figs.length;
     // the people: in Reed's formation if the scene's passage gives one, the rest on the nearest open
     // ground; a crowd at a line stands in front of it, and whoever watches a formation faces it
     if (g.form && g.form !== 'ring' && fi < figs.length) fi = formUp(g, figs, fi, cur, defend);
@@ -1792,8 +1800,8 @@ function layoutPlace(id, groups, t) {
     heaps(g, kitN('rifles', 1));
     // flags and banners in a few hands (a flag on the car, if there is one), torches in every other hand, a bicycle for each cyclist
     carryKit(g.members, kit, g.say, carFlags);
-    var sx = 0, sy = 0; g.members.forEach(function (mm) { sx += mm.x; sy += mm.y; });
-    g.cx = g.members.length ? sx / g.members.length : G.sx; g.cy = g.members.length ? sy / g.members.length : G.sy;
+    var sx = 0, sy = 0, car0 = g.props.filter(function (p) { return p.k === 'armoured'; })[0]; g.members.forEach(function (mm) { sx += mm.x; sy += mm.y; });
+    g.cx = g.members.length ? sx / g.members.length : car0 ? car0.x : G.sx; g.cy = g.members.length ? sy / g.members.length : car0 ? car0.y : G.sy;
     var r = 4; g.members.forEach(function (mm) { r = Math.max(r, Math.hypot(mm.x - g.cx, mm.y - g.cy)); }); g.r = r;
   });
   // a body there for this scene only (come along to talk, or to watch), loose and with nothing named to
@@ -1826,8 +1834,8 @@ function stageScene(e, noReed) {
   });
   Object.keys(byPlace).forEach(function (id) {
     // the ones who were there before come first, so they keep their ground from scene to scene
-    // (and Reed's formations before them, so the others make way)
-    var gs = byPlace[id].sort(function (a, b) { return (!!b.form - !!a.form) || (a.brief - b.brief) || (a.pi - b.pi); });
+    // (and Reed's formations and cruising cars before them, so the others make way)
+    var gs = byPlace[id].sort(function (a, b) { return (!!b.form - !!a.form) || (b.patrol - a.patrol) || (a.brief - b.brief) || (a.pi - b.pi); });
     layoutPlace(id, gs, e.t);
   });
   if (!noReed && e.witness === 'seen' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {
@@ -2153,7 +2161,7 @@ function facesOf(recs, fx, fy, step) {
 function foeOf(g) {
   var best = null;
   GROUPS.forEach(function (h) {
-    if (h === g || h.cx == null || h.ship || h.reed || !(h.inside || (h.members && h.members.length))) return;
+    if (h === g || h.cx == null || h.ship || h.reed || !(h.inside || (h.members && h.members.length) || (h.props || []).some(function (p) { return p.k === 'armoured'; }))) return;
     if (g.at ? h.who !== g.at : !opposed(g.bloc, h.bloc)) return;
     var d = Math.hypot(h.cx - g.cx, h.cy - g.cy);
     if (d < 450 && (!best || d < best.d)) best = { d: d, h: h };
@@ -2296,7 +2304,7 @@ function shield(g, bars, T) {
   if (!T || !arm.length) return;
   var cx = 0, cy = 0; arm.forEach(function (m) { cx += m.x; cy += m.y; }); cx /= arm.length; cy /= arm.length;
   var dx = T.x - cx, dy = T.y - cy, dl = Math.hypot(dx, dy), front = -1e9, lo = 1e9, hi = -1e9;
-  if (dl < 12) return;
+  if (dl < 7) return;
   dx /= dl; dy /= dl;
   arm.forEach(function (m) { var s = (m.x - cx) * dx + (m.y - cy) * dy, p = (m.y - cy) * dx - (m.x - cx) * dy; front = Math.max(front, s); lo = Math.min(lo, p); hi = Math.max(hi, p); });
   if (front + 2.2 > dl - 4) return;
@@ -2307,12 +2315,14 @@ function shield(g, bars, T) {
     b.x = x; b.y = y; b.yaw = facingYaw(x, y, T.x, T.y);
   });
 }
-// an armoured car cruising back and forth: down the street it stands in, 30 m each way. The cars of
-// 1917 had a driver at each end, so it does not turn
+// an armoured car cruising back and forth: down the street it stands in, 30 m each way, and no further
+// than the first people in its way. The cars of 1917 had a driver at each end, so it does not turn
 function patrolOf(g, pr) {
   var st = streetSpine(pr.x, pr.y, 32); if (!st) return;
-  var G = openGround(rootOf(g.place), false);
-  function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var q = pts[i], k = G ? Math.floor((q[0] - G.R.x0) / G.R.cs) + Math.floor((q[1] - G.R.y0) / G.R.cs) * G.R.w : -1; if (G && (k < 0 || !G.ok[k])) break; out.push(q); } return out; }
+  var G = openGround(rootOf(g.place), false), folk = [];
+  GROUPS.forEach(function (h) { (h.members || []).forEach(function (m) { if (m.x !== pr.x || m.y !== pr.y) folk.push(m); }); });   // all but its crew
+  function clear(q) { return folk.every(function (m) { return Math.abs(m.x - q[0]) > 3 || Math.abs(m.y - q[1]) > 3; }); }
+  function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var q = pts[i], k = G ? Math.floor((q[0] - G.R.x0) / G.R.cs) + Math.floor((q[1] - G.R.y0) / G.R.cs) * G.R.w : -1; if ((G && (k < 0 || !G.ok[k])) || !clear(q)) break; out.push(q); } return out; }
   var f = open(resample(st.f, 1)).slice(0, 31), b = open(resample(st.b, 1)).slice(0, 31);   // 30 m each way
   var pts = b.slice(1).reverse().concat(f); if (pts.length < 12) return;
   var cum = [0]; for (var i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -3129,20 +3139,30 @@ function closeFrame(e) {
   if (pts.length > 24) { var keep = []; for (var pi = 0; pi < pts.length; pi += pts.length / 24) keep.push(pts[Math.floor(pi)]); pts = keep; }
   if (pts.length) {
     var base = Math.atan2(dir.x, dir.z), best = null, tries = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6];
-    for (var ti = 0; ti < tries.length && !(best && best.seen >= 0.85); ti++) {
-      var th = base + tries[ti] * Math.PI / 6;
+    // and from the open side if there is one, not over a roof that fills the near half of the picture
+    for (var ti = 0; ti < tries.length && !(best && best.good); ti++) {
+      var th = base + tries[ti] * Math.PI / 6, roofs = builtFrac(target.x, -target.z, Math.sin(th), -Math.cos(th), Math.min(100, Math.sin(pol) * dist));
       [pol, Math.min(pol, 0.62)].forEach(function (pp, pj) {
-        if (best && best.seen >= 0.85) return;
+        if (best && best.good) return;
         var hh = Math.cos(pp) * dist, rr = Math.sin(pp) * dist, cx = target.x + Math.sin(th) * rr, cy = -(target.z + Math.cos(th) * rr);
         var seen = pts.filter(function (q) { return !hiddenBy(cx, cy, hh, q[0], q[1], q[2]); }).length / pts.length;
-        var sc = seen - Math.abs(tries[ti]) * 0.03 - pj * 0.04;
-        if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp, seen: seen };
+        var sc = seen - Math.abs(tries[ti]) * 0.03 - pj * 0.04 - roofs * 0.3;
+        if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp, seen: seen, good: seen >= 0.85 && roofs < 0.25 };
       });
     }
     dir.set(Math.sin(best.th), 0, Math.cos(best.th)); pol = best.pp;
   }
   var pos = target.clone().add(dir.multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
   return { target: target, pos: pos };
+}
+// how much of the ground from (x, y) out along (dx, dy), 12 to r metres, is under buildings taller than 8 m
+function builtFrac(x, y, dx, dy, r) {
+  var n = 0, b = 0;
+  for (var d = 12; d <= r; d += 6) {
+    var px = x + dx * d, py = y + dy * d, cell = BGRID[Math.floor(px / 100) + ',' + Math.floor(py / 100)]; n++;
+    if (cell && cell.some(function (rec) { var bb = rec.b; return rec.h > 8 && px >= bb[0] && px <= bb[2] && py >= bb[1] && py <= bb[3] && inRing(rec.r, px, py) && !rec.holes.some(function (q) { return inRing(q, px, py); }); })) b++;
+  }
+  return n ? b / n : 0;
 }
 // is the point (x, y) at height h hidden from a camera at (cx, cy), height ch, by a building? (map metres)
 function hiddenBy(cx, cy, ch, x, y, h) {
