@@ -1420,7 +1420,7 @@ function posOnSpine(g, mm, adv) {   // a member of a column: s0 metres along, la
 }
 function layoutPlace(id, groups, t, loc) {
   var G = openGround(id, false); if (!G) return;
-  var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t), st = holdAt(id, t);
+  var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t);
   // the ground where Reed's walk ends here is his, so he does not finish inside a crowd
   movers.forEach(function (mv) {
     if (mv.m.who !== 'reed' || !mv.o.pts || !mv.o.pts.length || rootOf(mv.m.to) !== rootOf(id)) return;
@@ -1435,7 +1435,7 @@ function layoutPlace(id, groups, t, loc) {
   });
   // a body there before keeps its cars and guns clear of the ground the scene's own people take
   var briefFigs = 0; groups.forEach(function (h) { if (h.brief) briefFigs += h.n || 12; });
-  var siege = st && (st.state === 'besieged' || st.state === 'contested'), gapIx = 0;
+  var gapIx = 0;
   while (gapIx < G.order.length - 1 && G.dist[G.order[gapIx]] * G.R.cs < 24) gapIx++;
   function free(k) { return G.ok[k] && !used[k]; }
   function clear(k, r) {   // the cells within r metres of k are open and unused
@@ -1679,7 +1679,7 @@ function layoutPlace(id, groups, t, loc) {
     function kitN0(name, dflt) { for (var i = 0; i < kit0.length; i++) { var p = kit0[i].split(':'); if (p[0] === name) return p[1] ? +p[1] : dflt; } return 0; }
     if (g.inside) {   // indoors: a label on the building, no one drawn; its barricades and the rifles it threw down stay outside
       var il = PL[g.place] || PL[id]; g.cx = il.p[0]; g.cy = il.p[1]; g.r = 8;
-      var cur0 = siege && owner && g.bloc !== owner ? gapIx : 0;
+      var cur0 = owner && opposed(g.bloc, owner) ? gapIx : 0;
       for (var bi0 = 0; bi0 < kitN0('barricade', 2); bi0++) {
         var ib = pick(cur0 + 10 + bi0 * 30, 3.5); if (ib < 0) ib = pick(cur0 + 10 + bi0 * 30, 1.5); if (ib < 0) break; var kb = G.order[ib]; take(kb, 3);
         var bx0 = cellX(G, kb), by0 = cellY(G, kb); g.props.push({ k: bi0 % 2 ? 'barricade2' : 'barricade', x: bx0, y: by0, yaw: facingYaw(bx0, by0, G.cx, G.cy) });
@@ -1688,8 +1688,11 @@ function layoutPlace(id, groups, t, loc) {
       return;
     }
     var defend = owner && g.bloc === owner && !g.brief, seed = g.seed;
-    // under siege the besiegers keep their distance, down the street or across the square
-    var cur = siege && owner && g.bloc !== owner ? gapIx : 0;
+    // the other side keeps its distance from the holders, down the street or across the square: besiegers,
+    // and a patrol come to deliver an ultimatum ("visited by a patrol ... who gave the yunkers twenty minutes")
+    // and on ground nobody holds, the second of two opposed bodies keeps off the first (the officer's party
+    // that put the Red Guards' picket to flight on the Nicolai Bridge)
+    var cur = (owner ? opposed(g.bloc, owner) : groups.slice(0, gi).some(function (h) { return opposed(h.bloc, g.bloc) && h.members && h.members.length; })) ? gapIx : 0;
     var fxy = faceXY(g), pk = PL[id] && PL[id].kind, bldg = pk === 'building' || pk === 'station' || pk === 'complex' ? outlinesOf(id) : [];
     function yawAt(x, y) {
       var j = hash(seed + x * 0.37 + y) - 0.5;
@@ -1934,10 +1937,22 @@ function linkShares(e) {
     });
     mv.fileOn = !mv.handover && !mv.m.stay && rootOf(mv.m.to) !== rootOf(e.loc);
   });
+  // a car, a truck or an armoured car pulls up short of the people where its route ends ("lumbered up to
+  // the steps of the Duma"), not on them
+  movers.forEach(function (mv) {
+    mv.endD = null;
+    if (!mv.veh || !mv.o.total) return;
+    var folk = []; GROUPS.forEach(function (g) { if (!g.reed && !g.inside) (g.members || []).forEach(function (m) { folk.push(m); }); });
+    for (var d = mv.o.total; d > 0; d -= 2) {
+      var p = pointAt(mv.o, d), x = p.a.x + (p.b.x - p.a.x) * p.t, y = -(p.a.z + (p.b.z - p.a.z) * p.t);
+      if (folk.every(function (m) { return Math.abs(m.x - x) > 5 || Math.abs(m.y - y) > 5; })) break;
+    }
+    if (d < mv.o.total) mv.endD = Math.max(0, d);
+  });
 }
 var SHORT = { 'red-guards': 'Red Guards', sailors: 'Sailors', garrison: 'Soldiers', yunkers: 'Yunkers', 'vladimir-yunkers': 'Vladimir yunkers',
   'engineers-yunkers': 'Engineering yunkers', 'pavlovsk-yunkers': 'Pavlovsk yunkers', 'womens-battalion': 'Women’s Battalion', 'peter-paul-garrison': 'Peter-Paul garrison',
-  avrora: 'The Avrora', mrc: 'Military Revolutionary Committee', 'military-staff': 'The Staff', workers: 'Workers', crowd: 'Crowd', duma: 'The Duma’s militia',
+  avrora: 'The Avrora', mrc: 'Military Revolutionary Committee', 'military-staff': 'The Staff', workers: 'Workers', crowd: 'Crowd', duma: 'The Duma’s people',
   cyclists: 'Cyclists', 'armoured-cars': 'Armoured cars', 'unknown-soldiers': 'Soldiers', 'car-occupants': 'The occupants', 'nicolai-bridge-party': 'An officer and five men', 'exchange-relief': 'The relief', 'duma-procession': 'The Duma’s procession', 'peasants-congress': 'Peasants’ Congress', pavlovsky: 'Pavlovsky Regiment' };
 function groupLabel(who) { return SHORT[who] || actorName(who); }
 
@@ -2006,7 +2021,7 @@ function alongPath(o, d, side) {
 }
 function drawMover(mv, FS, t) {
   if (mv.handover && mv.f >= 1) return;   // arrived: the body laid out at the place stands for it now
-  var o = mv.o, gap = 1.25 * FS, walking = mv.f > 0 && mv.f < 1 ? 1 : 0, lead = mv.f * o.total;
+  var o = mv.o, gap = 1.25 * FS, walking = mv.f > 0 && mv.f < 1 ? 1 : 0, lead = mv.f * (mv.endD != null ? mv.endD : o.total);
   if (mv.arc) {   // no route: a pennant rides the arc; the body waits at the end
     if (mv.f < 1) {
       var p = pointAt(o, lead), x = p.a.x + (p.b.x - p.a.x) * p.t, y = p.a.y + (p.b.y - p.a.y) * p.t, z = p.a.z + (p.b.z - p.a.z) * p.t;
@@ -2014,7 +2029,7 @@ function drawMover(mv, FS, t) {
       if (mv.list[0] && mv.list[0].k === 'reed') { reedGlow.position.set(x, 0.8, z); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
       return;
     }
-    lead = o.total;
+    lead = mv.endD != null ? mv.endD : o.total;
   }
   var head = lead, cols = mv.cols, gunRows = mv.cav && mv.guns ? Math.max(0, (mv.guns * 9 - 2) / 2.75) : 0;
   if (mv.fileOn) head = mv.f * (o.total + (Math.ceil(mv.list.length / cols) + gunRows) * gap * (mv.cav ? 2.2 : 1));   // on through its end, and gone
@@ -3151,8 +3166,9 @@ function closeFrame(e) {
     var q = mv.o.pts[mv.o.pts.length - 1], mx = q.x, my = -q.z;
     if (Math.hypot(mx - tx, my - ty) > 260) return;
     var w = Math.min(60, mv.list.length + 1); sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
-    var q0 = mv.o.pts[0];   // and where a short march sets out, so it is seen setting out
-    if (!mv.arc && Math.hypot(q0.x - tx, -q0.z - ty) <= 260) { sx += q0.x * w / 2; sy += -q0.z * w / 2; sw += w / 2; ends.push([q0.x, -q0.z]); }
+    var q0 = mv.o.pts[0];   // and where a march or a ride sets out, so it is seen setting out
+    var w0 = rootOf(mv.m.from) === rootOf(e.loc) ? 30 : w / 2;   // most where the scene's own move leaves from (Kerensky's car)
+    if (Math.hypot(q0.x - tx, -q0.z - ty) <= 260) { sx += q0.x * w0; sy += -q0.z * w0; sw += w0; ends.push([q0.x, -q0.z]); }
   });
   if (!sw && e.witness !== 'seen') return null;
   if (sw) { tx = tx * 0.35 + sx / sw * 0.65; ty = ty * 0.35 + sy / sw * 0.65; }
