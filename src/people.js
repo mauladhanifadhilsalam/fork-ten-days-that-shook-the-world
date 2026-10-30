@@ -359,6 +359,13 @@ var PEOPLE = (function (THREE) {
       m.box(col, 0.02 + (i + 0.5) * w / nx, pole - 0.06 - (j + 0.5) * h / ny, 0, w / nx * 1.02, h / ny * 1.02, 0.015, 0, 0, 0, 5);
     return m;
   }
+  function crossFlag(w, h, pole) {   // white, with a red cross: "flying the Red Cross flag"
+    var m = new Model(), nx = 9, ny = 5;
+    m.box(C.wood, 0, pole / 2, 0, 0.04, pole, 0.04);
+    for (var i = 0; i < nx; i++) for (var j = 0; j < ny; j++)
+      m.box(i === 4 || j === 2 ? '#b3261e' : '#efece3', 0.02 + (i + 0.5) * w / nx, pole - 0.06 - (j + 0.5) * h / ny, 0, w / nx * 1.02, h / ny * 1.02, 0.015, 0, 0, 0, 5);
+    return m;
+  }
   function banner(col) {             // a banner on two poles, carried
     var m = new Model();
     m.box(C.wood, -1.0, 1.4, 0, 0.04, 2.8, 0.04); m.box(C.wood, 1.0, 1.4, 0, 0.04, 2.8, 0.04);
@@ -398,7 +405,7 @@ var PEOPLE = (function (THREE) {
       armoured: armoured('#77746a').geometry(), truck: truck('#5d5b47').geometry(), car: car('#1d1d1f').geometry(),
       gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(),
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
-      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
+      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()

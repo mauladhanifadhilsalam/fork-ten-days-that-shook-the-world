@@ -559,7 +559,7 @@
  "moves": [
   {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}],
  "present": [
-  {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "brief": true, "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}],
+  {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}],
  "gone": [
   {"who": "garrison", "place": "kazan-cathedral-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}},
   {"who": "garrison", "place": "police-bridge", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone, and the only signs of war were Red Guards and soldiers squatting around fires"}},
@@ -907,14 +907,21 @@
   {"place": "vladimir-school", "state": "besieged", "holder": "vladimir-yunkers", "by": "mrc"}],
  "present": [
   {"who": "red-guards", "place": "vladimir-school", "size": "Soviet troops", "n": 48, "kit": ["armoured:2"], "form": "ring", "fire": true, "at": "vladimir-school", "patrol": true}]},
-{"id": "hotel-agency-recaptured", "t": "1917-11-11T10:00", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T13:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "military-hotel", "witness": "reported", "actors": ["yunkers"],
+{"id": "hotel-agency-recaptured", "t": "1917-11-11T10:00", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T13:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "military-hotel", "witness": "reported", "actors": ["yunkers", "sailors"], "tags": ["shooting"],
  "title": "Bloodily recaptured",
  "why": "Reed gives no hour, only the order of events.",
- "sum": "The Military Hotel and the Telegraph Agency are retaken from the yunkers.",
+ "sum": "The Military Hotel and the Telegraph Agency are retaken from the yunkers. Reed does not say by whom: the map draws sailors, who held the hotel before, storming both buildings while the yunkers fire from the windows.",
  "q": "and bloodily recaptured.",
+ "also": [
+  {"sec": "VIII", "q": "Petrograd woke to bursts of rifle-fire, and the tramping thunder of men marching."}],
  "ctl": [
   {"place": "military-hotel", "state": "held", "holder": "mrc"},
-  {"place": "telegraph-agency", "state": "held", "holder": "mrc"}]},
+  {"place": "telegraph-agency", "state": "held", "holder": "mrc"}],
+ "present": [
+  {"who": "sailors", "place": "military-hotel", "fire": true, "at": "military-hotel", "assault": "carried", "brief": true},
+  {"who": "sailors", "place": "telegraph-agency", "fire": true, "at": "telegraph-agency", "assault": "carried", "brief": true},
+  {"who": "yunkers", "place": "military-hotel", "fire": true, "brief": true},
+  {"who": "yunkers", "place": "telegraph-agency", "fire": true, "brief": true}]},
 {"id": "telephone-besieged", "t": "1917-11-11T10:30", "tq": "inferred", "tr": ["1917-11-11T08:00", "1917-11-11T14:00"], "cal": "none", "sec": "VIII", "p": 191, "loc": "telephone-exchange", "witness": "reported", "actors": ["sailors", "yunkers"], "tags": ["shooting"],
  "title": "The Telephone Station besieged",
  "why": "Reed’s account of the morning.",
@@ -934,9 +941,10 @@
  "sum": "Williams, inside the Exchange, rides out in a Red Cross car “ostensibly full of wounded”, which goes by devious ways to the yunkers’ headquarters.",
  "q": "Albert Rhys Williams was in the Telephone Exchange. He went out with the Red Cross automobile, which was ostensibly full of wounded.",
  "also": [
+  {"sec": "VIII", "q": "Occasionally an automobile passed in and out, flying the Red Cross flag."},
   {"sec": "VIII", "q": "After circulating about the city, the car went by devious ways to the Mikhailovsky _yunker_ school, headquarters of the counter-revolution."}],
- "present": [
-  {"who": "yunkers", "place": "telephone-exchange", "kit": ["car"], "brief": true, "ref": {"sec": "VIII", "q": "Occasionally an automobile passed in and out, flying the Red Cross flag."}}]},
+ "moves": [
+  {"who": "williams", "from": "telephone-exchange", "to": "mikhailovsky-school", "mode": "car", "rc": "inferred", "kit": ["redcross:1"]}]},
 {"id": "field-guns-vladimir", "t": "1917-11-11T11:30", "tq": "stated", "tp": "At half-past eleven", "cal": "none", "sec": "VIII", "p": 193, "loc": "vladimir-school", "witness": "reported", "actors": ["vladimir-yunkers", "red-guards", "mrc"], "tags": ["shooting"],
  "title": "Field-guns at the Vladimir school",
  "sum": "Three field-pieces arrive. Another demand to surrender is met by the yunkers shooting down two of the Soviet delegates under the white flag.",
@@ -1086,7 +1094,9 @@
  "sum": "Mayor Schreider tells the Duma it is neutral, and that he kept the telephones to Smolny working while the yunkers held the Exchange.",
  "q": "We are perfectly neutral. When the Telephone Exchange was occupied by the yunkers Colonel Polkovnikov ordered the telephones to Smolny disconnected",
  "moves": [
-  {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}],
+ "gone": [
+  {"who": "red-guards", "place": "nevsky", "ref": {"sec": "VIII", "q": "The city had again settled down to normal—shop-shutters up, lights shining"}}]},
 {"id": "pulkovo-battle", "t": "1917-11-12T15:00", "tq": "stated", "tp": "by 3 P.M.", "cal": "NS", "dp": "the 12th of November", "sec": "App.IX.1", "p": 236, "loc": "pulkovo", "witness": "document", "actors": ["pulkovo-detachment", "krasnov-cossacks"],
  "title": "The battle of Pulkovo",
  "sum": "The MRC bulletin: by three in the afternoon the artillery fire reaches its height and the Cossacks are completely demoralised.",

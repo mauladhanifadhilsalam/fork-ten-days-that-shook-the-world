@@ -27,7 +27,7 @@ A 3D map of John Reed's *Ten Days That Shook the World* (1919): Reed's own path 
   - Each caption says what the picture shows and when, and says so where it is from before or after these days. It corrects Commons where its date is wrong: the morning of 26 October Old Style is 8 November. The licence names the rule that makes the picture public domain.
   - The pictures illustrate; they are not evidence. Click one to enlarge it.
 - **Reed's walks along the streets he names.** Routes with `rc: "stated"` are solid, routes we inferred are dashed, and moves Reed gives no route for (or that go by train or leave the city) are arcs. Reed is ink by day and pale by night; every other mover takes its bloc's colour.
-- **Who holds what.** The 21 buildings that are Reed's places stand out of the city, and the ones Reed reports as held take the holder's colour on the roof, as he reports it at that moment. A besieged building pulses in the besieger's colour.
+- **Who holds what.** The 22 buildings that are Reed's places stand out of the city, and the ones Reed reports as held take the holder's colour on the roof, as he reports it at that moment. A besieged building pulses in the besieger's colour.
 - **A sky for each scene** on the 1917 Petrograd clock (about UTC+3:01), and the city turns white after Reed's first snow on 13 November.
 - **The city's edge.** The detailed city runs from the Petrograd Side to Smolny. The southern gates and the factories beyond it are pins on a gridded plain.
 - Drag to pan, right-drag or two fingers to rotate, scroll or pinch to zoom. ←/→ step through scenes, space plays. `index.html#storming` opens a scene.
@@ -40,9 +40,9 @@ docs/schema.md         field reference for the data files
 data/meta.json         text and PDF pins, calendar rule, clock, map zones, move speeds, timeline days
 data/sources.json      the sources actually consulted
 data/actors.json       70 factions, bodies, units, people and crowds, with stance over time
-data/places.json       87 places in the city, at the front, off-map, and in Moscow (not toured)
+data/places.json       88 places in the city, at the front, off-map, and in Moscow (not toured)
 data/events.json       157 scenes: time and its quality, verbatim quote, witness type, moves, control changes,
-                       and who is present or gone (130 presence spans)
+                       and who is present or gone (133 presence spans)
 data/pictures.json     the pictures the scenes show, each public domain, with its provenance; media/ holds them
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf

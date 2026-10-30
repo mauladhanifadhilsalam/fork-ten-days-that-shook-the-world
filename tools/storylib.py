@@ -78,7 +78,7 @@ ENUM = {
     'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
-    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'torch', 'bicycle', 'leaflets', 'rifles'},
+    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
     'pose': {'fallen', 'prone'},
     'assault': {'repulsed', 'carried'},
@@ -95,7 +95,7 @@ KIT_WORDS = {
     'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
     'rifles': r'heap of rifles|rifles thrown down|rifles stacked|stacked rifles|piles? of rifles|rifles (lay|lying) in',
-    'whiteflag': r'white flag',
+    'whiteflag': r'white flag', 'redcross': r'Red Cross',
 }
 # How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
 FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramp(ing|ed)|swinging along|swing down|regular tread', 'line': r'\ba line\b|\bline of\b|cordon',
@@ -110,7 +110,7 @@ RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'
 REPULSE_WORDS = r'crumpl|\bfell (back|dead|under)|fallen|driven back|repulsed|beaten off|thrown back|mowed|cut down'   # not a bare "fell": "fell in with the first ranks"
-ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|into)|burst (in|into)|rushed (in|into)|broke (in|into)|swarmed (in|into)|forced (their|a) way'
+ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|into)|burst (in|into)|rushed (in|into)|broke (in|into)|swarmed (in|into)|forced (their|a) way|recaptur'
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
 # a body indoors: the map labels its building and draws no one

@@ -316,7 +316,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
         <li>Each body stands on a patch of its side’s colour. Defenders of a building face out from its walls, and everybody else faces it, or whatever Reed has them look at (“staring at the hotel roof”). A body Reed puts indoors (“they are in the back rooms”) is a label on its building.</li>
         <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
-        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
+        <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. One body is ours too: who “bloodily recaptured” the Military Hotel and the Telegraph Agency Reed does not say, and the map draws sailors, who had held the hotel. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
@@ -880,7 +880,8 @@ function heapPop(h) {
 // A group is a body of people (and its kit) standing at a place: the presences Reed's text
 // keeps there (story.presence), laid out on the open ground, with the defenders of a held
 // building facing outward and everybody else facing it.
-var PERSON_FIG = { soviet: 'intelligent', government: 'officer', opposition: 'bourgeois2', observer: 'reed', foreign: 'bourgeois2', neutral: 'intelligent', public: 'worker' };
+var PERSON_FIG = { soviet: 'intelligent', government: 'officer', opposition: 'bourgeois2', observer: 'intelligent',   // only Reed is drawn as Reed
+  foreign: 'bourgeois2', neutral: 'intelligent', public: 'worker' };
 var GROUPS = [], stageDirty = true, lastFS = 0;
 function members(fig, n, seed) {
   // the composition as a list of model keys, shares rounded so small groups keep their mix
@@ -1595,7 +1596,7 @@ function moverOf(o) {
   var mm = list.map(function (k, i) { return { k: k, i: i }; });
   carryKit(mm, m.kit, m.say);
   var guns = 0; (m.kit || []).forEach(function (k) { var p = k.split(':'); if (p[0] === 'gun') guns = p[1] ? +p[1] : 1; });
-  return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, mass: !!(m.run && mm.length > 12), cols: m.run && mm.length > 12 ? 6 : mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
+  return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, mass: !!(m.run && mm.length > 12), redcross: kitHas(m.kit, 'redcross'), cols: m.run && mm.length > 12 ? 6 : mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
 }
 // where a body member is: d metres along the route, `side` metres to its right; returns [x, y, yaw]
 var _pa = new THREE.Vector3();
@@ -1625,6 +1626,7 @@ function drawMover(mv, FS, t) {
     var v = alongPath(o, head, 0), vk = mv.veh; mv.lx = v[0]; mv.ly = v[1];
     patch(v[0], v[1], 3.2 * FS, mv.bloc);
     put(vk, v[0], 0, -v[1], v[2], FS, 0, 0, 0);
+    if (mv.redcross) put('redcross', v[0] - Math.sin(v[2]) * 1.1 * FS, 0.7 * FS, -v[1] - Math.cos(v[2]) * 1.1 * FS, v[2] + Math.PI / 2, FS * 0.7, 1, walking, 0);   // at the back, flying
     // who rides: in the truck's bed, in the car, on the cab, on the tram's platform
     var seats = vk === 'truck' ? [[-0.5, -0.4], [0.5, -0.4], [-0.5, -1.3], [0.5, -1.3], [0, -2.1], [0, -0.9]] : vk === 'car' ? [[0.35, -0.6], [-0.35, -0.6], [0.35, 0.3]] :
       vk === 'cab' ? [[0, -1.9]] : vk === 'tram' ? [[0.4, -4.1], [-0.4, -4.1]] : [];
@@ -1920,7 +1922,7 @@ function armFights() {
   // the bodies inside their buildings first, then everybody who fires at them
   GROUPS.forEach(function (g) {
     if (!g.members) { g.fire = null; g.assault = null; g.patrol = false; return; }   // a ship: nothing to fire with
-    if (g.fire === true && cur && (besiegedIn(g, cur.t) || (g.inside && !kitHas(g.kit, 'barricade')))) g.fire = 'windows';
+    if (g.fire === true && !g.assault && cur && (besiegedIn(g, cur.t) || (g.inside && !kitHas(g.kit, 'barricade')))) g.fire = 'windows';   // a body storming it is outside
     if (g.fire === 'windows' && !windowsOf(g, foeOf(g))) g.fire = null;
   });
   GROUPS.forEach(hoist);   // once it is known who is inside: the white flag at a window
