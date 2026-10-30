@@ -315,7 +315,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <ul>
         <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
         <li>Each body stands on a patch of its side’s colour. Defenders of a building face out from its walls, and everybody else faces it, or whatever Reed has them look at (“staring at the hotel roof”). A body Reed puts indoors (“they are in the back rooms”) is a label on its building.</li>
-        <li>Where Reed says how a body stands, it stands so in that scene: “an interminable column of soldiers” down the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours, not his.</li>
+        <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” down the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours, not his.</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
@@ -1387,7 +1387,7 @@ function stageScene(e, noReed) {
   (S.presence || []).forEach(function (p, pi) {
     if (!on(p) || (!p.brief && briefs[p.who + '|' + p.place])) return;
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
-    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && p.from === idx ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && p.from === idx ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && (p.from === idx || p.form === 'line') ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && p.from === idx ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
     GROUPS.push(g);
     if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
   });
@@ -1421,6 +1421,7 @@ function stageScene(e, noReed) {
     g.members = []; g.props = [{ k: 'avrora', x: G.sx, y: G.sy, yaw: Math.atan2(Math.cos(G.axis), -Math.sin(G.axis)), ship: true }]; g.cx = G.sx; g.cy = G.sy; g.r = 60; g.fires = [];
   });
   linkArrivals(e, idx);
+  linkShares(e);
   stageDirty = true;
 }
 // A body that marches in during the scene and that Reed has stand at its destination in the same
@@ -1437,6 +1438,27 @@ function linkArrivals(e, idx) {
   });
 }
 function arrived(g) { return !g.arrival || g.arrival.f >= 1; }
+// A body that marches off from a body of its own standing at the place takes its share with it as it
+// sets out ("two of the companies ... went swinging off across the Square"); one that marches back to a
+// body of its own joins it when it gets there. One that marches off elsewhere, with nothing of it kept
+// there, files on into the end of its route and is gone ("disappearing through the Red Arch")
+function linkShares(e) {
+  GROUPS.forEach(function (g) { g.shares = null; (g.members || []).forEach(function (m) { m.away = false; }); });
+  movers.forEach(function (mv) {
+    mv.fileOn = false;
+    if (mv.m.who === 'reed' || mv.arc || mv.veh || !mv.list.length) return;
+    var p0 = mv.o.pts[0];
+    GROUPS.forEach(function (g) {
+      if (g.who !== mv.m.who || g === mv.handover || g.inside || g.reed || !g.members || !g.members.length) return;
+      if (rootOf(g.place) === rootOf(mv.m.from)) {
+        var k = mv.list.length >= 0.95 * g.members.length ? g.members.length : Math.min(mv.list.length, g.members.length - 1);
+        var list = g.members.slice().sort(function (a, b) { return Math.hypot(a.x - p0.x, a.y + p0.z) - Math.hypot(b.x - p0.x, b.y + p0.z); }).slice(0, k);
+        (g.shares = g.shares || []).push({ mv: mv, list: list });
+      } else if (!mv.handover && rootOf(g.place) === rootOf(mv.m.to)) mv.handover = g;
+    });
+    mv.fileOn = !mv.handover && !mv.m.stay && rootOf(mv.m.to) !== rootOf(e.loc);
+  });
+}
 var SHORT = { 'red-guards': 'Red Guards', sailors: 'Sailors', garrison: 'Soldiers', yunkers: 'Yunkers', 'vladimir-yunkers': 'Vladimir yunkers',
   'engineers-yunkers': 'Engineering yunkers', 'pavlovsk-yunkers': 'Pavlovsk yunkers', 'womens-battalion': 'Women’s Battalion', 'peter-paul-garrison': 'Peter-Paul garrison',
   avrora: 'The Avrora', mrc: 'Military Revolutionary Committee', 'military-staff': 'The Staff', workers: 'Workers', crowd: 'Crowd', duma: 'The Duma’s militia',
@@ -1494,7 +1516,7 @@ function moverOf(o) {
   var mm = list.map(function (k, i) { return { k: k, i: i }; });
   carryKit(mm, m.kit, m.say);
   var guns = 0; (m.kit || []).forEach(function (k) { var p = k.split(':'); if (p[0] === 'gun') guns = p[1] ? +p[1] : 1; });
-  return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, cols: mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
+  return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, mass: !!(m.run && mm.length > 12), cols: m.run && mm.length > 12 ? 6 : mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
 }
 // where a body member is: d metres along the route, `side` metres to its right; returns [x, y, yaw]
 var _pa = new THREE.Vector3();
@@ -1518,7 +1540,8 @@ function drawMover(mv, FS, t) {
     }
     lead = o.total;
   }
-  var head = lead, cols = mv.cols;
+  var head = lead, cols = mv.cols, gunRows = mv.cav && mv.guns ? Math.max(0, (mv.guns * 9 - 2) / 2.75) : 0;
+  if (mv.fileOn) head = mv.f * (o.total + (Math.ceil(mv.list.length / cols) + gunRows) * gap * (mv.cav ? 2.2 : 1));   // on through its end, and gone
   if (mv.veh) {
     var v = alongPath(o, head, 0), vk = mv.veh; mv.lx = v[0]; mv.ly = v[1];
     patch(v[0], v[1], 3.2 * FS, mv.bloc);
@@ -1537,21 +1560,22 @@ function drawMover(mv, FS, t) {
     if (mv.leaflets && walking) leafletsAt(v[0], -v[1], v[2], FS, t);
     return;
   }
-  var gunRows = 0;
   if (mv.cav && mv.guns) {   // a battery: each gun behind a pair of horses, the rest riding after
     for (var gI = 0; gI < mv.guns; gI++) {
       var gd = head - gI * 9 * FS, g1 = alongPath(o, gd, 0), g2 = alongPath(o, gd - 4 * FS, 0);
+      if (mv.fileOn && gd - 4 * FS > o.total) continue;
       put('horse', g1[0] + Math.cos(g1[2]) * 0.55 * FS, 0, -g1[1] - Math.sin(g1[2]) * 0.55 * FS, g1[2], FS, gI, walking, 0);
       put('horse2', g1[0] - Math.cos(g1[2]) * 0.55 * FS, 0, -g1[1] + Math.sin(g1[2]) * 0.55 * FS, g1[2], FS, gI + 0.5, walking, 0);
       put('gun', g2[0], 0, -g2[1], g2[2] + Math.PI, FS, 0, 0, 0);
     }
-    gunRows = Math.max(0, (mv.guns * 9 - 2) / 2.75);   // in riders' rows (2.2 gaps of 1.25), the first just behind the last gun
-  }
+  }   // gunRows: the riders' rows (2.2 gaps of 1.25) the guns take, the first rider just behind the last gun
   mv.list.forEach(function (mm, i) {
     var row = Math.floor(i / cols) + gunRows, col = i % cols, d = head - row * gap * (mv.cav ? 2.2 : 1);
     var side = (col - (cols - 1) / 2) * gap * 0.9;
-    var p = alongPath(o, Math.max(0, d), side), key = mv.cav && !mv.guns ? 'cavalry' : mm.k;
+    if (mv.mass) { side += (hash(i * 1.7 + 0.3) - 0.5) * gap * 0.9; d += (hash(i * 3.1 + 0.7) - 0.5) * gap * 1.4; }   // bunched, not in ranks
+    var p = alongPath(o, Math.max(0, Math.min(o.total, d)), side), key = mv.cav && !mv.guns ? 'cavalry' : mm.k;
     if (i === 0) { mv.lx = p[0]; mv.ly = p[1]; }
+    if (mv.fileOn && d > o.total) return;
     if (mv.cav && mv.guns) key = 'cavalry';
     if (mv.m.run && walking && PK.armed[key]) key += '.charge';   // running at the enemy, bayonet first
     put(key, p[0], 0, -p[1], p[2], FS, i * 1.3, walking, walking ? 0 : 0.3);
@@ -2149,6 +2173,7 @@ function drawPeople(now, FS) {
   reedGlow.visible = false;
   GROUPS.forEach(function (g) {
     if (!arrived(g)) return;   // its marchers are still on the way
+    (g.shares || []).forEach(function (sh) { var away = sh.mv.f > 0; sh.list.forEach(function (mm) { mm.away = away; }); });   // gone with the march
     var adv = 0, walking = 0;
     if (g.spine) {   // a column: a passing one advances while the scene lasts, then marks time
       if (g.speed) { adv = Math.min(g.adv, g.speed * Math.max(0, now - scene0) / 1000 * speed); walking = adv < g.adv ? 1 : 0; }
@@ -2168,7 +2193,7 @@ function drawPeople(now, FS) {
       }
     });
     if (!g.inside) (g.members || []).forEach(function (mm, i) {
-      if (mm.gone) return;   // into the building
+      if (mm.gone || mm.away) return;   // into the building, or marched off
       var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS, wk = mm.walk ? 1 : mm.s0 != null && !mm.pose ? walking : 0;
       put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, mm.yaw, FS, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
       if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i, mm.say);
@@ -2303,7 +2328,7 @@ function placeGroupLabels(w, h, placed) {
       else if (g.secs) { var cxm = camera.position.x, cym = -camera.position.z, bs = null; g.secs.forEach(function (q) { var d = Math.hypot(q.x - cxm, q.y - cym); if (!bs || d < bs.d) bs = { d: d, q: q }; }); lx = bs.q.x; ly = bs.q.y; }
       cands.push({ x: lx, y: ly, h: g.ship ? 42 : 3.0 * FS + 1, t: g.label, b: g.bloc, big: (g.members || []).length + (g.ship ? 50 : 0) });
     });
-    movers.forEach(function (mv) { if (mv.lx != null && mv.m.who !== 'reed' && !(mv.handover && mv.f >= 1)) cands.push({ x: mv.lx, y: mv.ly, h: 3.3 * FS + 1, t: mv.label, b: mv.bloc, big: 999 }); });
+    movers.forEach(function (mv) { if (mv.lx != null && mv.m.who !== 'reed' && !((mv.handover || mv.fileOn) && mv.f >= 1)) cands.push({ x: mv.lx, y: mv.ly, h: 3.3 * FS + 1, t: mv.label, b: mv.bloc, big: 999 }); });
     cands.sort(function (a, b) { return b.big - a.big; });
     cands.forEach(function (c) {
       v3.set(c.x, c.h, -c.y).project(camera);
@@ -2584,7 +2609,7 @@ function actionMover(e) {
     if (mv.arc) return;
     if (mv.m.who === 'reed') { reed = Math.max(reed, mv.o.total); return; }
     var w = mv.list.length + mv.guns * 8 + (mv.veh ? 6 : 0);
-    if (mv.o.total < 150 || w < 3) return;
+    if (mv.o.total < 80 || w < 3) return;
     if (!best || w > best.w) best = { mv: mv, w: w };
   });
   return best && !(reed > 650 && reed > 2 * best.mv.o.total) ? best.mv : null;
@@ -2628,7 +2653,9 @@ function closeFrame(e) {
   var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0;
   GROUPS.forEach(function (g) {
     if (g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
-    var w = Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1); sx += g.cx * w; sy += g.cy * w; sw += w;
+    var w = Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);
+    if (g.p && g.p.from === seq.indexOf(e) && (g.pose || g.fire || g.assault || g.brief)) w *= 3;   // what happens in this scene before who stands by
+    sx += g.cx * w; sy += g.cy * w; sw += w;
   });
   // the bodies that arrive in the scene count where they end up
   var ends = [];
@@ -2637,13 +2664,19 @@ function closeFrame(e) {
     var q = mv.o.pts[mv.o.pts.length - 1], mx = q.x, my = -q.z;
     if (Math.hypot(mx - tx, my - ty) > 260) return;
     var w = Math.min(60, mv.list.length + 1); sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
+    var q0 = mv.o.pts[0];   // and where a short march sets out, so it is seen setting out
+    if (!mv.arc && Math.hypot(q0.x - tx, -q0.z - ty) <= 260) { sx += q0.x * w / 2; sy += -q0.z * w / 2; sw += w / 2; ends.push([q0.x, -q0.z]); }
   });
   if (!sw && e.witness !== 'seen') return null;
   if (sw) { tx = tx * 0.35 + sx / sw * 0.65; ty = ty * 0.35 + sy / sw * 0.65; }
   // far enough back to take in every body of the scene's place
   var spread = 0;
   GROUPS.forEach(function (g) { if (g.cx != null && !g.reed && Math.hypot(g.cx - (G ? G.sx : l.p[0]), g.cy - (G ? G.sy : l.p[1])) <= 260) spread = Math.max(spread, Math.hypot(g.cx - tx, g.cy - ty) + (g.r || 0)); });
-  var target = new THREE.Vector3(tx, 0, -ty), dist = Math.max(PHONE ? 260 : 200, Math.min(PHONE ? 520 : 440, spread * 1.8)), pol = 1.05;
+  ends.forEach(function (q) { spread = Math.max(spread, Math.hypot(q[0] - tx, q[1] - ty) + 6); });
+  // and far enough that the marches setting out or arriving show beside the card
+  var far = 0; ends.forEach(function (q) { far = Math.max(far, Math.hypot(q[0] - tx, q[1] - ty) + 6); });
+  var halfW = Math.tan(camera.fov * Math.PI / 360) * camera.aspect * (PHONE ? 0.8 : 0.5);
+  var target = new THREE.Vector3(tx, 0, -ty), dist = Math.max(PHONE ? 260 : 200, Math.min(PHONE ? 520 : 440, Math.max(spread * 1.8, far / halfW))), pol = 1.05;
   var dir = camera.position.clone().sub(controls.target); dir.y = 0;
   if (dir.lengthSq() < 1) dir.set(0, 0, 1);
   dir.normalize();
@@ -2857,8 +2890,9 @@ function select(id, opts) {
     var a0 = act.o.pts[0], a1 = act.o.pts[act.o.pts.length - 1];
     follow = { mv: act, d: PHONE ? 320 : 260, pol: 0.75 };   // from high enough to see down the streets
     flyTo(frameAt(a0.x, -a0.z, follow.d, follow.pol, a1.x - a0.x, -(a1.z - a0.z)), opts.instant ? 0 : 1800);
-    // then down to the scene, if that is where it ends; else it stays with the body where it got to
-    closeAfter = close && Math.hypot(close.target.x - a1.x, close.target.z - a1.z) < 150 ? close : null;
+    // then down to the scene, if that is where it ends or it has gone on out of it; else it stays with the
+    // body where it got to
+    closeAfter = close && (act.fileOn || Math.hypot(close.target.x - a1.x, close.target.z - a1.z) < 150) ? close : null;
   } else if (close && !long) flyTo(close, opts.instant ? 0 : 1800);
   else {
     flyTo(frameFor(e), opts.instant ? 0 : 1800);

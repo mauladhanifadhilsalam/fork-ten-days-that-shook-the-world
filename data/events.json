@@ -503,7 +503,7 @@
   {"sec": "IV", "q": "In the open we began to run, stooping low and bunching together"}],
  "moves": [
   {"who": "reed", "from": "morskaya-nevsky", "via": ["red-arch"], "to": "palace-square", "mode": "foot", "rc": "stated"},
-  {"who": "red-guards", "size": "some hundreds of men", "n": 60, "from": "morskaya-nevsky", "via": ["red-arch"], "to": "palace-square", "mode": "foot", "rc": "stated"}],
+  {"who": "red-guards", "size": "some hundreds of men", "n": 60, "from": "morskaya-nevsky", "via": ["red-arch"], "to": "palace-square", "mode": "foot", "rc": "stated", "run": true}],
  "present": [
   {"who": "yunkers", "place": "winter-palace", "kit": ["rifles"], "inside": true, "ref": {"sec": "IV", "q": "Over the barricade of firewood we clambered, and leaping down inside gave a triumphant shout as we stumbled on a heap of rifles thrown down by the yunkers who had stood there."}},
   {"who": "red-guards", "place": "palace-square", "size": "some hundreds of men", "n": 60, "brief": true, "ref": {"sec": "IV", "q": "In the open we began to run, stooping low and bunching together, and jammed up suddenly behind the pedestal of the Alexander Column."}}]},

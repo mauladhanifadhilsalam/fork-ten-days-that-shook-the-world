@@ -240,7 +240,7 @@
  "name": "Palace Square",
  "reed": ["Palace Square"],
  "ru": "Дворцовая площадь"},
-{"id": "palace-square-west", "kind": "area", "zone": "city", "in": "palace-square", "ll": [59.93869, 30.31295], "acc": 60, "conf": "identified",
+{"id": "palace-square-west", "kind": "area", "zone": "city", "in": "palace-square", "ll": [59.93874, 30.31381], "acc": 60, "conf": "identified",
  "geo": {"m": "hand", "at": "the opening between the Winter Palace's south-west corner and the west wing of the General Staff", "on": "2026-10-29"},
  "name": "The western end of the Palace Square",
  "reed": ["western end"],
