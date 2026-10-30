@@ -42,7 +42,7 @@ data/sources.json      the sources actually consulted
 data/actors.json       70 factions, bodies, units, people and crowds, with stance over time
 data/places.json       87 places in the city, at the front, off-map, and in Moscow (not toured)
 data/events.json       156 scenes: time and its quality, verbatim quote, witness type, moves, control changes,
-                       and who is present or gone (130 presence spans)
+                       and who is present or gone (129 presence spans)
 data/pictures.json     the pictures the scenes show, each public domain, with its provenance; media/ holds them
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf

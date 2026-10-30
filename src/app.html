@@ -315,7 +315,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <ul>
         <li>Every body of people on the map is one that Reed puts there: the scene’s quotation, or another passage of his, names it. It stays until his text removes it: it marches off, it is disarmed, or the building it holds falls to the other side. A passing crowd stands only for its scene. The card lists who is on the scene, in Reed’s words.</li>
         <li>Each body stands on a patch of its side’s colour. Defenders of a building face out from its walls, and everybody else faces it, or whatever Reed has them look at (“staring at the hotel roof”). A body Reed puts indoors (“they are in the back rooms”) is a label on its building.</li>
-        <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” down the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours, not his.</li>
+        <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
@@ -985,6 +985,15 @@ function layoutPlace(id, groups, t) {
     if (mv.m.who !== 'reed' || !mv.o.pts || !mv.o.pts.length || rootOf(mv.m.to) !== rootOf(id)) return;
     var q = mv.o.pts[mv.o.pts.length - 1], kr = cellAt(q.x, -q.z); if (kr >= 0) take(kr, 3.5);
   });
+  // bodies laid out already at a neighbouring place (the Duma's door and the Nevsky before it) keep their
+  // ground: nobody here stands in them
+  GROUPS.forEach(function (h) {
+    if (groups.indexOf(h) >= 0 || !h.members || !h.members.length || h.inside) return;
+    h.members.forEach(function (m) { var kq = cellAt(m.x, m.y); if (kq >= 0) take(kq, 0.9); });
+    (h.props || []).forEach(function (pr) { var kq = pr.ship ? -1 : cellAt(pr.x, pr.y); if (kq >= 0) take(kq, 2.5); });
+  });
+  // a body there before keeps its cars and guns clear of the ground the scene's own people take
+  var briefFigs = 0; groups.forEach(function (h) { if (h.brief) briefFigs += h.n || 12; });
   var siege = st && (st.state === 'besieged' || st.state === 'contested'), gapIx = 0;
   while (gapIx < G.order.length - 1 && G.dist[G.order[gapIx]] * G.R.cs < 24) gapIx++;
   function free(k) { return G.ok[k] && !used[k]; }
@@ -1303,7 +1312,8 @@ function layoutPlace(id, groups, t) {
     [['gun', nGun, 2.2], ['armoured', nArm, 3.4], ['truck', nTruck, 3.6], ['car', nCar, 2.8]].forEach(function (v) {
       for (var j = 0; j < v[1]; j++) {
         var room = v[2] * 2.2;   // drawn at FS 2 or more
-        var at = pick(cur + 18 + j * 25, room); if (at < 0) at = pick(cur + 18 + j * 25, v[2]); if (at < 0) return;
+        var from = cur + 18 + j * 25 + (g.brief ? 0 : Math.round(briefFigs * 3));
+        var at = pick(from, room); if (at < 0) at = pick(from, v[2]); if (at < 0) return;
         var kk = G.order[at]; take(kk, room);
         var vx = cellX(G, kk), vy = cellY(G, kk), yaw = v[0] === 'gun' || fxy ? yawAt(vx, vy) : facingYaw(vx, vy, G.cx, G.cy) + Math.PI / 2 + (hash(seed + j) - 0.5);
         if (!fxy && (v[0] !== 'gun' || (!g.fire && !defend))) {   // a vehicle in a street stands along it, and so does a gun nobody aims
@@ -1333,6 +1343,10 @@ function layoutPlace(id, groups, t) {
       aord = cells.sort(function (a, b) { return Math.hypot(cellX(G, a) - lx, cellY(G, a) - ly) - Math.hypot(cellX(G, b) - lx, cellY(G, b) - ly); }).slice(0, 4000);
     }
     var watched = !fxy && !g.form && !defend && (g.brief || isCrowd(g)) ? groups.filter(function (h) { return h !== g && h.form && h.members && h.members.length; }) : [];
+    // watchers stand off from what they watch, and from where a march sets out ("between crowds that stood
+    // in astonished silence")
+    watched.forEach(function (h) { h.members.forEach(function (m) { var kq = cellAt(m.x, m.y); if (kq >= 0) take(kq, 3); }); });
+    if (isCrowd(g)) movers.forEach(function (mv) { if (mv.m.who === 'reed' || mv.arc || rootOf(mv.m.from) !== rootOf(id)) return; var q0 = mv.o.pts[0], kq = cellAt(q0.x, -q0.z); if (kq >= 0) take(kq, 5); });
     function faceWatch(x, y) {
       var bm = null, bd = 6400;
       watched.forEach(function (h) { h.members.forEach(function (m) { var d = (m.x - x) * (m.x - x) + (m.y - y) * (m.y - y); if (d < bd) { bd = d; bm = m; } }); });

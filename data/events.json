@@ -559,7 +559,7 @@
  "moves": [
   {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}],
  "present": [
-  {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}],
+  {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "brief": true, "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}],
  "gone": [
   {"who": "garrison", "place": "kazan-cathedral-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}},
   {"who": "garrison", "place": "police-bridge", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone, and the only signs of war were Red Guards and soldiers squatting around fires"}},
@@ -668,8 +668,8 @@
   {"who": "reed", "from": "reed-lodging", "via": ["nevsky"], "to": "city-duma", "mode": "foot", "rc": "stated"}],
  "present": [
   {"who": "duma", "place": "city-duma", "size": "students and officers with white arm-bands", "n": 10, "ref": {"sec": "VI", "q": "The doors were guarded by students and officers with white arm-bands lettered in red"}},
-  {"who": "crowd", "size": "the kind of people that crowd the sidewalks of Fifth Avenue", "n": 120, "brief": true, "ref": {"sec": "VI", "q": "on the other a frantic mob made up of the kind of people that crowd the sidewalks of Fifth Avenue at noon-time"}},
-  {"who": "red-guards", "size": "Red Guards and sailors, with bayonetted rifles", "n": 6, "brief": true, "ref": {"sec": "VI", "q": "Here and there stood Red Guards and sailors, with bayonetted rifles, each one surrounded by about a hundred men and women"}}]},
+  {"who": "red-guards", "size": "Red Guards and sailors, with bayonetted rifles", "n": 6, "brief": true, "ref": {"sec": "VI", "q": "Here and there stood Red Guards and sailors, with bayonetted rifles, each one surrounded by about a hundred men and women"}},
+  {"who": "crowd", "size": "the kind of people that crowd the sidewalks of Fifth Avenue", "n": 240, "brief": true, "ref": {"sec": "VI", "q": "on the other a frantic mob made up of the kind of people that crowd the sidewalks of Fifth Avenue at noon-time"}}]},
 {"id": "shot-into-crowd", "t": "1917-11-09T13:55", "tq": "inferred", "tr": ["1917-11-09T12:30", "1917-11-09T16:00"], "cal": "none", "sec": "VI", "p": 160, "loc": "city-duma", "witness": "seen", "actors": ["red-guards"], "tags": ["shooting"],
  "title": "A shot into the crowd",
  "why": "Moments before the armoured car: Reed is still at the window when it comes round the corner (“As we looked, suddenly”).",
@@ -703,7 +703,8 @@
  "sum": "At dusk a double file of cyclists, come from the front to back the Soviets, comes riding on the Nevsky and halts; the crowd presses in with questions.",
  "q": "Out on the Nevsky, in the deepening dusk, a long double file of cyclists came riding, guns slung on their shoulders.",
  "moves": [
-  {"who": "reed", "from": "city-duma", "to": "nevsky", "mode": "foot", "rc": "inferred"}],
+  {"who": "reed", "from": "city-duma", "to": "nevsky", "mode": "foot", "rc": "inferred"},
+  {"who": "cyclists", "size": "a long double file of cyclists", "n": 30, "from": "sadovaya-nevsky", "to": "nevsky", "mode": "march", "rc": "inferred", "kit": ["bicycle"]}],
  "present": [
   {"who": "cyclists", "size": "a long double file of cyclists", "n": 30, "kit": ["bicycle"], "form": "column", "brief": true},
   {"who": "crowd", "brief": true, "ref": {"sec": "VI", "q": "They halted, and the crowd pressed in and deluged them with questions."}}]},
@@ -738,9 +739,8 @@
  "sum": "After midnight an endless column of soldiers shuffles up the Nevsky in silence, going to meet Kerensky.",
  "q": "Up the Nevsky, in the empty after-midnight gloom, an interminable column of soldiers shuffled in silence—to battle with Kerensky.",
  "moves": [
-  {"who": "reed", "from": "peter-paul", "to": "nevsky", "mode": "unknown", "rc": "none"}],
- "present": [
-  {"who": "garrison", "place": "nevsky", "size": "an interminable column of soldiers", "n": 120, "form": "column", "march": true, "brief": true}]},
+  {"who": "reed", "from": "peter-paul", "to": "nevsky", "mode": "unknown", "rc": "none"},
+  {"who": "garrison", "size": "an interminable column of soldiers", "n": 120, "from": "kazan-bridge-east", "via": ["nevsky"], "to": "sadovaya-nevsky", "mode": "march", "rc": "inferred"}]},
 {"id": "krasnoye-selo-bulletin", "t": "1917-11-10T11:00", "tq": "inferred", "tr": ["1917-11-10T08:00", "1917-11-10T16:00"], "cal": "none", "sec": "VII", "p": 178, "loc": "smolny", "witness": "document", "actors": ["muraviov", "mrc"],
  "title": "Bulletin from Krasnoye Selo",
  "why": "Posted after the 8 a.m. bulletin and before Reed leaves for Tsarskoye.",
@@ -1070,16 +1070,14 @@
  "moves": [
   {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "reed-lodging", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "garrison", "size": "the regiments", "form": "column", "march": true, "brief": true, "ref": {"sec": "VIII", "q": "Going home I saw them pass, swinging along with the regular tread of veterans, bayonets in perfect alignment, through the deserted streets of the conquered city"}}]},
+  {"who": "garrison", "size": "the regiments", "n": 120, "form": "column", "march": true, "brief": true, "ref": {"sec": "VIII", "q": "Going home I saw them pass, swinging along with the regular tread of veterans, bayonets in perfect alignment, through the deserted streets of the conquered city"}}]},
 {"id": "schreider-neutral", "t": "1917-11-12T13:00", "tq": "inferred", "tr": ["1917-11-12T11:00", "1917-11-12T16:00"], "cal": "none", "sec": "VIII", "p": 202, "loc": "city-duma", "witness": "seen", "actors": ["schreider", "duma", "polkovnikov"],
  "title": "“We are perfectly neutral”",
  "why": "The day session, before dusk.",
  "sum": "Mayor Schreider tells the Duma it is neutral, and that he kept the telephones to Smolny working while the yunkers held the Exchange.",
  "q": "We are perfectly neutral. When the Telephone Exchange was occupied by the yunkers Colonel Polkovnikov ordered the telephones to Smolny disconnected",
  "moves": [
-  {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}],
- "gone": [
-  {"who": "red-guards", "place": "nevsky", "ref": {"sec": "VIII", "q": "The city had again settled down to normal—shop-shutters up, lights shining"}}]},
+  {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}]},
 {"id": "pulkovo-battle", "t": "1917-11-12T15:00", "tq": "stated", "tp": "by 3 P.M.", "cal": "NS", "dp": "the 12th of November", "sec": "App.IX.1", "p": 236, "loc": "pulkovo", "witness": "document", "actors": ["pulkovo-detachment", "krasnov-cossacks"],
  "title": "The battle of Pulkovo",
  "sum": "The MRC bulletin: by three in the afternoon the artillery fire reaches its height and the Cossacks are completely demoralised.",
@@ -1403,7 +1401,7 @@
   {"sec": "XII", "q": "Along the bank of the canal were drawn up in full marching order the soldiers of the Pavlovsky Regiment, with their band, which broke into the Marseillaise."},
   {"sec": "XII", "q": "So the great procession wound through the city, growing and unfurling ever new red banners lettered in gold."}],
  "moves": [
-  {"who": "peasants-congress", "size": "the throng", "n": 90, "from": "fontanka-6", "via": ["smolny-gates"], "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["torch", "banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]},
+  {"who": "peasants-congress", "size": "the throng", "n": 90, "from": "fontanka-6", "to": "smolny-gates", "mode": "march", "rc": "inferred", "kit": ["torch", "banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]},
   {"who": "reed", "from": "fontanka-6", "via": ["smolny-gates"], "to": "smolny", "mode": "foot", "rc": "inferred"}],
  "present": [
   {"who": "pavlovsky", "size": "the soldiers of the Pavlovsky Regiment", "n": 48, "form": "ranks", "brief": true, "ref": {"sec": "XII", "q": "Along the bank of the canal were drawn up in full marching order the soldiers of the Pavlovsky Regiment, with their band, which broke into the Marseillaise."}},
@@ -1416,6 +1414,8 @@
  "also": [
   {"sec": "XII", "q": "Near Smolny the Red Guard was lined up on both sides of the street, wild with delight."},
   {"sec": "XII", "q": "Like a wave they rushed down, clasping the peasants in their arms and kissing them; and the procession poured in through the great door and up the stairs, with a noise like thunder"}],
+ "moves": [
+  {"who": "peasants-congress", "size": "the great procession", "n": 90, "from": "smolny-gates", "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]}],
  "present": [
   {"who": "red-guards", "place": "smolny-gates", "size": "the Red Guard", "n": 40, "brief": true, "ref": {"sec": "XII", "q": "Near Smolny the Red Guard was lined up on both sides of the street, wild with delight."}},
   {"who": "petrograd-soviet", "size": "about a hundred Workers’ and Soldiers’ Deputies", "kit": ["banner:1"], "brief": true},
