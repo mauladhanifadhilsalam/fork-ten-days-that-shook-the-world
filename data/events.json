@@ -1142,7 +1142,7 @@
  "sum": "At the Nicolai Station a member of the Vikzhel refuses to carry the massed sailors to Moscow, until a few railwaymen open another door: “This way, comrades!”",
  "q": "“This way, comrades!” cried one. “We will take you to Moscow—or Vladivostok, if you like! Long live the Revolution!”",
  "moves": [
-  {"who": "reed", "from": "smolny", "via": ["znamensky-square"], "to": "nicolai-station", "mode": "car", "rc": "stated"},
+  {"who": "reed", "from": "smolny", "via": ["znamensky-square"], "to": "nicolai-station", "mode": "car", "rc": "inferred"},
   {"who": "reed", "from": "nicolai-station", "to": "reed-lodging", "mode": "car", "rc": "none"}],
  "present": [
   {"who": "sailors", "size": "Several thousand sailors", "n": 150, "brief": true, "ref": {"sec": "VIII", "q": "Several thousand sailors were massed there, bristling with rifles."}}]},
@@ -1327,7 +1327,7 @@
  "moves": [
   {"who": "reed", "from": "uncle-toms-cabin", "to": "nicolai-station", "mode": "unknown", "rc": "none", "gap": true}],
  "present": [
-  {"who": "unknown-soldiers", "size": "a mob of shabby soldiers, all carrying huge sacks of eatables", "n": 40, "brief": true, "ref": {"sec": "X", "q": "a mob of shabby soldiers, all carrying huge sacks of eatables, stormed the doors, smashed the windows, and poured into all the compartments, filling up the aisles and even climbing onto the roof"}}]},
+  {"who": "unknown-soldiers", "size": "a mob of shabby soldiers, all carrying huge sacks of eatables", "n": 40, "inside": true, "brief": true, "ref": {"sec": "X", "q": "a mob of shabby soldiers, all carrying huge sacks of eatables, stormed the doors, smashed the windows, and poured into all the compartments, filling up the aisles and even climbing onto the roof"}}]},
 {"id": "hotel-national", "t": "1917-11-20T18:00", "tq": "inferred", "tr": ["1917-11-18T16:00", "1917-11-26T22:00"], "cal": "none", "sec": "X", "p": 244, "loc": "hotel-national", "witness": "seen", "actors": ["mossoviet"], "tags": ["moscow"],
  "title": "Rooms at the Hotel National",
  "why": "After a night and the next day on the train (“all night long”, then “until dark”): the evening after the departure.",

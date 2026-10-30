@@ -892,6 +892,12 @@ function members(fig, n, seed) {
   }
   return out;
 }
+// did the side of `bloc` hold building `id` just before its present holder took it?
+function lostBy(id, t, bloc) {
+  var tl = CTL[id], now = holdAt(id, t), prev = null; if (!tl || !now || !now.holder) return false;
+  for (var i = 0; i < tl.length && tl[i] !== now; i++) if (tl[i].holder && blocOf(tl[i].holder) !== blocOf(now.holder)) prev = tl[i];
+  return !!(prev && SIDE[bloc] && SIDE[blocOf(prev.holder)] === SIDE[bloc] && SIDE[blocOf(now.holder)] !== SIDE[bloc]);
+}
 function holderBloc(id, t) { var s = holdAt(id, t); return s && s.holder ? blocOf(s.holder) : null; }
 function facingYaw(x, y, tx, ty) { return Math.atan2(tx - x, -(ty - y)); }   // world z is -y
 // what a body looks at, if Reed says ("staring at the hotel roof"): the place's pin, or the body's
@@ -1267,7 +1273,11 @@ function layoutPlace(id, groups, t, loc) {
     // and a patrol come to deliver an ultimatum ("visited by a patrol ... who gave the yunkers twenty minutes")
     // and on ground nobody holds, the second of two opposed bodies keeps off the first (the officer's party
     // that put the Red Guards' picket to flight on the Nicolai Bridge)
-    var cur = (owner ? opposed(g.bloc, owner) : groups.slice(0, gi).some(function (h) { return opposed(h.bloc, g.bloc) && h.members && h.members.length; })) ? gapIx : 0;
+    // Only from holders who are there to keep it from ("some soldiers ... at the closed gates" of a bank whose
+    // defenders Reed never shows stand at the gates), and not for the side that has just lost it: its men
+    // come out among the victors ("Yunkers came out, in bunches of three or four")
+    var held = owner && groups.some(function (h) { return SIDE[h.bloc] && SIDE[h.bloc] === SIDE[owner]; }), lost = owner && lostBy(id, t, g.bloc);
+    var cur = lost ? 0 : (owner && held ? opposed(g.bloc, owner) : groups.slice(0, gi).some(function (h) { return opposed(h.bloc, g.bloc) && h.members && h.members.length; })) ? gapIx : 0;
     var fxy = faceXY(g), pk = PL[id] && PL[id].kind, bldg = pk === 'building' || pk === 'station' || pk === 'complex' ? outlinesOf(id) : [];
     function yawAt(x, y) {
       var j = hash(seed + x * 0.37 + y) - 0.5;
@@ -1391,6 +1401,13 @@ function layoutPlace(id, groups, t, loc) {
         if (dw >= 4 && dw <= 16) band.push([kw, dw]);
       }
       if (band.length) aord = band.sort(function (a, b) { return b[1] - a[1]; }).map(function (q) { return q[0]; });
+    }
+    // a small body with a truck or a car stands round it ("Men were tossing bundles into it, and others
+    // receiving them")
+    var myVeh = !aord && !g.form && figs.length - fi <= 16 ? g.props.filter(function (p) { return p.k === 'truck' || p.k === 'car'; })[0] : null;
+    if (myVeh) {
+      var vc = []; for (var kv = 0; kv < W * G.R.h; kv++) if (G.ok[kv] && !used[kv] && Math.hypot(cellX(G, kv) - myVeh.x, cellY(G, kv) - myVeh.y) < 25) vc.push(kv);
+      if (vc.length) aord = vc.sort(function (a, b) { return Math.hypot(cellX(G, a) - myVeh.x, cellY(G, a) - myVeh.y) - Math.hypot(cellX(G, b) - myVeh.x, cellY(G, b) - myVeh.y); });
     }
     if (!aord && cur > 0 && !g.form) {   // besiegers keep together on one side, at their distance ("standing at the closed gates")
       var ka = G.order[Math.min(cur, G.order.length - 1)], axb = cellX(G, ka), ayb = cellY(G, ka);
@@ -1898,7 +1915,7 @@ function armFights() {
     var st = cur && holdAt(rootOf(g.place), cur.t);
     var shut = GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.place === g.place && (h.form === 'ring' || h.assault); }) ||
       st && st.state === 'besieged' && st.holder && !opposed(g.bloc, blocOf(st.holder)) && SIDE[g.bloc] && st.by && opposed(g.bloc, blocOf(st.by)) ||
-      st && st.ev === cur.id && st.t === cur.t && st.holder && opposed(g.bloc, blocOf(st.holder)) ||
+      st && st.state === 'held' && st.ev === cur.id && st.t === cur.t && st.holder && opposed(g.bloc, blocOf(st.holder)) ||
       GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.fire && (h.at === g.place || h.at === g.who) && !(SIDE[hb] && SIDE[hb] === SIDE[h.bloc]); });
     if (!shut) return;
     g.inside = true;
