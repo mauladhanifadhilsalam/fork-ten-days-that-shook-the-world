@@ -1418,7 +1418,7 @@ function posOnSpine(g, mm, adv) {   // a member of a column: s0 metres along, la
   var q = spineAt(g.spine, mm.s0 + adv);
   mm.x = q[0] - q[3] * mm.lat; mm.y = q[1] + q[2] * mm.lat; mm.yaw = Math.atan2(q[2], -q[3]) + mm.yj;
 }
-function layoutPlace(id, groups, t) {
+function layoutPlace(id, groups, t, loc) {
   var G = openGround(id, false); if (!G) return;
   var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t), st = holdAt(id, t);
   // the ground where Reed's walk ends here is his, so he does not finish inside a crowd
@@ -1502,7 +1502,13 @@ function layoutPlace(id, groups, t) {
       var st = streetSpine(ax, ay, half + adv), f, b;
       function open(pts) { var out = []; for (var i = 0; i < pts.length; i++) { var kq = cellAt(pts[i][0], pts[i][1]); if (kq < 0 || !G.ok[kq]) break; out.push(pts[i]); } return out; }
       if (st) { f = open(resample(st.f, 1)); b = open(resample(st.b, 1)); }
-      if (!st || !f.length || !b.length || f.length + b.length < Math.min(L, 24)) { f = walkSpine(ax, ay, lie.axis, half + adv, true); b = walkSpine(ax, ay, lie.axis + Math.PI, half + adv, true); }
+      if (!st || !f.length || !b.length || f.length + b.length < Math.min(L, 24)) {
+        // no street here (the highway out past the Moskovsky Gate): along the open ground if it has a
+        // grain, else the way from the scene's place to the body's
+        var lp = PL[id] && PL[id].p, sl = loc && PL[rootOf(loc)] && PL[rootOf(loc)].p, a0 = lie.axis;
+        if (lie.ratio < 1.5 && lp && sl && Math.hypot(lp[0] - sl[0], lp[1] - sl[1]) > 20) a0 = Math.atan2(lp[1] - sl[1], lp[0] - sl[0]);
+        f = walkSpine(ax, ay, a0, half + adv, true); b = walkSpine(ax, ay, a0 + Math.PI, half + adv, true);
+      }
       // a column heads toward what Reed has it face (the procession's front at the cordon), else, passing, the longer way
       var fxyC = faceXY(g), fe = f[f.length - 1], be = b[b.length - 1];
       if (fxyC ? Math.hypot(be[0] - fxyC[0], be[1] - fxyC[1]) < Math.hypot(fe[0] - fxyC[0], fe[1] - fxyC[1]) : b.length > f.length) { var tmp = f; f = b; b = tmp; }
@@ -1675,7 +1681,7 @@ function layoutPlace(id, groups, t) {
       var il = PL[g.place] || PL[id]; g.cx = il.p[0]; g.cy = il.p[1]; g.r = 8;
       var cur0 = siege && owner && g.bloc !== owner ? gapIx : 0;
       for (var bi0 = 0; bi0 < kitN0('barricade', 2); bi0++) {
-        var ib = pick(cur0 + 10 + bi0 * 30, 1.5); if (ib < 0) break; var kb = G.order[ib]; take(kb, 3);
+        var ib = pick(cur0 + 10 + bi0 * 30, 3.5); if (ib < 0) ib = pick(cur0 + 10 + bi0 * 30, 1.5); if (ib < 0) break; var kb = G.order[ib]; take(kb, 3);
         var bx0 = cellX(G, kb), by0 = cellY(G, kb); g.props.push({ k: bi0 % 2 ? 'barricade2' : 'barricade', x: bx0, y: by0, yaw: facingYaw(bx0, by0, G.cx, G.cy) });
       }
       heaps(g, kitN0('rifles', 1));
@@ -1793,6 +1799,21 @@ function layoutPlace(id, groups, t) {
       watched.forEach(function (h) { h.members.forEach(function (m) { var d = (m.x - x) * (m.x - x) + (m.y - y) * (m.y - y); if (d < bd) { bd = d; bm = m; } }); });
       return bm ? facingYaw(x, y, bm.x, bm.y) + (hash(seed + x + y * 0.3) - 0.5) * 0.5 : null;
     }
+    // watchers of a march stand back along both sides of its way, the farthest open ground first ("the
+    // crowds on the sidewalk watched them pass"; "between silent crowds of bourgeois")
+    var wcol = isCrowd(g) ? watched.filter(function (h) { return h.spine && h.march; })[0] : null;
+    if (wcol) {
+      var WP = wcol.spine.p, wx0 = 1e9, wy0 = 1e9, wx1 = -1e9, wy1 = -1e9, band = [];
+      WP.forEach(function (q) { wx0 = Math.min(wx0, q[0]); wy0 = Math.min(wy0, q[1]); wx1 = Math.max(wx1, q[0]); wy1 = Math.max(wy1, q[1]); });
+      for (var kw = 0; kw < W * G.R.h; kw++) {
+        if (!G.ok[kw] || used[kw]) continue;
+        var bx2 = cellX(G, kw), by2 = cellY(G, kw), dw = 1e9;
+        if (bx2 < wx0 - 16 || bx2 > wx1 + 16 || by2 < wy0 - 16 || by2 > wy1 + 16) continue;
+        for (var pw = 0; pw < WP.length; pw += 2) dw = Math.min(dw, Math.hypot(WP[pw][0] - bx2, WP[pw][1] - by2));
+        if (dw >= 4 && dw <= 16) band.push([kw, dw]);
+      }
+      if (band.length) aord = band.sort(function (a, b) { return b[1] - a[1]; }).map(function (q) { return q[0]; });
+    }
     if (!aord && cur > 0 && !g.form) {   // besiegers keep together on one side, at their distance ("standing at the closed gates")
       var ka = G.order[Math.min(cur, G.order.length - 1)], axb = cellX(G, ka), ayb = cellY(G, ka);
       aord = G.order.slice(cur).filter(function (kk) { return G.ok[kk]; }).sort(function (a, b) { return Math.hypot(cellX(G, a) - axb, cellY(G, a) - ayb) - Math.hypot(cellX(G, b) - axb, cellY(G, b) - ayb); });
@@ -1807,7 +1828,7 @@ function layoutPlace(id, groups, t) {
     // barricades in front of the body, across the way in
     var nBar = kitN('barricade', 2);
     for (i = 0; i < nBar; i++) {
-      ix = pick(cur + 10 + i * 30, 1.5); if (ix < 0) break; k = G.order[ix]; take(k, 3);
+      ix = pick(cur + 10 + i * 30, 3.5); if (ix < 0) ix = pick(cur + 10 + i * 30, 1.5); if (ix < 0) break; k = G.order[ix]; take(k, 3.5);   // room for the heap
       var bx = cellX(G, k), by = cellY(G, k);
       g.props.push({ k: i % 2 ? 'barricade2' : 'barricade', x: bx, y: by, yaw: facingYaw(bx, by, G.cx, G.cy) });
     }
@@ -1850,7 +1871,7 @@ function stageScene(e, noReed) {
     // the ones who were there before come first, so they keep their ground from scene to scene
     // (and Reed's formations and cruising cars before them, so the others make way)
     var gs = byPlace[id].sort(function (a, b) { return (!!b.form - !!a.form) || (b.patrol - a.patrol) || (a.brief - b.brief) || (a.pi - b.pi); });
-    layoutPlace(id, gs, e.t);
+    layoutPlace(id, gs, e.t, e.loc);
   });
   if (!noReed && e.witness === 'seen' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {
     var RG = openGround(rootOf(e.loc), false);
@@ -3062,7 +3083,7 @@ var follow = null;
 function followMover(e) {
   var list = movers.filter(function (mv) { return !mv.arc && mv.o.total > 650; });
   if (!list.length) return null;
-  var reed = list.filter(function (mv) { return mv.m.who === 'reed'; })[0];
+  var reed = list.filter(function (mv) { return mv.m.who === 'reed' && mv.m.rc === 'stated'; })[0];   // his walk, where he gives its way
   var big = list.slice().sort(function (a, b) { return b.list.length - a.list.length; })[0];
   var mv = reed || big, mps = mv.o.total / Math.max(1, walkMs(e, mv.o.total) / speed / 1000);   // metres a second on screen
   return { mv: mv, d: Math.min(650, Math.max(PHONE ? 320 : 260, mps * 2.2)), pol: 1.0 };
@@ -3345,9 +3366,9 @@ function select(id, opts) {
   // only an arc (whose body just turns up at the end)
   var local = MOVES.some(function (o) { return o.e === e && o.m.who !== 'reed' && o.line.visible && o.total <= 650 && near(o.m.to, e.loc, 300); });
   var people = GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); });
-  // a ride of Reed's with no route (an arc: he just turns up) is not the scene when there are people
-  // at its place to look at
-  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || (o.m.who === 'reed' && people))); });
+  // a ride of Reed's with no route (an arc: he just turns up), or on a route of ours, is not the scene when
+  // there are people at its place to look at
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || (o.m.who === 'reed' && people))) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people); });
   var act = REDUCED ? null : actionMover(e);
   closeAfter = null; follow = null;
   if (act) {
