@@ -79,7 +79,7 @@ ENUM = {
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'torch', 'bicycle', 'leaflets', 'rifles'},
-    'form': {'column', 'line', 'ranks', 'ring'},
+    'form': {'column', 'line', 'ranks', 'ring', 'lane'},
     'pose': {'fallen', 'prone'},
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
@@ -99,7 +99,8 @@ KIT_WORDS = {
 }
 # How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
 FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramp(ing|ed)|swinging along|swing down|regular tread', 'line': r'\ba line\b|\bline of\b|cordon',
-              'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation', 'ring': r'surround|encircl|\bringed\b|hemmed in'}
+              'ranks': r'drawn up|\branks\b|compan(y|ies)\b|in formation', 'ring': r'surround|encircl|\bringed\b|hemmed in',
+              'lane': r'both sides of the (street|road|way)|on either side of the (street|road|way)|lined (up )?(along|on both sides)'}
 MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|swing down|filing'
 # The fighting, in the scene whose passage says so: who fires (and from the windows), who lies dead
 # or wounded, who throws himself flat, who runs at the enemy

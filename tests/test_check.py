@@ -290,6 +290,7 @@ def _ring(d):
 _FIRST = 'Soviet troops surrounded the Palace and opened fire, with two armoured cars.'
 Breaks.test_ring_not_in_text = case('form.not-in-text', mutate=lambda d: _cornice_fire(d).update({'form': 'ring'}), only=True)
 Breaks.test_ring_needs_a_building = case('form.ring-place', mutate=lambda d: _ring(d).update({'place': 'nevsky'}), only=True)
+Breaks.test_lane_needs_its_words = case('form.not-in-text', mutate=lambda d: _cornice_fire(d).update({'form': 'lane'}), only=True)
 Breaks.test_assault_enum = case('field.enum', mutate=lambda d: _ring(d).update({'assault': 'won'}), only=True)
 Breaks.test_assault_repulsed_needs_its_words = case('fight.not-in-text', mutate=lambda d: (_ring(d).pop('patrol'), _ring(d)['ref'].update({'q': _FIRST})), only=True)
 Breaks.test_assault_carried_needs_its_words = case('fight.not-in-text', mutate=lambda d: _ring(d).update({'assault': 'carried'}), only=True)

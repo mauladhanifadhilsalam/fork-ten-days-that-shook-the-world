@@ -1054,6 +1054,22 @@ function layoutPlace(id, groups, t, loc) {
     var k0 = G.order[at], ax = cellX(G, k0), ay = cellY(G, k0), left = figs.length - fi, seed = g.seed;
     var lie = groundLie(G, ax, ay, 40), ox = ax - G.cx, oy = ay - G.cy, ol = Math.hypot(ox, oy);
     function rnd(i) { return hash(seed + i * 2.37) - 0.5; }
+    if (g.form === 'lane') {
+      // "lined up on both sides of the street": two files along the kerbs, facing in, centred where it stands
+      var stL = streetSpine(ax, ay, Math.ceil(left / 2) * 0.9 + 6);
+      if (stL && stL.f.length > 1 && stL.b.length > 1) {
+        var LP = makeSpine(stL.b.slice(1).reverse().concat(stL.f)), sL0 = LP.cum[stL.b.length - 1], per = Math.ceil(left / 2), gapL = 1.8;
+        var kerb = function (q, side) { var nx = -q[3] * side, ny = q[2] * side, k = 1; while (k < 22) { var kq = cellAt(q[0] + nx * k, q[1] + ny * k); if (kq < 0 || !G.ok[kq]) break; k++; } return k - 1; };
+        for (var li = 0; fi < figs.length && li < per * 2; li++) {
+          var sideL = li % 2 ? 1 : -1, sL = Math.max(0, Math.min(LP.len, sL0 + (Math.floor(li / 2) - (per - 1) / 2) * gapL)), qL = spineAt(LP, sL);
+          var offL = Math.max(2, kerb(qL, sideL) - 1.2), xL = qL[0] - qL[3] * sideL * offL, yL = qL[1] + qL[2] * sideL * offL, kL = cellAt(xL, yL);
+          if (kL >= 0) take(kL, 0.9);
+          g.members.push({ k: figs[fi++], x: xL, y: yL, yaw: facingYaw(xL, yL, qL[0], qL[1]) + rnd(fi) * 0.3, idle: 0.35 });
+        }
+        return fi;
+      }
+      g.form = null; return fi;   // no street here: they stand as a body
+    }
     if (g.form === 'column') {
       var ab = g.abreast || 4, bike = kitHas(g.kit, 'bicycle'), rowG = bike ? 2.6 : 1.9, colG = bike ? 1.4 : 1.15;
       var rows = Math.ceil(left / ab), L = rows * rowG, adv = g.march ? 1.25 * 50 : 0, half = L / 2 + adv / 2 + 6;
@@ -2726,7 +2742,7 @@ function closeFrame(e) {
     if (Math.hypot(mx - tx, my - ty) > 260) return;
     var w = Math.min(60, mv.list.length + 1); sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
     var q0 = mv.o.pts[0];   // and where a march or a ride sets out, so it is seen setting out
-    var w0 = rootOf(mv.m.from) === rootOf(e.loc) ? 30 : w / 2;   // most where the scene's own move leaves from (Kerensky's car)
+    var w0 = rootOf(mv.m.from) === rootOf(e.loc) ? 60 : w / 2;   // most where the scene's own move leaves from (Kerensky's car)
     if (Math.hypot(q0.x - tx, -q0.z - ty) <= 260) { sx += q0.x * w0; sy += -q0.z * w0; sw += w0; ends.push([q0.x, -q0.z]); }
   });
   if (!sw && e.witness !== 'seen') return null;

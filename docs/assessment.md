@@ -16,7 +16,7 @@ It is worth doing, but it is not the same treatment, and pretending otherwise wo
 - **Many actors move at once,** and buildings change hands, some of them three times in five days.
 - **The dates are real, and both the calendar and the clock are traps** (§4).
 - **The action runs 43 km south,** to Gatchina, and the trip to Moscow covers 635 km.
-- **The places are mostly certain; the times and the vantage point are not.** Of 87 places, 41 are named outright by Reed. Of 156 scenes, only 93 are things Reed saw, and most times are estimates.
+- **The places are mostly certain; the times and the vantage point are not.** Of 87 places, 41 are named outright by Reed. Of 157 scenes, only 94 are things Reed saw, and most times are estimates.
 
 About 40% of the old engine carries over as it is (§6); the rest needs a new model. The deciding cost is not code but data. A reviewed dataset of this size took most of this round, and every line of it is tied to a verbatim quote and machine-checked against Reed's text.
 
@@ -28,14 +28,14 @@ From `tools/text.py` (Gutenberg #3076, body pinned by SHA-256):
 
 - **Structure.** 26 sections: Preface, Notes and Explanations, Chapters I–XII, and twelve appendices with 73 numbered sub-sections. All 71 "(See App. X, Sect. n)" cross-references resolve. 17 facsimile markers.
 - **Length.** 92,359 words of main text and 28,156 of appendices.
-- **Clock times.** Only 62 explicit clock times in the whole book: 36 in the text and 26 in the appendices. Chapter IV, the night of 7–8 November, has three. So most times in any map of this book are estimates, and the data says so: of 156 events, 22 have a time Reed states and 2 a time printed on a document. 31 come from a part-of-day phrase, 2 are known only to the day, and 99 are inferred from Reed's own sequence of events, each with its reasoning in `why`.
+- **Clock times.** Only 62 explicit clock times in the whole book: 36 in the text and 26 in the appendices. Chapter IV, the night of 7–8 November, has three. So most times in any map of this book are estimates, and the data says so: of 157 events, 22 have a time Reed states and 2 a time printed on a document. 31 come from a part-of-day phrase, 2 are known only to the day, and 100 are inferred from Reed's own sequence of events, each with its reasoning in `why`.
 
 What the dataset holds (`tools/check_story.py --report`):
 
 | | count |
 |---|---|
-| events (scenes) | 156 |
-| moves (one actor's leg) | 127 |
+| events (scenes) | 157 |
+| moves (one actor's leg) | 131 |
 | places with a control timeline | 20 |
 | places | 87: 66 city, 10 front, 8 Moscow (text only), 3 off-map |
 | places tied to an OSM element | 37 (33 surviving structures, 4 sites of vanished ones) |
@@ -67,8 +67,8 @@ The track has real holes, and the data marks them as `gap`:
 
 ## 4. Reading Reed
 
-**How he knows.** The map keeps Reed's own vantage point. Of the 156 scenes:
-- 93 are `seen` (Reed is there);
+**How he knows.** The map keeps Reed's own vantage point. Of the 157 scenes:
+- 94 are `seen` (Reed is there);
 - 11 are `told` (an informant: Albert Rhys Williams at the Telephone Exchange, Louise Bryant at St Isaac's, a sailor at the Mariinsky, Lazimir, Zorin and Shatov at Smolny, an ensign of the Pavlovsky Regiment, a Commissar leaving the palace, the ambulance driver at Pulkovo, and "Trusishka", who forced his way into Antonov's car);
 - 46 are `reported` (news, rumour, or his own compiled chronology);
 - 6 are `document` (orders and bulletins he prints).
@@ -180,8 +180,8 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 1. **Review this data** (the user's call), and fix what a human reader finds.
 2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 20 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, and the tram and rail lines of 1917.
    - *Done since:*
-     - The tour keeps to Petrograd: 130 of the 156 scenes.
-     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 129 presence spans, each tied to a passage of his.
+     - The tour keeps to Petrograd: 131 of the 157 scenes.
+     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 130 presence spans, each tied to a passage of his.
      - They stand in the formation Reed gives them in that scene: columns, lines, companies drawn up, columns marching past. Their banners and flags carry his words.
      - 55 pictures illustrate 51 scenes. 11 are Reed's own facsimiles; 44 are public-domain photographs, postcards and documents from Wikimedia Commons, each captioned with what it shows and when.
      - The uniforms rest on photographs; docs/uniforms.md lists them.

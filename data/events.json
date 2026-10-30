@@ -392,34 +392,33 @@
   {"who": "reed", "from": "red-arch", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "inferred"}],
  "present": [
   {"who": "garrison", "size": "Soldiers and sailors", "n": 12, "kit": ["armoured:2"], "brief": true, "ref": {"sec": "IV", "q": "As we reached the Nevsky again another armoured car came around the corner, and a man poked his head out of the turret-top."}}]},
-{"id": "police-bridge-gun", "t": "1917-11-07T19:30", "tq": "inferred", "tr": ["1917-11-07T18:30", "1917-11-07T21:30"], "cal": "none", "sec": "IV", "p": 103, "loc": "police-bridge", "witness": "seen", "actors": ["garrison", "bolsheviki"],
+{"id": "police-bridge-gun", "t": "1917-11-07T19:30", "tq": "inferred", "tr": ["1917-11-07T18:30", "1917-11-07T21:30"], "cal": "none", "sec": "IV", "p": 103, "loc": "police-bridge", "witness": "seen", "actors": ["garrison"],
  "title": "A field-gun on the Nevsky",
  "why": "Back on the Nevsky after the Red Arch.",
- "sum": "In the dark the Police Bridge is barricaded with lumber, and soldiers wheel a three-inch field-gun into place before the Stroganov Palace. Up the Nevsky armoured cars go up and down, and at the Mikhailovsky people fight for newspapers.",
+ "sum": "In the dark the Police Bridge is barricaded with lumber, and soldiers wheel a three-inch field-gun into place before the Stroganov Palace.",
  "q": "In the darkness we stumbled over lumber-piles barricading the Police Bridge, and before the Stroganov Palace made out some soldiers wheeling into position a three-inch field-gun.",
- "also": [
-  {"sec": "IV", "q": "Armoured cars went up and down the street, named after the first Tsars—Oleg, Rurik, Svietoslav—and daubed with huge red letters, “R. S. D. R. P.”"},
-  {"sec": "IV", "q": "At the Mikhailovsky a man appeared with an armful of newspapers, and was immediately stormed by frantic people, offering a rouble, five roubles, ten roubles, tearing at each other like animals."},
-  {"sec": "IV", "q": "Up the Nevsky the whole city seemed to be out promenading."}],
  "moves": [
   {"who": "reed", "from": "morskaya-nevsky", "to": "police-bridge", "mode": "foot", "rc": "inferred"}],
  "present": [
   {"who": "garrison", "size": "Men in various uniforms", "n": 8, "kit": ["barricade"]},
-  {"who": "crowd", "place": "nevsky", "size": "immense crowds", "n": 50, "brief": true, "ref": {"sec": "IV", "q": "On every corner immense crowds were massed around a core of hot discussion."}},
-  {"who": "garrison", "place": "nevsky", "size": "Pickets of a dozen soldiers with fixed bayonets", "n": 12, "brief": true, "ref": {"sec": "IV", "q": "Pickets of a dozen soldiers with fixed bayonets lounged at the street-crossings"}},
-  {"who": "garrison", "place": "stroganov-front", "size": "some soldiers", "n": 8, "kit": ["gun"]},
-  {"who": "bolsheviki", "place": "nevsky", "size": "Armoured cars", "n": 3, "kit": ["armoured:3"], "patrol": true, "brief": true, "ref": {"sec": "IV", "q": "Armoured cars went up and down the street, named after the first Tsars—Oleg, Rurik, Svietoslav—and daubed with huge red letters, “R. S. D. R. P.”"}},
-  {"who": "crowd", "place": "mikhailovskaya", "size": "frantic people", "n": 30, "brief": true, "ref": {"sec": "IV", "q": "At the Mikhailovsky a man appeared with an armful of newspapers, and was immediately stormed by frantic people, offering a rouble, five roubles, ten roubles, tearing at each other like animals."}}]},
-{"id": "sadovaya-red-spark", "t": "1917-11-07T20:00", "tq": "inferred", "tr": ["1917-11-07T19:00", "1917-11-07T22:00"], "cal": "none", "sec": "IV", "p": 104, "loc": "sadovaya-nevsky", "witness": "seen", "actors": ["crowd"],
+  {"who": "garrison", "place": "stroganov-front", "size": "some soldiers", "n": 8, "kit": ["gun"]}]},
+{"id": "sadovaya-red-spark", "t": "1917-11-07T20:00", "tq": "inferred", "tr": ["1917-11-07T19:00", "1917-11-07T22:00"], "cal": "none", "sec": "IV", "p": 104, "loc": "sadovaya-nevsky", "witness": "seen", "actors": ["bolsheviki", "crowd", "garrison"],
  "title": "A red spark on a roof",
  "why": "The last scene before Smolny.",
- "sum": "Up the Nevsky, two thousand people at the Sadovaya corner stare at a red spark on a roof: “a provocator”, says a peasant.",
+ "sum": "Up the Nevsky the whole city seems to be out promenading: crowds on every corner, pickets at the crossings, armoured cars going up and down, people fighting for newspapers at the Mikhailovsky. At the Sadovaya corner two thousand people stare at a red spark on a roof: “a provocator”, says a peasant.",
  "q": "On the corner of the Sadovaya about two thousand citizens had gathered, staring up at the roof of a tall building, where a tiny red spark glowed and waned.",
  "also": [
+  {"sec": "IV", "q": "Up the Nevsky the whole city seemed to be out promenading."},
+  {"sec": "IV", "q": "Armoured cars went up and down the street, named after the first Tsars—Oleg, Rurik, Svietoslav—and daubed with huge red letters, “R. S. D. R. P.”"},
+  {"sec": "IV", "q": "At the Mikhailovsky a man appeared with an armful of newspapers, and was immediately stormed by frantic people, offering a rouble, five roubles, ten roubles, tearing at each other like animals."},
   {"sec": "IV", "q": "“See!” said a tall peasant, pointing to it. “It is a provocator."}],
  "moves": [
   {"who": "reed", "from": "police-bridge", "via": ["stroganov-front", "nevsky"], "to": "sadovaya-nevsky", "mode": "foot", "rc": "stated"}],
  "present": [
+  {"who": "crowd", "place": "nevsky", "size": "immense crowds", "n": 50, "brief": true, "ref": {"sec": "IV", "q": "On every corner immense crowds were massed around a core of hot discussion."}},
+  {"who": "garrison", "place": "nevsky", "size": "Pickets of a dozen soldiers with fixed bayonets", "n": 12, "brief": true, "ref": {"sec": "IV", "q": "Pickets of a dozen soldiers with fixed bayonets lounged at the street-crossings"}},
+  {"who": "bolsheviki", "place": "nevsky", "size": "Armoured cars", "n": 3, "kit": ["armoured:3"], "patrol": true, "brief": true, "ref": {"sec": "IV", "q": "Armoured cars went up and down the street, named after the first Tsars—Oleg, Rurik, Svietoslav—and daubed with huge red letters, “R. S. D. R. P.”"}},
+  {"who": "crowd", "place": "mikhailovskaya", "size": "frantic people", "n": 30, "brief": true, "ref": {"sec": "IV", "q": "At the Mikhailovsky a man appeared with an armful of newspapers, and was immediately stormed by frantic people, offering a rouble, five roubles, ten roubles, tearing at each other like animals."}},
   {"who": "crowd", "size": "about two thousand citizens", "brief": true}]},
 {"id": "congress-opens", "t": "1917-11-07T22:40", "tq": "stated", "tp": "It was 10.40 P. M.", "cal": "none", "sec": "IV", "p": 106, "loc": "smolny-hall", "witness": "seen", "actors": ["congress", "tsay-ee-kah-old"], "tags": ["shooting"],
  "title": "The Second Congress opens",
@@ -693,6 +692,15 @@
   {"who": "armoured-cars", "from": "mikhailovskaya", "to": "city-duma", "mode": "armoured", "rc": "stated"}],
  "present": [
   {"who": "crowd", "size": "some hundreds of men and women", "n": 60, "pose": "prone", "brief": true, "ref": {"sec": "VI", "q": "Immediately the crowd began to run, as Petrograd crowds do, falling down and lying still in the street, piled in the gutters, heaped up behind telephone-poles."}}]},
+{"id": "armoured-car-goes-off", "t": "1917-11-09T14:05", "tq": "inferred", "tr": ["1917-11-09T12:35", "1917-11-09T16:00"], "cal": "none", "sec": "VI", "p": 160, "loc": "city-duma", "witness": "seen", "actors": ["armoured-cars", "crowd"],
+ "title": "Off up the Nevsky",
+ "why": "“After a moment”, once the car had demanded the surrender of the Soldatski Golos.",
+ "sum": "The car wheels undecidedly round and goes off up the Nevsky, and the people who threw themselves down pick themselves up and dust their clothes.",
+ "q": "After a moment the automobile wheeled undecidedly around and went off up the Nevsky, while some hundreds of men and women picked themselves up and began to dust their clothes",
+ "moves": [
+  {"who": "armoured-cars", "from": "city-duma", "via": ["nevsky"], "to": "sadovaya-nevsky", "mode": "armoured", "rc": "stated"}],
+ "present": [
+  {"who": "crowd", "size": "some hundreds of men and women", "n": 60, "brief": true}]},
 {"id": "duma-surrounded", "t": "1917-11-09T15:30", "tq": "inferred", "tr": ["1917-11-09T13:00", "1917-11-09T16:30"], "cal": "none", "sec": "VI", "p": 162, "loc": "city-duma", "witness": "seen", "actors": ["duma", "schreider", "mrc"],
  "title": "“It is all a mistake”",
  "why": "Before dusk, when the cyclists come riding on the Nevsky.",
@@ -1095,7 +1103,7 @@
  "moves": [
   {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "nevsky-86", "mode": "foot", "rc": "inferred"}],
  "present": [
-  {"who": "crowd", "place": "nevsky", "size": "great crowds of people", "n": 60, "brief": true, "ref": {"sec": "VIII", "q": "on the streets great crowds of people slowly moving up and down and arguing"}},
+  {"who": "crowd", "place": "liteiny-nevsky", "size": "great crowds of people", "n": 60, "brief": true, "ref": {"sec": "VIII", "q": "on the streets great crowds of people slowly moving up and down and arguing"}},
   {"who": "committee-for-salvation", "place": "nevsky-86", "inside": true, "ref": {"sec": "VIII", "q": "There was a sound of scuffling; an inside door slammed; then the front door opened a crack and a woman’s face appeared."}}]},
 {"id": "trotzky-report-nov12", "t": "1917-11-12T20:00", "tq": "inferred", "tr": ["1917-11-12T18:00", "1917-11-12T23:00"], "cal": "none", "sec": "VIII", "p": 206, "loc": "smolny-hall", "witness": "seen", "actors": ["trotzky", "petrograd-soviet"],
  "title": "“Falling back from Krasnoye Selo”",
@@ -1417,7 +1425,7 @@
  "moves": [
   {"who": "peasants-congress", "size": "the great procession", "n": 90, "from": "smolny-gates", "to": "smolny", "mode": "march", "rc": "inferred", "kit": ["banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"]}],
  "present": [
-  {"who": "red-guards", "place": "smolny-gates", "size": "the Red Guard", "n": 40, "brief": true, "ref": {"sec": "XII", "q": "Near Smolny the Red Guard was lined up on both sides of the street, wild with delight."}},
+  {"who": "red-guards", "place": "smolny-gates", "size": "the Red Guard", "n": 40, "form": "lane", "brief": true, "ref": {"sec": "XII", "q": "Near Smolny the Red Guard was lined up on both sides of the street, wild with delight."}},
   {"who": "petrograd-soviet", "size": "about a hundred Workers’ and Soldiers’ Deputies", "kit": ["banner:1"], "brief": true},
   {"who": "peasants-congress", "size": "the great procession", "n": 90, "kit": ["banner"], "say": ["Long live the union of the revolutionary and toiling masses!", "We bow to this flag in order to create the brotherhood of all people!"], "brief": true, "ref": {"sec": "XII", "q": "So the great procession wound through the city, growing and unfurling ever new red banners lettered in gold."}}]},
 {"id": "banners-intertwined", "t": "1917-11-29T21:00", "tq": "inferred", "tr": ["1917-11-29T19:00", "1917-11-29T23:59"], "cal": "none", "sec": "XII", "p": 307, "loc": "smolny-hall", "witness": "seen", "actors": ["peasants-congress", "tsay-ee-kah", "left-srs"],
