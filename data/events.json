@@ -9,7 +9,7 @@
  "moves": [
   {"who": "reed", "from": "reed-lodging", "to": "cirque-moderne", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "workers", "size": "soldiers, sailors, workmen, women", "n": 70, "brief": true}]},
+  {"who": "workers", "size": "soldiers, sailors, workmen, women", "n": 70, "inside": true, "brief": true, "ref": {"sec": "II", "q": "The bare, gloomy amphitheatre, lit by five tiny lights hanging from a thin wire, was packed from the ring up the steep sweep of grimy benches"}}]},
 {"id": "obukhov-meeting", "t": "1917-10-28T14:00", "tq": "inferred", "tr": ["1917-09-28T00:00", "1917-11-04T23:59"], "cal": "none", "sec": "II", "p": 45, "loc": "obukhov-works", "witness": "seen", "actors": ["workers", "bolsheviki"], "tags": ["background"],
  "title": "Ten thousand at the Obukhov works",
  "why": "“One Sunday” in October; 28 Oct is a guess within the range, chosen only to order the scenes.",
@@ -389,9 +389,10 @@
   {"sec": "IV", "q": "“Come on!” he yelled. “Let’s go on through and attack!”"},
   {"sec": "IV", "q": "The driver of the other car came over, and shouted so as to be heard above the roaring engine."}],
  "moves": [
-  {"who": "reed", "from": "red-arch", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "inferred"}],
+  {"who": "reed", "from": "red-arch", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "inferred"},
+  {"who": "garrison", "size": "another armoured car", "n": 2, "from": "police-bridge", "to": "morskaya", "mode": "armoured", "rc": "inferred", "kit": ["armoured:1"]}],
  "present": [
-  {"who": "garrison", "size": "Soldiers and sailors", "n": 12, "kit": ["armoured:2"], "brief": true, "ref": {"sec": "IV", "q": "As we reached the Nevsky again another armoured car came around the corner, and a man poked his head out of the turret-top."}}]},
+  {"who": "garrison", "size": "Soldiers and sailors", "n": 12, "kit": ["armoured:1"], "brief": true, "ref": {"sec": "IV", "q": "As we reached the Nevsky again another armoured car came around the corner, and a man poked his head out of the turret-top."}}]},
 {"id": "police-bridge-gun", "t": "1917-11-07T19:30", "tq": "inferred", "tr": ["1917-11-07T18:30", "1917-11-07T21:30"], "cal": "none", "sec": "IV", "p": 103, "loc": "police-bridge", "witness": "seen", "actors": ["garrison"],
  "title": "A field-gun on the Nevsky",
  "why": "Back on the Nevsky after the Red Arch.",

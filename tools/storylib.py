@@ -114,7 +114,7 @@ ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|i
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
 # a body indoors: the map labels its building and draws no one
-INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles'
+INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre'
 # what a body looks at, or turns its guns on
 FACE_WORDS = r'star(e|ed|es|ing)\b|\bfac(e|ed|es|ing)\b|toward|looking|look(ed)? (at|up|down|out|toward)|watch|trained|turned (to|on|toward)|gaz(e|ed|ing)|pointing|peer|block(ing|ed)? the way|barr(ing|ed) the way|confront'
 WINDOW_WORDS = r'window'

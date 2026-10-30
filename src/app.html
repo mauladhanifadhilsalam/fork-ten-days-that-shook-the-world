@@ -986,11 +986,6 @@ function posOnSpine(g, mm, adv) {   // a member of a column: s0 metres along, la
 function layoutPlace(id, groups, t, loc) {
   var G = openGround(id, false); if (!G) return;
   var used = new Uint8Array(G.R.w * G.R.h), W = G.R.w, owner = holderBloc(id, t);
-  // the ground where Reed's walk ends here is his, so he does not finish inside a crowd
-  movers.forEach(function (mv) {
-    if (mv.m.who !== 'reed' || !mv.o.pts || !mv.o.pts.length || rootOf(mv.m.to) !== rootOf(id)) return;
-    var q = mv.o.pts[mv.o.pts.length - 1], kr = cellAt(q.x, -q.z); if (kr >= 0) take(kr, 3.5);
-  });
   // bodies laid out already at a neighbouring place (the Duma's door and the Nevsky before it) keep their
   // ground: nobody here stands in them
   GROUPS.forEach(function (h) {
@@ -1530,14 +1525,15 @@ function linkShares(e) {
     mv.fileOn = !mv.handover && !mv.m.stay && rootOf(mv.m.to) !== rootOf(e.loc);
   });
   // a car, a truck or an armoured car pulls up short of the people where its route ends ("lumbered up to
-  // the steps of the Duma"), not on them
+  // the steps of the Duma"), not on them; and Reed stops at the edge of a crowd, not inside it
   movers.forEach(function (mv) {
     mv.endD = null;
-    if (!mv.veh || !mv.o.total) return;
+    if (!(mv.veh || mv.m.who === 'reed') || !mv.o.total) return;
+    var gapE = mv.veh ? 5 : 2.2;
     var folk = []; GROUPS.forEach(function (g) { if (!g.reed && !g.inside) (g.members || []).forEach(function (m) { folk.push(m); }); });
     for (var d = mv.o.total; d > 0; d -= 2) {
       var p = pointAt(mv.o, d), x = p.a.x + (p.b.x - p.a.x) * p.t, y = -(p.a.z + (p.b.z - p.a.z) * p.t);
-      if (folk.every(function (m) { return Math.abs(m.x - x) > 5 || Math.abs(m.y - y) > 5; })) break;
+      if (folk.every(function (m) { return Math.abs(m.x - x) > gapE || Math.abs(m.y - y) > gapE; })) break;
     }
     if (d < mv.o.total) mv.endD = Math.max(0, d);
   });
@@ -2691,7 +2687,8 @@ function followMover(e) {
   var list = movers.filter(function (mv) { return !mv.arc && mv.o.total > 650; });
   if (!list.length) return null;
   var reed = list.filter(function (mv) { return mv.m.who === 'reed' && mv.m.rc === 'stated'; })[0];   // his walk, where he gives its way
-  var big = list.slice().sort(function (a, b) { return b.list.length - a.list.length; })[0];
+  var big = list.filter(function (mv) { return mv.m.who !== 'reed' || mv.m.rc === 'stated'; }).sort(function (a, b) { return b.list.length - a.list.length; })[0];
+  if (!reed && !big) return null;
   var mv = reed || big, mps = mv.o.total / Math.max(1, walkMs(e, mv.o.total) / speed / 1000);   // metres a second on screen
   return { mv: mv, d: Math.min(650, Math.max(PHONE ? 320 : 260, mps * 2.2)), pol: 1.0 };
 }
@@ -2754,7 +2751,12 @@ function closeFrame(e) {
   // the bodies that arrive in the scene count where they end up
   var ends = [];
   movers.forEach(function (mv) {
-    if (mv.m.who === 'reed' || !mv.o.pts || !mv.o.pts.length) return;
+    if (!mv.o.pts || !mv.o.pts.length) return;
+    if (mv.m.who === 'reed') {   // where Reed watches from, when he saw it
+      var qr = mv.o.pts[mv.o.pts.length - 1];
+      if (e.witness === 'seen' && !mv.arc && Math.hypot(qr.x - tx, -qr.z - ty) <= 260) { sx += qr.x * 12; sy += -qr.z * 12; sw += 12; ends.push([qr.x, -qr.z]); }
+      return;
+    }
     var q = mv.o.pts[mv.o.pts.length - 1], mx = q.x, my = -q.z;
     if (Math.hypot(mx - tx, my - ty) > 260) return;
     var w = Math.min(60, mv.list.length + 1); sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
@@ -2976,7 +2978,7 @@ function select(id, opts) {
   var people = GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); });
   // a ride of Reed's with no route (an arc: he just turns up), or on a route of ours, is not the scene when
   // there are people at its place to look at
-  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || (o.m.who === 'reed' && people))) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people); });
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || people)) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people); });
   var act = REDUCED ? null : actionMover(e);
   closeAfter = null; follow = null;
   if (act) {
@@ -2985,9 +2987,9 @@ function select(id, opts) {
     var a0 = act.o.pts[0], a1 = act.o.pts[act.o.pts.length - 1];
     follow = { mv: act, d: PHONE ? 320 : 260, pol: 0.75 };   // from high enough to see down the streets
     flyTo(frameAt(a0.x, -a0.z, follow.d, follow.pol, a1.x - a0.x, -(a1.z - a0.z)), opts.instant ? 0 : 1800);
-    // then down to the scene, if that is where it ends or it has gone on out of it; else it stays with the
-    // body where it got to
-    closeAfter = close && (act.fileOn || Math.hypot(close.target.x - a1.x, close.target.z - a1.z) < 150) ? close : null;
+    // then down to the scene, if that is where it ends, or it has gone on out of it, or Reed watched it from
+    // there; else it stays with the body where it got to
+    closeAfter = close && (act.fileOn || e.witness === 'seen' || Math.hypot(close.target.x - a1.x, close.target.z - a1.z) < 150) ? close : null;
   } else if (close && !long) flyTo(close, opts.instant ? 0 : 1800);
   else {
     flyTo(frameFor(e), opts.instant ? 0 : 1800);

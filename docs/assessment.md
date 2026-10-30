@@ -35,7 +35,7 @@ What the dataset holds (`tools/check_story.py --report`):
 | | count |
 |---|---|
 | events (scenes) | 157 |
-| moves (one actor's leg) | 131 |
+| moves (one actor's leg) | 132 |
 | places with a control timeline | 20 |
 | places | 87: 66 city, 10 front, 8 Moscow (text only), 3 off-map |
 | places tied to an OSM element | 37 (33 surviving structures, 4 sites of vanished ones) |

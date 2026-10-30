@@ -237,6 +237,16 @@ def clear(a, b):
     return not any(_obst[i].intersects(ln) for i in _tree.query(ln))
 
 
+def through_own(pin, b):
+    """the way from a pin inside a building to b crosses nothing but that building: one leaves by its
+    far door ("He led us down through the Palace and out through a door opening onto the Neva quay")"""
+    from shapely.geometry import Point as _Pt
+    pt = _Pt(pin)
+    own = {i for i in _tree.query(pt) if _obst[i].contains(pt)}
+    ln = _Line([pin, b])
+    return bool(own) and not any(_obst[i].intersects(ln) for i in _tree.query(ln) if i not in own and _obst[i].area > 60)   # a kiosk in its courtyard is walked round
+
+
 def out_of_walls(q):
     """a point inside a building or the river (a pin) moved out to the nearest open ground past its
     walls, so a route starts or ends at the building's wall, not in it. Out through the nearest edge of
@@ -392,6 +402,7 @@ def shape(m):
     # street route between its neighbours goes by it, while its pin would pull the route round its back
     keep = [0] + [i for i in range(1, len(seq) - 1) if not (isinstance(seq[i], str) and T_places[seq[i]].get('kind') in PASSED)] + [len(seq) - 1]
     seq, xy = [seq[i] for i in keep], [xy[i] for i in keep]
+    pin0 = xy[0]
     # a route starts and ends on the open ground at a building's wall, not at its pin inside it
     for i in (0, len(seq) - 1):
         pl = T_places.get(seq[i]) if isinstance(seq[i], str) else None
@@ -420,6 +431,11 @@ def shape(m):
         if d < 450 and plen(leg) > 1.3 * d + 15 and clear(a, b):
             leg = [a, b]
             stats['across'] = stats.get('across', 0) + 1
+        # out through the building it leaves, to its far side, when the streets go the long way round it
+        elif a is xy[0] and a != pin0 and math.dist(pin0, b) < 450 and plen(leg) > 1.3 * math.dist(pin0, b) + 15 and through_own(pin0, b):
+            leg = [pin0, b]
+            full = [pin0]
+            stats['through'] = stats.get('through', 0) + 1
         full += leg
     full.append(xy[-1])
     full = dedupe(full)
