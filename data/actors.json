@@ -247,7 +247,7 @@
  "ru": "Павловский полк"},
 {"id": "peter-paul-garrison", "kind": "unit", "bloc": "soviet",
  "name": "Garrison of the Peter and Paul Fortress",
- "reed": ["Peter-Paul"],
+ "reed": ["Peter-Paul", "Peter Paul"],
  "ru": "гарнизон Петропавловской крепости",
  "stance": [
   {"from": "1917-11-05T22:00", "s": "support", "ev": "peter-paul-comes-over"}]},

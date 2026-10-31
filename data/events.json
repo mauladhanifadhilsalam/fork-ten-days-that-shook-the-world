@@ -585,7 +585,7 @@
   {"who": "garrison", "place": "kazan-cathedral-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}},
   {"who": "garrison", "place": "police-bridge", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone, and the only signs of war were Red Guards and soldiers squatting around fires"}},
   {"who": "garrison", "place": "stroganov-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}}]},
-{"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "city-duma", "witness": "seen", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
+{"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "duma-alexander-hall", "witness": "seen", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
  "title": "The Committee for Salvation is formed",
  "why": "Reed walks from the palace to the Duma “after three”.",
  "sum": "In the Duma’s Alexander Hall, on Skobeliev’s motion, the anti-Bolshevik groups form the Committee for Salvation of Country and Revolution.",
@@ -613,7 +613,7 @@
  "q": "It was exactly 5:17 A.M. when Krylenko, staggering with fatigue, climbed to the tribune with a telegram in his hand.",
  "present": [
   {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
-{"id": "duma-in-permanence", "t": "1917-11-08T15:00", "tq": "approx", "tr": ["1917-11-08T12:00", "1917-11-08T17:00"], "tp": "that afternoon", "cal": "none", "sec": "V", "p": 131, "loc": "city-duma", "witness": "seen", "actors": ["duma", "schreider", "cadets"],
+{"id": "duma-in-permanence", "t": "1917-11-08T15:00", "tq": "approx", "tr": ["1917-11-08T12:00", "1917-11-08T17:00"], "tp": "that afternoon", "cal": "none", "sec": "V", "p": 131, "loc": "duma-nicolai-hall", "witness": "seen", "actors": ["duma", "schreider", "cadets"],
  "title": "The Duma in permanence",
  "sum": "In the Nicolai Hall the Duma sits in permanence, gathering the opposition; Mayor Schreider describes his protest at Smolny.",
  "q": "In the high, amphitheatrical Nicolai Hall that afternoon I saw the Duma sitting in permanence, tempestuous, grouping around it all the forces of opposition.",
@@ -780,7 +780,9 @@
  "sum": "Reed bluffs his way into Peter-Paul behind the Duma’s commission, past the Tsars’ tombs, to the yunkers and the arrested ministers.",
  "q": "It was midnight when we bluffed our past the guards at the gate of the fortress",
  "moves": [
-  {"who": "reed", "from": "city-duma", "to": "peter-paul", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "city-duma", "to": "peter-paul", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "peter-paul-garrison", "place": "peter-paul", "size": "the guards at the gate of the fortress", "n": 4, "brief": true}]},
 {"id": "column-to-battle", "t": "1917-11-10T01:00", "tq": "inferred", "tr": ["1917-11-10T00:30", "1917-11-10T03:00"], "cal": "none", "sec": "VI", "p": 171, "loc": "nevsky", "witness": "seen", "actors": ["garrison"],
  "title": "A column to battle with Kerensky",
  "why": "“After-midnight”, on the way back from Peter-Paul.",
@@ -863,12 +865,13 @@
  "sum": "As Reed leaves the Duma a company of Red Guards marches down the dark, deserted street with a dozen prisoners. Podvoisky’s order declares Petrograd and its suburbs in a state of siege and forbids meetings in the open air.",
  "q": "are declared in a state of siege. All assemblies or meetings in the streets, and generally in the open air, are forbidden until further orders.",
  "also": [
-  {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners"}],
+  {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners—members of the local branch of the Council of Cossacks"}],
  "moves": [
   {"who": "reed", "from": "nevsky", "to": "city-duma", "mode": "foot", "rc": "none"},
   {"who": "reed", "from": "city-duma", "to": "reed-lodging", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "red-guards", "place": "duma-nevsky", "size": "a company of Red Guards", "form": "column", "march": true, "brief": true, "ref": {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners"}}]},
+  {"who": "red-guards", "place": "duma-nevsky", "size": "a company of Red Guards", "form": "column", "march": true, "brief": true, "ref": {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners—members of the local branch of the Council of Cossacks"}},
+  {"who": "petrograd-cossacks", "place": "duma-nevsky", "size": "a dozen prisoners—members of the local branch of the Council of Cossacks", "n": 12, "form": "column", "march": true, "brief": true, "ref": {"sec": "VII", "q": "As we left the Duma a company of Red Guards, stern-faced and desperate, came marching down the dark, deserted street with a dozen prisoners—members of the local branch of the Council of Cossacks"}}]},
 {"id": "telephone-exchange-yunkers", "t": "1917-11-11T03:00", "tq": "approx", "tr": ["1917-11-11T01:00", "1917-11-11T05:30"], "tp": "In the small hours of the morning", "cal": "none", "sec": "VII", "p": 188, "loc": "telephone-exchange", "witness": "reported", "actors": ["yunkers", "antonov", "committee-for-salvation", "semionovsky"],
  "title": "Yunkers take the Telephone Exchange",
  "sum": "Before the guard changes, yunkers disguised as Semionovsky soldiers take the Telephone Exchange with the Bolshevik password, and capture Antonov.",
@@ -1095,13 +1098,17 @@
   {"who": "reed", "from": "reed-lodging", "to": "kazan-cathedral", "mode": "unknown", "rc": "none"}],
  "present": [
   {"who": "crowd", "size": "a few workmen, some soldiers and the rest shop-keepers, clerks and the like", "n": 30, "brief": true, "ref": {"sec": "VIII", "q": "a few workmen, some soldiers and the rest shop-keepers, clerks and the like"}}]},
-{"id": "salvation-outlawed", "t": "1917-11-11T20:00", "tq": "inferred", "tr": ["1917-11-11T18:00", "1917-11-11T22:00"], "cal": "none", "sec": "VIII", "p": 197, "loc": "smolny", "witness": "seen", "actors": ["committee-for-salvation", "mrc"],
+{"id": "salvation-outlawed", "t": "1917-11-11T20:00", "tq": "inferred", "tr": ["1917-11-11T18:00", "1917-11-11T22:00"], "cal": "none", "sec": "VIII", "p": 197, "loc": "smolny-mrc-rooms", "witness": "seen", "actors": ["committee-for-salvation", "mrc"],
  "title": "The Committee for Salvation outlawed",
  "why": "The evening after the rising was put down.",
  "sum": "At Smolny the Military Revolutionary Committee works without rest; new proclamations outlawing the Committee for Salvation litter the floor.",
  "q": "The Committee for Salvation had been outlawed.",
+ "also": [
+  {"sec": "VIII", "q": "On the top floor the Military Revolutionary Committee was in full blast, striking and slacking not."}],
  "moves": [
-  {"who": "reed", "from": "kazan-cathedral", "via": ["city-duma"], "to": "smolny", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "kazan-cathedral", "via": ["city-duma"], "to": "smolny", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "mrc", "place": "smolny-mrc-rooms", "inside": true, "brief": true}]},
 {"id": "duma-bulletin-board", "t": "1917-11-11T21:15", "tq": "inferred", "tr": ["1917-11-11T20:00", "1917-11-12T02:00"], "cal": "none", "sec": "VIII", "p": 199, "loc": "city-duma", "witness": "seen", "actors": ["duma", "committee-for-salvation"],
  "title": "The list of the dead",
  "why": "After Smolny (“Down-town again”); before Reed goes home in the small hours.",
@@ -1129,7 +1136,7 @@
   {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "reed-lodging", "mode": "unknown", "rc": "none"}],
  "present": [
   {"who": "garrison", "size": "the regiments", "n": 120, "form": "column", "march": true, "brief": true, "ref": {"sec": "VIII", "q": "Going home I saw them pass, swinging along with the regular tread of veterans, bayonets in perfect alignment, through the deserted streets of the conquered city"}}]},
-{"id": "schreider-neutral", "t": "1917-11-12T13:00", "tq": "inferred", "tr": ["1917-11-12T11:00", "1917-11-12T16:00"], "cal": "none", "sec": "VIII", "p": 202, "loc": "city-duma", "witness": "seen", "actors": ["schreider", "duma", "polkovnikov"],
+{"id": "schreider-neutral", "t": "1917-11-12T13:00", "tq": "inferred", "tr": ["1917-11-12T11:00", "1917-11-12T16:00"], "cal": "none", "sec": "VIII", "p": 202, "loc": "duma-nicolai-hall", "witness": "seen", "actors": ["schreider", "duma", "polkovnikov"],
  "title": "“We are perfectly neutral”",
  "why": "The day session, before dusk.",
  "sum": "Mayor Schreider tells the Duma it is neutral, and that he kept the telephones to Smolny working while the yunkers held the Exchange.",

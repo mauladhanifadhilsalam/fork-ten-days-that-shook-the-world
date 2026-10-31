@@ -114,7 +114,7 @@ ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|i
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
 # a body indoors: the map labels its building and draws no one
-INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre|trainload|\bin (extraordinary )?session\b|the great hall|meeting-hall|\b(Alexander|Nicolai) Hall\b'
+INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre|trainload|\bin (extraordinary )?session\b|the great hall|meeting-hall|\b(Alexander|Nicolai) Hall\b|\bon the top floor\b'
 # what a body looks at, or turns its guns on
 # which way a marching body heads ("Up the Nevsky ... Red Guards were marching", "others ... coming back")
 HEADING_WORDS = r'\bup the\b|\bdown the\b|coming back|going back|back (up|down|to)\b'

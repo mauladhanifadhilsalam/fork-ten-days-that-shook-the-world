@@ -1005,7 +1005,7 @@ function posOnSpine(g, mm, adv) {   // a member of a column: s0 metres along, la
   mm.x = q[0] - q[3] * mm.lat; mm.y = q[1] + q[2] * mm.lat; mm.yaw = Math.atan2(q[2], -q[3]) + mm.yj;
 }
 // a large body Reed has move as one, not in ranks ("began again to flow forward", "the sailors began to surge forward")
-var MASS_RE = /\bflow(ed|ing)? forward|\bsurg(e|ed|ing) forward|pouring in|like a black river|eager wave/i;
+var MASS_RE = /\bpoured (in|out|through)\b|torrent-like|\bflow(ed|ing)? forward|\bsurg(e|ed|ing) forward|pouring in|like a black river|eager wave/i;
 var FULL_RE = /whole street|blocked the|filling (all )?the street|thronged|street was (crowded|packed|filled)|crowded with people/i;
 function sceneText(e) { if (!e) return ''; return [].concat(e.q || []).concat((e.also || []).map(function (a) { return a.q; })).join(' '); }
 function layoutPlace(id, groups, t, loc, scene) {
@@ -1618,7 +1618,7 @@ function linkShares(e) {
 var SHORT = { 'red-guards': 'Red Guards', sailors: 'Sailors', garrison: 'Soldiers', yunkers: 'Yunkers', 'vladimir-yunkers': 'Vladimir yunkers',
   'engineers-yunkers': 'Engineering yunkers', 'pavlovsk-yunkers': 'Pavlovsk yunkers', 'womens-battalion': 'Women’s Battalion', 'peter-paul-garrison': 'Peter-Paul garrison',
   avrora: 'The Avrora', mrc: 'Military Revolutionary Committee', 'military-staff': 'The Staff', workers: 'Workers', crowd: 'Crowd', duma: 'The Duma’s people',
-  cyclists: 'Cyclists', 'armoured-cars': 'Armoured cars', 'unknown-soldiers': 'Soldiers', 'car-occupants': 'The occupants', 'nicolai-bridge-party': 'An officer and five men', 'exchange-relief': 'The relief', izvoshtchiki: 'Cab-drivers', 'boy-scouts': 'Boy scouts', 'hotel-officers': 'Officers', 'duma-procession': 'The Duma’s procession', 'peasants-congress': 'Peasants’ Congress', pavlovsky: 'Pavlovsky Regiment' };
+  cyclists: 'Cyclists', 'armoured-cars': 'Armoured cars', 'unknown-soldiers': 'Soldiers', 'car-occupants': 'The occupants', 'nicolai-bridge-party': 'An officer and five men', 'exchange-relief': 'The relief', izvoshtchiki: 'Cab-drivers', 'petrograd-cossacks': 'Cossacks', 'government-troops': 'Government troops', 'boy-scouts': 'Boy scouts', 'hotel-officers': 'Officers', 'duma-procession': 'The Duma’s procession', 'peasants-congress': 'Peasants’ Congress', pavlovsky: 'Pavlovsky Regiment' };
 function groupLabel(who) { return SHORT[who] || actorName(who); }
 
 function kitHas(kit, name) { return (kit || []).some(function (k) { return k.split(':')[0] === name; }); }
