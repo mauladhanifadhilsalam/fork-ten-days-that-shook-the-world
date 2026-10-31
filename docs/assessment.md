@@ -181,7 +181,7 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 20 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, and the tram and rail lines of 1917.
    - *Done since:*
      - The tour keeps to Petrograd: 131 of the 157 scenes.
-     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 140 presence spans, each tied to a passage of his.
+     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 141 presence spans, each tied to a passage of his.
      - They stand in the formation Reed gives them in that scene: columns, lines, companies drawn up, columns marching past. Their banners and flags carry his words.
      - 55 pictures illustrate 51 scenes. 11 are Reed's own facsimiles; 44 are public-domain photographs, postcards and documents from Wikimedia Commons, each captioned with what it shows and when.
      - The uniforms rest on photographs; docs/uniforms.md lists them.

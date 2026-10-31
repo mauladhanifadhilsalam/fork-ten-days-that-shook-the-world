@@ -148,7 +148,9 @@
  "q": "It was after midnight when Gotz took the chair and Dan rose to speak, in a tense silence, which seemed to me almost menacing.",
  "also": [
   {"sec": "III", "q": "If the Bolsheviki start anything, that will be the end of the Revolution"},
-  {"sec": "III", "q": "Then for the Bolsheviki, Trotzky mounted the tribune, borne on a wave of roaring applause that burst into cheers and a rising house, thunderous."}]},
+  {"sec": "III", "q": "Then for the Bolsheviki, Trotzky mounted the tribune, borne on a wave of roaring applause that burst into cheers and a rising house, thunderous."}],
+ "present": [
+  {"who": "workers", "place": "smolny-hall", "size": "soldiers and workmen, a monstrous dun mass", "inside": true, "brief": true, "ref": {"sec": "III", "q": "As night fell the great hall filled with soldiers and workmen, a monstrous dun mass, deep-humming in a blue haze of smoke."}}]},
 {"id": "telegraph-agency-taken", "t": "1917-11-07T01:00", "tq": "stated", "tp": "At 1 A. M.", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "telegraph-agency", "witness": "reported",
  "title": "The Telegraph Agency occupied",
  "sum": "Reed’s chronology of the night: a detachment from Smolny takes the Petrograd Telegraph Agency.",

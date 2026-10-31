@@ -1030,6 +1030,9 @@ function layoutPlace(id, groups, t, loc, scene) {
     return -1;
   }
   function cellAt(x, y) { var i = Math.floor((x - G.R.x0) / G.R.cs), j = Math.floor((y - G.R.y0) / G.R.cs); return i >= 0 && j >= 0 && i < W && j < G.R.h ? j * W + i : -1; }
+  function muzzle(x, y, yaw) {   // nobody stands in front of a machine gun's muzzle
+    for (var d = 1.5; d <= 8; d += 1.5) { var kq = cellAt(x + Math.sin(yaw) * d, y - Math.cos(yaw) * d); if (kq >= 0) take(kq, 1); }
+  }
   function freeAt(x, y) { var k = cellAt(x, y); return k >= 0 && free(k); }
   // from (x, y) heading a, a metre a step, bending round walls and other bodies; a column's spine
   // keeps to the middle of the street
@@ -1333,7 +1336,7 @@ function layoutPlace(id, groups, t, loc, scene) {
           var sd = i % 2 ? 1 : -1, off = 4 + Math.floor(i / 2) * 2.4, px0 = w0.x + nx0 * 2.5 - ny0 * sd * off, py0 = w0.y + ny0 * 2.5 + nx0 * sd * off, kq0 = cellAt(px0, py0);
           if (kq0 < 0 || !free(kq0)) continue;
           take(kq0, 0.9); placed++;
-          var yy0 = facingYaw(px0, py0, px0 + nx0, py0 + ny0);
+          var yy0 = facingYaw(px0, py0, px0 + nx0, py0 + ny0); muzzle(px0, py0, yy0);
           g.props.push({ k: 'mg', x: px0, y: py0, yaw: yy0 });
           if (fi < figs.length) g.members.push({ k: figs[fi++], x: px0, y: py0, ox: -Math.sin(yy0) * 0.8, oy: Math.cos(yy0) * 0.8, yaw: yy0, idle: 0.2 });
         }
@@ -1342,7 +1345,7 @@ function layoutPlace(id, groups, t, loc, scene) {
     }
     for (i = 0; i < nMg; i++) {
       ix = pick(cur + i * 3, 0.9); if (ix < 0) break; k = G.order[ix]; take(k, 0.9);
-      var mx = cellX(G, k), my = cellY(G, k), my2 = yawAt(mx, my);
+      var mx = cellX(G, k), my = cellY(G, k), my2 = yawAt(mx, my); muzzle(mx, my, my2);
       g.props.push({ k: 'mg', x: mx, y: my, yaw: my2 });
       if (fi < figs.length) g.members.push({ k: figs[fi++], x: mx, y: my, ox: -Math.sin(my2) * 0.8, oy: Math.cos(my2) * 0.8, yaw: my2, idle: 0.2 });
     }
@@ -2807,7 +2810,10 @@ function closeFrame(e) {
   // how far off a body still counts: the bodies the scene itself brings in, from further ("Down the
   // Voskressensky Prospect a great mass of sailors were drawn up"), the rest within 260 m
   var idx0 = seq.indexOf(e);
-  function reach(g) { return g.p && g.p.from === idx0 && g.brief ? 420 : 260; }
+  function reach(g) {   // and those at its building's gates; not a fight at another building
+    var k = (PL[g.place] || {}).kind, open = k === 'street' || k === 'area' || k === 'square';
+    return (g.p && g.p.from === idx0 && g.brief && open) || (g.place !== rootOf(e.loc) && rootOf(g.place) === rootOf(e.loc)) ? 420 : 260;
+  }
   var id = rootOf(e.loc), l = PL[id]; if (!l || !l.p || l.far) return null;
   var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0;
   GROUPS.forEach(function (g) {
@@ -2822,7 +2828,7 @@ function closeFrame(e) {
     if (!mv.o.pts || !mv.o.pts.length) return;
     if (mv.m.who === 'reed') {   // where Reed watches from, when he saw it
       var qr = mv.o.pts[mv.o.pts.length - 1];
-      if (e.witness === 'seen' && !mv.arc && Math.hypot(qr.x - tx, -qr.z - ty) <= 260) { sx += qr.x * 12; sy += -qr.z * 12; sw += 12; ends.push([qr.x, -qr.z]); }
+      if (e.witness === 'seen' && Math.hypot(qr.x - tx, -qr.z - ty) <= 260) { sx += qr.x * 12; sy += -qr.z * 12; sw += 12; ends.push([qr.x, -qr.z]); }
       return;
     }
     var q = mv.o.pts[mv.o.pts.length - 1], mx = q.x, my = -q.z, q0 = mv.o.pts[0], w = Math.min(60, mv.list.length + 1);
