@@ -1506,7 +1506,7 @@ function stageScene(e, noReed) {
     var gs = byPlace[id].sort(function (a, b) { return (!!b.form - !!a.form) || (b.patrol - a.patrol) || (a.brief - b.brief) || (a.pi - b.pi); });
     layoutPlace(id, gs, e.t, e.loc, e);
   });
-  if (!noReed && e.witness === 'seen' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {
+  if (!noReed && e.witness === 'seen' && (PL[e.loc] || {}).kind !== 'room' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {   // not when he is in a hall inside
     var RG = openGround(rootOf(e.loc), false);
     if (RG) {
       // beside the bodies at his place, not under them, looking at the largest
@@ -1687,6 +1687,7 @@ function alongPath(o, d, side) {
 }
 function drawMover(mv, FS, t) {
   if (mv.handover && mv.f >= 1) return;   // arrived: the body laid out at the place stands for it now
+  if (mv.m.who === 'reed' && mv.f >= 1 && cur && (PL[cur.loc] || {}).kind === 'room' && rootOf(mv.m.to) === rootOf(cur.loc)) return;   // he has gone in, to the hall
   var o = mv.o, gap = 1.25 * FS, walking = mv.f > 0 && mv.f < 1 ? 1 : 0, lead = mv.f * (mv.endD != null ? mv.endD : o.total);
   if (mv.arc) {   // no route: a pennant rides the arc; the body waits at the end
     if (mv.f < 1) {

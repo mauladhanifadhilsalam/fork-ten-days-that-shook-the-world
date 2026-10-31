@@ -480,7 +480,7 @@ BLOC_FIG = {
 # name who they are; the generic ones (women, children) only add to the mix
 SIZE_FIG = [(r'sailor', 'sailor'), (r'soldier|troops|regiment|infantry', 'soldier'), (r'red guard', 'redguard'),
             (r'yunker', 'yunker'), (r'cossack', 'cossack'), (r'workmen|workers', 'worker'), (r'peasant', 'peasant'),
-            (r'officer', 'officer'), (r'student', 'intelligent'), (r'bourgeois|fifth avenue|fur coat|shop-keeper|clerk', 'bourgeois')]
+            (r'officer', 'officer'), (r'student', 'intelligent'), (r'bourgeois|fifth avenue|fur coat|shop-keeper|clerk|civilian', 'bourgeois')]
 SIZE_ADD = [(r"\bwomen\b(?!.s battalion)", 'workerwoman'), (r'child|little boys?|small boys?|little girls?|small girls?', 'child')]
 DEFAULT_N = {'unit': 24, 'school': 28, 'crowd': 60, 'organ': 14, 'party': 12, 'ship': 1, 'person': 1, 'press': 4, 'foreign': 3}
 NUMW = {'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,

@@ -452,12 +452,15 @@
   {"who": "red-guards", "place": "smolny-gates", "size": "the Red Guards", "n": 8, "kit": ["fire:1"], "ref": {"sec": "IV", "q": "It was cold, and at the outer gate the Red Guards had built themselves a bon-fire."}},
   {"who": "garrison", "place": "smolny", "size": "the four rapid-fire guns on each side of the doorway", "n": 16, "kit": ["mg:8"], "ref": {"sec": "IV", "q": "The canvas covers had been taken off the four rapid-fire guns on each side of the doorway, and the ammunition-belts hung snakelike from their breeches."}},
   {"who": "garrison", "place": "smolny", "kit": ["armoured:4"], "ref": {"sec": "IV", "q": "A dun herd of armoured cars stood under the trees in the court-yard, engines going."}},
-  {"who": "garrison", "place": "smolny", "kit": ["fire:1"], "ref": {"sec": "IV", "q": "At the inner gate, too, there was a blaze, by the light of which the sentries slowly spelled out our passes and looked us up and down."}}]},
+  {"who": "garrison", "place": "smolny-inner-gate", "size": "the sentries", "n": 4, "kit": ["fire:1"], "ref": {"sec": "IV", "q": "At the inner gate, too, there was a blaze, by the light of which the sentries slowly spelled out our passes and looked us up and down."}},
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "bund-leaves-congress", "t": "1917-11-07T23:45", "tq": "inferred", "tr": ["1917-11-07T22:50", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 110, "loc": "smolny-hall", "witness": "seen", "actors": ["bund", "mensheviki", "srs", "congress"],
  "title": "The moderates walk out",
  "why": "Late in the opening session, before the MRC room and the truck.",
  "sum": "Abramovitch: the Bund joins the Mensheviki and SRs in leaving the Congress, to “perish with the Provisional Government”.",
- "q": "The Bund group joins with the declaration of the Mensheviki and Socialist Revolutionaries and will leave the Congress!"},
+ "q": "The Bund group joins with the declaration of the Mensheviki and Socialist Revolutionaries and will leave the Congress!",
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "mrc-room-map", "t": "1917-11-08T00:00", "tq": "inferred", "tr": ["1917-11-07T23:00", "1917-11-08T00:30"], "cal": "none", "sec": "IV", "p": 111, "loc": "smolny", "witness": "seen", "actors": ["mrc"],
  "title": "Men over a map",
  "why": "Just before Reed leaves Smolny on the truck.",
@@ -562,7 +565,7 @@
   {"sec": "IV", "q": "After them followed single file half a dozen men in civilian dress--the members of the Provisional Government."},
   {"sec": "IV", "q": "It was only later that we learned how the people in the street wanted to lynch them, and shots were fired"}],
  "moves": [
-  {"who": "provisional-government", "with": ["sailors"], "size": "half a dozen men in civilian dress", "n": 6, "from": "winter-palace", "to": "peter-paul", "mode": "foot", "rc": "none"}]},
+  {"who": "provisional-government", "with": ["sailors"], "size": "half a dozen men in civilian dress", "n": 6, "from": "winter-palace", "to": "peter-paul", "mode": "foot", "rc": "inferred"}]},
 {"id": "womens-battalion-removed", "t": "1917-11-08T03:00", "tq": "inferred", "tr": ["1917-11-08T02:30", "1917-11-08T03:15"], "cal": "none", "sec": "IV", "p": 119, "loc": "winter-palace", "witness": "told", "actors": ["womens-battalion"],
  "title": "The Women’s Battalion",
  "why": "Told on the quay as Reed leaves the palace, just before “It was now after three in the morning”.",
@@ -588,7 +591,9 @@
  "sum": "In the Duma’s Alexander Hall, on Skobeliev’s motion, the anti-Bolshevik groups form the Committee for Salvation of Country and Revolution.",
  "q": ["We mounted to the galleried Alexander Hall", "And as we looked on, the Committee for Salvation was formed"],
  "moves": [
-  {"who": "reed", "from": "palace-embankment", "via": ["nevsky"], "to": "city-duma", "mode": "foot", "rc": "inferred"}]},
+  {"who": "reed", "from": "palace-embankment", "via": ["nevsky"], "to": "city-duma", "mode": "foot", "rc": "inferred"}],
+ "present": [
+  {"who": "committee-for-salvation", "place": "city-duma", "inside": true, "brief": true}]},
 {"id": "internationalists-leave", "t": "1917-11-08T04:50", "tq": "inferred", "tr": ["1917-11-08T04:00", "1917-11-08T05:15"], "cal": "none", "sec": "IV", "p": 121, "loc": "smolny-hall", "witness": "seen", "actors": ["menshevik-internationalists", "congress"],
  "title": "The Internationalists leave",
  "why": "After Reed’s cab from the Duma, where he saw the Committee for Salvation formed after three, and the speeches that greet his arrival; before the appeal is read and Krylenko’s telegram at 5:17.",
@@ -598,17 +603,24 @@
   {"sec": "IV", "q": "he wanted thirty rubles, and stopped two blocks away"},
   {"sec": "IV", "q": "The windows of Smolny were still ablaze, motors came and went, and around the still-leaping fires the sentries huddled close"}],
  "moves": [
-  {"who": "reed", "from": "city-duma", "to": "smolny", "mode": "cab", "rc": "none"}]},
+  {"who": "reed", "from": "city-duma", "to": "smolny-gates", "mode": "cab", "rc": "none"},
+  {"who": "reed", "from": "smolny-gates", "to": "smolny", "mode": "foot", "rc": "inferred"}],
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "krylenko-telegram", "t": "1917-11-08T05:17", "tq": "stated", "tp": "It was exactly 5:17 A.M.", "cal": "none", "sec": "IV", "p": 122, "loc": "smolny-hall", "witness": "seen", "actors": ["krylenko", "congress"],
  "title": "The Twelfth Army goes over",
  "sum": "Krylenko reads a telegram: the Twelfth Army’s new Military Revolutionary Committee has taken command of the Northern Front.",
- "q": "It was exactly 5:17 A.M. when Krylenko, staggering with fatigue, climbed to the tribune with a telegram in his hand."},
+ "q": "It was exactly 5:17 A.M. when Krylenko, staggering with fatigue, climbed to the tribune with a telegram in his hand.",
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "duma-in-permanence", "t": "1917-11-08T15:00", "tq": "approx", "tr": ["1917-11-08T12:00", "1917-11-08T17:00"], "tp": "that afternoon", "cal": "none", "sec": "V", "p": 131, "loc": "city-duma", "witness": "seen", "actors": ["duma", "schreider", "cadets"],
  "title": "The Duma in permanence",
  "sum": "In the Nicolai Hall the Duma sits in permanence, gathering the opposition; Mayor Schreider describes his protest at Smolny.",
  "q": "In the high, amphitheatrical Nicolai Hall that afternoon I saw the Duma sitting in permanence, tempestuous, grouping around it all the forces of opposition.",
  "moves": [
-  {"who": "reed", "from": "smolny", "to": "city-duma", "mode": "unknown", "rc": "none", "gap": true}]},
+  {"who": "reed", "from": "smolny", "to": "city-duma", "mode": "unknown", "rc": "none", "gap": true}],
+ "present": [
+  {"who": "duma", "place": "city-duma", "inside": true, "brief": true}]},
 {"id": "duma-hand-bills", "t": "1917-11-08T16:40", "tq": "inferred", "tr": ["1917-11-08T15:30", "1917-11-08T18:30"], "cal": "none", "sec": "V", "p": 134, "loc": "duma-nevsky", "witness": "seen", "actors": ["duma"],
  "title": "Hand-bills at the Duma’s door",
  "why": "After the afternoon sitting and the news and rumours, which Reed carries on to “toward nightfall”; before the corner of the Liteiny and the evening session at Smolny.",
@@ -638,11 +650,15 @@
  "also": [
   {"sec": "V", "q": "“We shall now proceed to construct the Socialist order!”"}],
  "moves": [
-  {"who": "reed", "from": "liteiny-nevsky", "to": "smolny", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "liteiny-nevsky", "to": "smolny", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "peace-carried", "t": "1917-11-08T22:35", "tq": "stated", "tp": "It was exactly 10:35", "cal": "none", "sec": "V", "p": 141, "loc": "smolny-hall", "witness": "seen", "actors": ["congress"],
  "title": "The proclamation on peace",
  "sum": "The Congress votes the proclamation to the peoples on peace; one hand goes up against and comes down again.",
- "q": "It was exactly 10:35 when Kameniev asked all in favour of the proclamation to hold up their cards."},
+ "q": "It was exactly 10:35 when Kameniev asked all in favour of the proclamation to hold up their cards.",
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "kerensky-luga", "t": "1917-11-08T23:00", "tq": "approx", "tr": ["1917-11-08T19:00", "1917-11-09T04:00"], "tp": "On the night of November 8th", "cal": "NS", "dp": "the night of November 8th", "sec": "App.IV.2", "p": 125, "loc": "luga", "witness": "reported",
  "title": "Kerensky at Luga",
  "sum": "Shouted down by the soldiers at Ostrov and kept from Pskov, Kerensky reaches Luga by car on the night of 8 Nov.",
@@ -652,11 +668,15 @@
 {"id": "land-decree", "t": "1917-11-09T02:00", "tq": "stated", "tp": "At two o’clock", "cal": "none", "sec": "V", "p": 145, "loc": "smolny-hall", "witness": "seen", "actors": ["congress"],
  "title": "The Land Decree",
  "sum": "The Land Decree passes with one vote against, the peasant delegates wild with joy.",
- "q": "At two o’clock the Land Decree was put to vote, with only one against and the peasant delegates wild with joy."},
+ "q": "At two o’clock the Land Decree was put to vote, with only one against and the peasant delegates wild with joy.",
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "sovnarkom-formed", "t": "1917-11-09T02:30", "tq": "stated", "tp": "At 2.30 A. M.", "cal": "none", "sec": "V", "p": 146, "loc": "smolny-hall", "witness": "seen", "actors": ["sovnarkom", "congress", "tsay-ee-kah"],
  "title": "The Council of People’s Commissars",
  "sum": "Kameniev reads the decree forming the Council of People’s Commissars.",
- "q": "At 2.30 A. M. fell a tense hush. Kameniev was reading the decree of the Constitution of Power"},
+ "q": "At 2.30 A. M. fell a tense hush. Kameniev was reading the decree of the Constitution of Power",
+ "present": [
+  {"who": "congress", "place": "smolny-hall", "inside": true, "brief": true, "ref": {"sec": "IV", "q": "So we came into the great meeting-hall, pushing through the clamorous mob at the door."}}]},
 {"id": "gatchina-falls", "t": "1917-11-09T04:00", "tq": "inferred", "tr": ["1917-11-08T20:00", "1917-11-09T08:00"], "cal": "none", "sec": "VI", "p": 156, "loc": "gatchina", "witness": "reported", "actors": ["kerensky", "krasnov"],
  "title": "Gatchina falls to Kerensky",
  "why": "“During the night” before Friday the 9th.",

@@ -40,9 +40,9 @@ docs/schema.md         field reference for the data files
 data/meta.json         text and PDF pins, calendar rule, clock, map zones, move speeds, timeline days
 data/sources.json      the sources actually consulted
 data/actors.json       74 factions, bodies, units, people and crowds, with stance over time
-data/places.json       90 places in the city, at the front, off-map, and in Moscow (not toured)
+data/places.json       91 places in the city, at the front, off-map, and in Moscow (not toured)
 data/events.json       157 scenes: time and its quality, verbatim quote, witness type, moves, control changes,
-                       and who is present or gone (143 presence spans)
+                       and who is present or gone (154 presence spans)
 data/pictures.json     the pictures the scenes show, each public domain, with its provenance; media/ holds them
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf
