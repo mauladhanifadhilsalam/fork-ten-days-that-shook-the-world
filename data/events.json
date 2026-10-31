@@ -219,6 +219,8 @@
  "q": "It was five o’clock when we got back to the Staff, and by that time most of them were gone.",
  "also": [
   {"sec": "VI", "q": "A praporshtchik of the Pavlovsky regiment was telling us how the insurrection started."}],
+ "moves": [
+  {"who": "pavlovsky", "from": "smolny", "to": "general-staff", "mode": "unknown", "rc": "none"}],
  "present": [
   {"who": "pavlovsky", "size": "Some of my comrades and I", "n": 6, "brief": true, "ref": {"sec": "VI", "q": "Some of my comrades and I were standing guard"}}]},
 {"id": "telephone-exchange-taken", "t": "1917-11-07T05:01", "tq": "inferred", "tr": ["1917-11-07T05:00", "1917-11-07T05:30"], "tp": "at 5 o’clock", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "telephone-exchange", "witness": "reported",
@@ -251,7 +253,10 @@
  "title": "An attempt to retake the Post Office",
  "why": "Reed’s chronology of the morning “From 4 A. M. until dawn” gives no hour; it lists the attempt after the Nicolai Bridge, opened three hours after Kerensky’s order, and before Kerensky leaves “About 9 A. M.”",
  "sum": "Reed’s chronology: an attempt is made to recapture the Post Office and the Telegraph Agency; a few shots are fired, and the Government troops announce that they will no longer oppose the Soviets.",
- "q": "An attempt was made to recapture the Post Office and the Telegraph Agency; a few shots were fired, and the Government troops announced that they would no longer oppose the Soviets."},
+ "q": "An attempt was made to recapture the Post Office and the Telegraph Agency; a few shots were fired, and the Government troops announced that they would no longer oppose the Soviets.",
+ "present": [
+  {"who": "government-troops", "place": "post-office", "size": "the Government troops", "n": 12, "fire": true, "at": "post-office", "brief": true},
+  {"who": "government-troops", "place": "telegraph-agency", "size": "the Government troops", "n": 12, "fire": true, "at": "telegraph-agency", "brief": true}]},
 {"id": "state-bank-surrounded", "t": "1917-11-07T07:50", "tq": "approx", "tr": ["1917-11-07T07:00", "1917-11-07T08:40"], "tp": "At dawn", "cal": "none", "sec": "App.III.7", "p": 96, "loc": "state-bank", "witness": "reported",
  "title": "The State Bank surrounded",
  "sum": "Reed’s chronology: at dawn the State Bank is surrounded.",

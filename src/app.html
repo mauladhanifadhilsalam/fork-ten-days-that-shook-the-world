@@ -904,6 +904,16 @@ function members(fig, n, seed) {
   return base.map(function (t, i) { var v = PK.variants[t]; return v ? v[Math.floor(hash(seed + i * 7.3) * v.length)] : t; });
 }
 // did the side of `bloc` hold building `id` just before its present holder took it?
+// the convex hull of points [[x, y]...], as a flat ring for inRing (Andrew's monotone chain)
+function convexHull(P) {
+  if (P.length < 3) return null;
+  P = P.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+  function cr(o, a, b) { return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]); }
+  var lo = [], up = [], i;
+  for (i = 0; i < P.length; i++) { while (lo.length >= 2 && cr(lo[lo.length - 2], lo[lo.length - 1], P[i]) <= 0) lo.pop(); lo.push(P[i]); }
+  for (i = P.length - 1; i >= 0; i--) { while (up.length >= 2 && cr(up[up.length - 2], up[up.length - 1], P[i]) <= 0) up.pop(); up.push(P[i]); }
+  var h = lo.slice(0, -1).concat(up.slice(0, -1)), out = []; h.forEach(function (q) { out.push(q[0], q[1]); }); return out;
+}
 function lostBy(id, t, bloc) {
   var tl = CTL[id], now = holdAt(id, t), prev = null; if (!tl || !now || !now.holder) return false;
   for (var i = 0; i < tl.length && tl[i] !== now; i++) if (tl[i].holder && blocOf(tl[i].holder) !== blocOf(now.holder)) prev = tl[i];
@@ -1213,11 +1223,15 @@ function layoutPlace(id, groups, t, loc, scene) {
     var bx0 = 1e9, by0 = 1e9, bx1 = -1e9, by1 = -1e9, cx = 0, cy = 0, c = 0;
     recs.forEach(function (rec) { cx += (rec.b[0] + rec.b[2]) / 2; cy += (rec.b[1] + rec.b[3]) / 2; c++; bx0 = Math.min(bx0, rec.b[0]); by0 = Math.min(by0, rec.b[1]); bx1 = Math.max(bx1, rec.b[2]); by1 = Math.max(by1, rec.b[3]); });
     cx /= c; cy /= c;
+    // outside the building's hull: a forecourt between its wings is the building's own ground, inside its railings
+    var hp = []; recs.forEach(function (rec) { for (var i = 0; i < rec.r.length; i += 2) hp.push([rec.r[i], rec.r[i + 1]]); });
+    var hull = convexHull(hp);
     var cand = [], H = G.R.h;
     for (var k = 0; k < W * H; k++) {
       if (!free(k)) continue;
       var x = cellX(G, k), y = cellY(G, k);
       if (x < bx0 - 45 || x > bx1 + 45 || y < by0 - 45 || y > by1 + 45) continue;
+      if (hull && inRing(hull, x, y)) continue;
       var w = nearestOn(recs, x, y); if (w.d < 9 || w.d > 45 || !sightTo(x, y, w.x, w.y)) continue;
       cand.push({ k: k, x: x, y: y, wx: w.x, wy: w.y, d: w.d, a: Math.atan2(y - cy, x - cx) });
     }
@@ -2838,7 +2852,7 @@ function closeFrame(e) {
     sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
   });
   if (!sw && e.witness !== 'seen') return null;
-  if (sw) { tx = tx * 0.35 + sx / sw * 0.65; ty = ty * 0.35 + sy / sw * 0.65; }
+  if (sw) { tx = tx * 0.2 + sx / sw * 0.8; ty = ty * 0.2 + sy / sw * 0.8; }   // mostly on the people, a little on the place
   // far enough back to take in every body of the scene's place
   var spread = 0;
   GROUPS.forEach(function (g) { if (g.cx != null && !g.reed && Math.hypot(g.cx - (G ? G.sx : l.p[0]), g.cy - (G ? G.sy : l.p[1])) <= reach(g)) spread = Math.max(spread, Math.hypot(g.cx - tx, g.cy - ty) + (g.r || 0)); });

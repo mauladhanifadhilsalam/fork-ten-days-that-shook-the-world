@@ -35,11 +35,11 @@ What the dataset holds (`tools/check_story.py --report`):
 | | count |
 |---|---|
 | events (scenes) | 157 |
-| moves (one actor's leg) | 140 |
+| moves (one actor's leg) | 141 |
 | places with a control timeline | 20 |
 | places | 90: 69 city, 10 front, 8 Moscow (text only), 3 off-map |
 | places tied to an OSM element | 38 (33 surviving structures, the Mikhailovsky school's building, 4 sites of vanished ones) |
-| actors (factions, bodies, units, people, crowds) | 73 |
+| actors (factions, bodies, units, people, crowds) | 74 |
 
 **Reed's own path** is the true counterpart of Raskolnikov's walks, and it is better than expected.
 - On 5–9 and 13 November he names his streets as often as Dostoevsky does:
@@ -57,7 +57,7 @@ The track has real holes, and the data marks them as `gap`:
 
 | | Raskolnikov Wandering | Ten Days |
 |---|---|---|
-| actors | one walker (plus Svidrigailov) | Reed, plus 72 factions, units and people, several moving at once |
+| actors | one walker (plus Svidrigailov) | Reed, plus 73 factions, units and people, several moving at once |
 | time | day index + "HH:MM" | real New Style dates. Old Style appears in documents. Clock on 1917 summer time. |
 | place doubt | which house the initials mean | mostly settled |
 | state | none | buildings and towns change hands (20 timelines) |
@@ -181,7 +181,7 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 20 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, and the tram and rail lines of 1917.
    - *Done since:*
      - The tour keeps to Petrograd: 131 of the 157 scenes.
-     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 141 presence spans, each tied to a passage of his.
+     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 143 presence spans, each tied to a passage of his.
      - They stand in the formation Reed gives them in that scene: columns, lines, companies drawn up, columns marching past. Their banners and flags carry his words.
      - 55 pictures illustrate 51 scenes. 11 are Reed's own facsimiles; 44 are public-domain photographs, postcards and documents from Wikimedia Commons, each captioned with what it shows and when.
      - The uniforms rest on photographs; docs/uniforms.md lists them.

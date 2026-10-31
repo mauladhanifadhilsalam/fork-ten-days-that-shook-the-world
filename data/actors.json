@@ -226,6 +226,10 @@
  "ru": "Петроградский гарнизон",
  "stance": [
   {"from": "1917-11-11T22:00", "s": "support", "ev": "lenin-regiments"}]},
+{"id": "government-troops", "kind": "unit", "bloc": "government",
+ "name": "Government troops",
+ "reed": ["Government troops"],
+ "note": "The troops who tried to recapture the Post Office and the Telegraph Agency on the morning of 7 November; Reed does not say which."},
 {"id": "krasnov-cossacks", "kind": "unit", "bloc": "government", "track": true,
  "name": "Krasnov’s Cossacks (3rd Cavalry Corps)",
  "reed": ["Cossacks"],
