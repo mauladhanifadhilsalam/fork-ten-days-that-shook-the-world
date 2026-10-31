@@ -467,6 +467,7 @@ ACTOR_FIG = {
     'duma-procession': [('bourgeois', .5), ('bourgeoiswoman', .2), ('intelligent', .3)],
     'car-occupants': [('bourgeois', .7), ('bourgeoiswoman', .3)],   # turned out of private automobiles
     'peasants-congress': [('peasant', .75), ('soldier', .25)],
+    'izvoshtchiki': [('worker', 1)], 'boy-scouts': [('child', 1)], 'hotel-officers': [('officer', 1)],
 }
 BLOC_FIG = {
     'soviet': [('soldier', .35), ('sailor', .25), ('redguard', .25), ('worker', .15)],

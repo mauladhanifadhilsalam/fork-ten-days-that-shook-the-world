@@ -372,6 +372,20 @@ var PEOPLE = (function (THREE) {
     for (var i = 0; i < 8; i++) m.box(col, -0.95 + (i + 0.5) * 1.9 / 8, 2.35, 0, 1.9 / 8 * 1.02, 0.7, 0.015, 0, 0, 0, 5);
     return m;
   }
+  function horn() {                  // a brass instrument held up to play: the military band
+    var m = new Model(), brass = '#c8a346';
+    m.cyl(brass, 0, 1.42, 0.16, 0.05, 0.42, 8, Math.PI / 2, 0, 0);
+    m.cyl(brass, 0, 1.42, 0.42, 0.2, 0.16, 10, Math.PI / 2, 0, 0, undefined, 0.1);
+    m.cyl(brass, 0, 1.5, 0.02, 0.09, 0.3, 8);
+    return m;
+  }
+  function trench() {                // a trench dug across the way, its earth thrown up in front
+    var m = new Model();
+    m.box('#3b3127', 0, 0.01, 0, 7.0, 0.02, 1.3);
+    m.box('#5d4a36', 0, 0.22, 1.05, 7.4, 0.45, 0.9);
+    m.box('#6b5640', 0, 0.12, 1.6, 7.0, 0.24, 0.5);
+    return m;
+  }
   function torch() { var m = new Model(); m.box(C.wood, 0, 1.25, 0, 0.04, 1.0, 0.04); m.cyl('#3a2a1c', 0, 1.78, 0, 0.09, 0.12, 6); return m; }
 
   // the cruiser Aurora, at her real size (126.8 m by 16.8 m): three funnels, two masts
@@ -405,7 +419,7 @@ var PEOPLE = (function (THREE) {
       armoured: armoured('#77746a').geometry(), truck: truck('#5d5b47').geometry(), car: car('#1d1d1f').geometry(),
       gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(),
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
-      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
+      logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), horn: horn().geometry(), trench: trench().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()

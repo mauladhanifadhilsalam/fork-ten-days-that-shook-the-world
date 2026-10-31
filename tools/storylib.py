@@ -78,7 +78,7 @@ ENUM = {
     'event.witness': {'seen', 'told', 'reported', 'document'},
     'move.mode': {'foot', 'march', 'cavalry', 'cab', 'tram', 'car', 'truck', 'armoured', 'rail', 'ship', 'air', 'unknown'},
     'move.rc': {'stated', 'inferred', 'none'},
-    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'torch', 'bicycle', 'leaflets', 'rifles'},
+    'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
     'pose': {'fallen', 'prone'},
     'assault': {'repulsed', 'carried'},
@@ -95,7 +95,7 @@ KIT_WORDS = {
     'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
     'rifles': r'heap of rifles|rifles thrown down|rifles stacked|stacked rifles|piles? of rifles|rifles (lay|lying) in',
-    'whiteflag': r'white flag', 'redcross': r'Red Cross',
+    'whiteflag': r'white flag', 'redcross': r'Red Cross', 'band': r'\bband\b', 'trench': r'trench',
 }
 # How a body stands, in the scene whose passage says so, and whether it is on the move: the words that count
 FORM_WORDS = {'column': r'column|\bfiles?\b|lines of four|\bin fours\b|marching|tramp(ing|ed)|swinging along|swing down|regular tread', 'line': r'\ba line\b|\bline of\b|cordon',
@@ -114,7 +114,7 @@ ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|i
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
 # a body indoors: the map labels its building and draws no one
-INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre|trainload'
+INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre|trainload|\bin (extraordinary )?session\b'
 # what a body looks at, or turns its guns on
 # which way a marching body heads ("Up the Nevsky ... Red Guards were marching", "others ... coming back")
 HEADING_WORDS = r'\bup the\b|\bdown the\b|coming back|going back|back (up|down|to)\b'
