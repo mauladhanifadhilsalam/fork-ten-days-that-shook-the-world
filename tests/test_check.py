@@ -273,6 +273,13 @@ Breaks.test_form_not_in_text = case('form.not-in-text', mutate=lambda d: ev(d, '
 Breaks.test_form_enum = case('field.enum', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'square'}), only=True)
 Breaks.test_march_needs_brief = case('field.missing', mutate=lambda d: ev(d, 'reed-walks')['present'][0].pop('brief'), only=True)
 Breaks.test_march_not_in_text = case('form.not-in-text', mutate=lambda d: ev(d, 'telegraph-occupied')['present'][0].update({'form': 'column', 'march': True, 'brief': True}), only=True)
+# which way a marching body goes is its facing ("Sailors marched up the Nevsky"); a bridge opened needs the words
+def _standing_heading(d):   # the same words, but the body stands: "up the" is no word for looking
+    r = ev(d, 'reed-walks')['present'][0]
+    r.update({'face': 'duma'}); r.pop('march'); r.pop('form')
+Breaks.test_heading_needs_a_march = case('form.not-in-text', mutate=_standing_heading)
+Breaks.test_raised_needs_a_bridge = case('ref.unknown', mutate=lambda d: ev(d, 'reed-walks').update({'raised': ['nevsky']}))
+Breaks.test_raised_needs_its_words = case('fight.not-in-text', mutate=lambda d: ev(d, 'reed-walks').update({'raised': ['nevsky']}))
 # the fighting: who fires, at what, from the windows or not; who lies dead or flat; who runs at the enemy
 def _cornice_fire(d):
     return ev(d, 'cornice')['present'][0]
@@ -476,3 +483,10 @@ class RealData(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Heading(unittest.TestCase):
+    def test_a_marching_body_faces_the_way_it_goes(self):
+        d = good()
+        ev(d, 'reed-walks')['present'][0]['face'] = 'duma'
+        self.assertFalse(errors(d), 'a column that "marched up the Nevsky" may face the way it goes')

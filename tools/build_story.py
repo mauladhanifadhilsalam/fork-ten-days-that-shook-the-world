@@ -613,7 +613,7 @@ for sp in spans:
 
 events = []
 for e in [e for e, ok in zip(events_all, in_tour) if ok]:
-    rec = {k: e[k] for k in ('id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags', 'title', 'why', 'sum') if k in e}
+    rec = {k: e[k] for k in ('id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags', 'title', 'why', 'sum', 'raised') if k in e}
     rec['q'] = ' … '.join(L.segments(e['q']))
     if e.get('also'):
         rec['also'] = [{'sec': a['sec'], 'q': ' … '.join(L.segments(a['q']))} for a in e['also']]

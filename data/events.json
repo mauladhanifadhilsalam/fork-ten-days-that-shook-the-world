@@ -118,7 +118,8 @@
  "sum": "At the corner of the Morskaya and the Nevsky soldiers stop private cars, turn out the occupants and order them toward the Winter Palace; nobody knows whose soldiers they are.",
  "q": "At the corner of the Morskaya and the Nevsky, squads of soldiers with fixed bayonets were stopping all private automobiles, turning out the occupants, and ordering them toward the Winter Palace.",
  "moves": [
-  {"who": "reed", "from": "mariinsky-palace", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "inferred"}],
+  {"who": "reed", "from": "mariinsky-palace", "via": ["morskaya"], "to": "morskaya-nevsky", "mode": "foot", "rc": "inferred"},
+  {"who": "unknown-soldiers", "size": "ordering them toward the Winter Palace", "n": 2, "from": "morskaya-nevsky", "to": "winter-palace", "mode": "car", "rc": "inferred"}],
  "present": [
   {"who": "unknown-soldiers", "size": "squads of soldiers with fixed bayonets", "n": 14, "brief": true},
   {"who": "crowd", "size": "A large crowd", "n": 40, "face": "unknown-soldiers", "brief": true, "ref": {"sec": "III", "q": "A large crowd had gathered to watch them."}},
@@ -225,11 +226,13 @@
  "q": "and at 5 o’clock the Telephone Exchange",
  "ctl": [
   {"place": "telephone-exchange", "state": "held", "holder": "mrc"}]},
-{"id": "nicolai-bridge-opened", "t": "1917-11-07T07:00", "tq": "inferred", "tr": ["1917-11-07T06:00", "1917-11-07T09:00"], "cal": "none", "sec": "App.IV.1", "p": 123, "loc": "nicolai-bridge", "witness": "reported", "actors": ["nicolai-bridge-party", "red-guards"],
+{"id": "nicolai-bridge-opened", "t": "1917-11-07T07:00", "tq": "inferred", "tr": ["1917-11-07T06:00", "1917-11-07T09:00"], "cal": "none", "sec": "App.IV.1", "p": 123, "loc": "nicolai-bridge", "witness": "reported", "actors": ["nicolai-bridge-party", "red-guards"], "raised": ["nicolai-bridge"],
  "title": "The Nicolai Bridge opened",
  "why": "Three hours after an order given while Kerensky was at the Staff (from 4 a.m.).",
  "sum": "Three hours after Kerensky’s order to open the bridges, an officer and five men go out on their own initiative, put a picket of Red Guards to flight and open the Nicolai Bridge.",
  "q": "Kerensky gave an order to open the bridges; three hours passed without any action, and then an officer and five men went out on their own initiative, and putting to flight a picket of Red Guards, opened the Nicolai Bridge.",
+ "moves": [
+  {"who": "red-guards", "size": "a picket of Red Guards", "n": 6, "from": "nicolai-bridge", "to": "nicolai-bridge-south", "mode": "foot", "rc": "inferred"}],
  "present": [
   {"who": "nicolai-bridge-party", "size": "an officer and five men", "n": 6, "brief": true},
   {"who": "red-guards", "size": "a picket of Red Guards", "n": 6, "brief": true}]},
@@ -692,7 +695,7 @@
  "moves": [
   {"who": "armoured-cars", "from": "mikhailovskaya", "to": "city-duma", "mode": "armoured", "rc": "stated"}],
  "present": [
-  {"who": "crowd", "size": "some hundreds of men and women", "n": 60, "pose": "prone", "brief": true, "ref": {"sec": "VI", "q": "Immediately the crowd began to run, as Petrograd crowds do, falling down and lying still in the street, piled in the gutters, heaped up behind telephone-poles."}}]},
+  {"who": "crowd", "place": "duma-nevsky", "size": "some hundreds of men and women", "n": 60, "pose": "prone", "brief": true, "ref": {"sec": "VI", "q": "Immediately the crowd began to run, as Petrograd crowds do, falling down and lying still in the street, piled in the gutters, heaped up behind telephone-poles."}}]},
 {"id": "armoured-car-goes-off", "t": "1917-11-09T14:05", "tq": "inferred", "tr": ["1917-11-09T12:35", "1917-11-09T16:00"], "cal": "none", "sec": "VI", "p": 160, "loc": "city-duma", "witness": "seen", "actors": ["armoured-cars", "crowd"],
  "title": "Off up the Nevsky",
  "why": "“After a moment”, once the car had demanded the surrender of the Soldatski Golos.",
@@ -781,11 +784,12 @@
  "sum": "On the way to the Tsarskoye Selo station Reed passes young Red Guards marching up the Nevsky under a gold-lettered red flag.",
  "q": "A red flag crudely lettered in gold, “Peace! Land!” floated over them. They were very young.",
  "also": [
+  {"sec": "VII", "q": "Up the Nevsky, as we passed, Red Guards were marching, all armed, some with bayonets and some without."},
   {"sec": "VII", "q": "Heads up they tramped in the chill mud, irregular lines of four, without music, without drums."}],
  "moves": [
   {"who": "reed", "from": "smolny", "to": "nevsky", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "red-guards", "place": "nevsky", "size": "irregular lines of four", "n": 40, "kit": ["flag:1"], "say": ["Peace! Land!"], "form": "column", "march": true, "brief": true},
+  {"who": "red-guards", "place": "nevsky", "size": "irregular lines of four", "n": 40, "kit": ["flag:1"], "say": ["Peace! Land!"], "form": "column", "march": true, "face": "sadovaya-nevsky", "brief": true},
   {"who": "crowd", "place": "nevsky", "brief": true, "ref": {"sec": "VII", "q": "Half-fearful, half-contemptuous, the crowds on the sidewalk watched them pass, in hateful silence"}}]},
 {"id": "tsarskoye-limbo", "t": "1917-11-10T19:00", "tq": "inferred", "tr": ["1917-11-10T17:30", "1917-11-10T21:30"], "cal": "none", "sec": "VII", "p": 186, "loc": "catherine-palace", "witness": "seen", "actors": ["tsarskoye-rifles"],
  "title": "“Holding the city for Kerensky”",
@@ -1214,7 +1218,8 @@
   {"who": "workers", "place": "moskovsky-highway", "size": "Women with spades, some with rifles and bandoleers", "n": 24, "brief": true, "ref": {"sec": "IX", "q": "Women with spades, some with rifles and bandoleers, others wearing the Red Cross on their arm-bands"}},
   {"who": "garrison", "place": "moskovsky-highway", "size": "Squads of soldiers marching out of step", "n": 20, "form": "column", "march": true, "brief": true, "ref": {"sec": "IX", "q": "Squads of soldiers marching out of step, with an affectionate jeer for the Red Guards; sailors, grim-looking; children with bundles of food for their fathers and mothers; all these, coming and going, trudged through the whitened mud that covered the cobbles of the highway inches deep."}},
   {"who": "unknown-soldiers", "place": "moskovsky-highway", "size": "trucks bound both ways, bristling with armed men", "n": 8, "kit": ["gun", "truck"], "brief": true, "ref": {"sec": "IX", "q": "We passed cannon, jingling southward with their caissons; trucks bound both ways, bristling with armed men"}},
-  {"who": "sailors", "place": "moskovsky-highway", "size": "sailors, grim-looking", "n": 10, "brief": true, "ref": {"sec": "IX", "q": "Squads of soldiers marching out of step, with an affectionate jeer for the Red Guards; sailors, grim-looking; children with bundles of food for their fathers and mothers; all these, coming and going, trudged through the whitened mud that covered the cobbles of the highway inches deep."}}]},
+  {"who": "sailors", "place": "moskovsky-highway", "size": "sailors, grim-looking", "n": 10, "brief": true, "ref": {"sec": "IX", "q": "Squads of soldiers marching out of step, with an affectionate jeer for the Red Guards; sailors, grim-looking; children with bundles of food for their fathers and mothers; all these, coming and going, trudged through the whitened mud that covered the cobbles of the highway inches deep."}},
+  {"who": "red-guards", "place": "moskovsky-gate", "size": "others, greyfaced and muddy, coming back", "n": 16, "face": "zagorodny", "brief": true, "ref": {"sec": "IX", "q": "It was thronged with Red Guards, stumbling along on foot toward the revolutionary front, shouting and singing; and others, greyfaced and muddy, coming back."}}]},
 {"id": "pulkovo-crossroads", "t": "1917-11-13T15:15", "tq": "inferred", "tr": ["1917-11-13T14:30", "1917-11-13T16:00"], "cal": "none", "sec": "IX", "p": 227, "loc": "pulkovo", "witness": "seen", "actors": ["red-guards"],
  "title": "The battlefield at Pulkovo",
  "why": "The ambulance’s first halt beyond the Moskovsky Gate.",
@@ -1306,7 +1311,7 @@
  "ctl": [
   {"place": "nicolai-station", "state": "held", "holder": "mrc"}],
  "present": [
-  {"who": "sailors", "size": "trainload after trainload of sailors and Red Guards", "n": 40, "brief": true, "ref": {"sec": "X", "q": "hurled trainload after trainload of sailors and Red Guards southwest"}}]},
+  {"who": "sailors", "size": "trainload after trainload of sailors and Red Guards", "n": 40, "inside": true, "brief": true, "ref": {"sec": "X", "q": "hurled trainload after trainload of sailors and Red Guards southwest"}}]},
 {"id": "zagorodny-homecoming", "t": "1917-11-16T18:00", "tq": "approx", "tr": ["1917-11-16T16:30", "1917-11-16T21:00"], "tp": "On the evening of November 16th", "cal": "NS", "dp": "the evening of November 16th", "sec": "X", "p": 239, "loc": "zagorodny", "witness": "seen", "actors": ["red-guards"],
  "title": "Red Guards march to welcome their brothers",
  "sum": "Two thousand Red Guards march down the Zagorodny Prospekt behind a band playing the Marseillaise, to welcome home their brothers who had defended Red Petrograd.",

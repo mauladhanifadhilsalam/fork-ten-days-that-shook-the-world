@@ -57,7 +57,7 @@ TYPES = {
     'conf': STR, 'osm': STR, 'site_osm': STR, 'geo': DICT, 'ctl0': DICT, 'addr1917': STR, 'addr_now': STR,
     'ident': STR, 'today': STR, 'm': STR, 'at': STR, 'osm_v': INT, 'on': STR, 'state': STR, 'holder': STR,
     'by': STR, 'as_of': STR, 't': STR, 'tq': STR, 'tr': LIST, 'tp': STR, 'cal': STR, 'dp': STR, 'sec': STR,
-    'p': INT, 'loc': STR, 'witness': STR, 'tags': LIST, 'why': STR, 'sum': STR, 'also': LIST, 'doc': DICT,
+    'p': INT, 'loc': STR, 'witness': STR, 'tags': LIST, 'raised': LIST, 'why': STR, 'sum': STR, 'also': LIST, 'doc': DICT,
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
@@ -498,6 +498,13 @@ class Checker:
                 F.err('time.tp-mismatch', w, f'tp {e["tp"]!r} means {sorted(c)}, but t is {e["t"]}')
         if t and 'dp' in e:
             self.date_phrase(e['dp'], e.get('cal'), t, w)
+        for b in e.get('raised', []) if isinstance(e.get('raised'), list) else []:   # a bridge opened in the scene
+            if (self.P.get(b) or {}).get('kind') != 'bridge':
+                F.err('ref.unknown', w, f'raised: {b!r} is not a bridge')
+            else:
+                self.count_ref(b)
+            if not re.search(L.RAISE_WORDS, self.scene_text(e), re.I):
+                F.err('fight.not-in-text', w, f'raised: the scene has no words for opening a bridge ({L.RAISE_WORDS})')
         for g in e.get('tags', []):
             if g not in tags:
                 F.err('field.enum', w, f'tag {g!r} is not in meta.tags')
@@ -781,8 +788,9 @@ class Checker:
         elif r['face'] == (place or r.get('place')):
             F.err('field.range', where, 'face: a body faces something other than the place it stands at')
         self.count_ref(r['face'])
-        if not re.search(L.FACE_WORDS, words, re.I):
-            F.err('form.not-in-text', where, f'face: the passage has no word for looking or training guns ({L.FACE_WORDS})')
+        heads = (r.get('march') or r.get('form') == 'column') and re.search(L.HEADING_WORDS, words, re.I)   # a marching body faces the way it goes
+        if not re.search(L.FACE_WORDS, words, re.I) and not heads:
+            F.err('form.not-in-text', where, f'face: the passage has no word for looking or training guns ({L.FACE_WORDS}), nor, for a marching body, for the way it goes ({L.HEADING_WORDS})')
 
     def count_n(self, r, where):
         if 'n' in r:

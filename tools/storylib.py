@@ -31,7 +31,7 @@ FIELDS = {
     'geo': ['m', 'at', 'q', 'osm_v', 'on', 'src', 'note'],
     'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
     'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags',
-              'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone'],
+              'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone', 'raised'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
     'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack'],
@@ -114,8 +114,12 @@ ENTRY_WORDS = r'poured (in|into|through)|stormed (in|into|the place)|swept (in|i
 # vehicles cruising up and down the street
 PATROL_WORDS = r'back and forth|to and fro|up and down|cruis|patrol'
 # a body indoors: the map labels its building and draws no one
-INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre'
+INSIDE_WORDS = r'\binside\b|\bin there\b|back rooms|\bwithin\b|indoors|\bin the (hall|building|palace|rooms?|corridors?|court-?yard|lobby|attic|offices)\b|\bin the telephone exchange\b|switchboard room|at the hall windows|in all the offices|into (all |every )?the compartments|filling up the aisles|amphitheatre|trainload'
 # what a body looks at, or turns its guns on
+# which way a marching body heads ("Up the Nevsky ... Red Guards were marching", "others ... coming back")
+HEADING_WORDS = r'\bup the\b|\bdown the\b|coming back|going back|back (up|down|to)\b'
+# a bridge Reed has opened ("opened the Nicolai Bridge", "an order to open the bridges")
+RAISE_WORDS = r'open(ed|s|ing)? the [\w ]{0,20}bridges?|bridges? (were|was|had been) (opened|raised|up)'
 FACE_WORDS = r'star(e|ed|es|ing)\b|\bfac(e|ed|es|ing)\b|toward|looking|look(ed)? (at|up|down|out|toward)|watch|trained|turned (to|on|toward)|gaz(e|ed|ing)|pointing|peer|block(ing|ed)? the way|barr(ing|ed) the way|confront'
 WINDOW_WORDS = r'window'
 SHOOTING_WORDS = r'\bfir(e|ed|es|ing)\b|shoot|\bshots?\b|fusillade|bombard|shell|cannonade|machine.gun|volley|rifle-fire|withering blast'

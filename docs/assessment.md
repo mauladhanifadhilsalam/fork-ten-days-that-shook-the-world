@@ -16,7 +16,7 @@ It is worth doing, but it is not the same treatment, and pretending otherwise wo
 - **Many actors move at once,** and buildings change hands, some of them three times in five days.
 - **The dates are real, and both the calendar and the clock are traps** (§4).
 - **The action runs 43 km south,** to Gatchina, and the trip to Moscow covers 635 km.
-- **The places are mostly certain; the times and the vantage point are not.** Of 88 places, 41 are named outright by Reed. Of 157 scenes, only 94 are things Reed saw, and most times are estimates.
+- **The places are mostly certain; the times and the vantage point are not.** Of 89 places, 41 are named outright by Reed. Of 157 scenes, only 94 are things Reed saw, and most times are estimates.
 
 About 40% of the old engine carries over as it is (§6); the rest needs a new model. The deciding cost is not code but data. A reviewed dataset of this size took most of this round, and every line of it is tied to a verbatim quote and machine-checked against Reed's text.
 
@@ -35,9 +35,9 @@ What the dataset holds (`tools/check_story.py --report`):
 | | count |
 |---|---|
 | events (scenes) | 157 |
-| moves (one actor's leg) | 133 |
+| moves (one actor's leg) | 135 |
 | places with a control timeline | 20 |
-| places | 88: 67 city, 10 front, 8 Moscow (text only), 3 off-map |
+| places | 89: 68 city, 10 front, 8 Moscow (text only), 3 off-map |
 | places tied to an OSM element | 38 (33 surviving structures, the Mikhailovsky school's building, 4 sites of vanished ones) |
 | actors (factions, bodies, units, people, crowds) | 70 |
 
@@ -114,7 +114,7 @@ Every weekday–date pair in the book was tested both ways:
   - The Vladimir yunker school's barracks were demolished in October 2007, apart from one small wing.
   - Moscow's Iberian Gate is a 1995 rebuild.
   - These have `exists: false` (or `null`) and, where useful, `site_osm`. Bridges that did not exist in 1865 but did in 1917 (Palace, Trinity, Bolsheokhtinsky) must come back.
-- **Weak identifications.** Thirteen places are conjectural, and two are unlocated (Reed's lodging, and the cross-roads "toward Romanov" where he was nearly shot). The conjectural ones:
+- **Weak identifications.** Fourteen places are conjectural, and two are unlocated (Reed's lodging, and the cross-roads "toward Romanov" where he was nearly shot). The conjectural ones:
   - the Telegraph Agency: TASS's history puts it on Pochtamtskaya, but the house is unknown;
   - the Tsarskoye Soviet's palace;
   - the 2nd Tsarskoye Rifles' barracks;
@@ -122,7 +122,7 @@ Every weekday–date pair in the book was tested both ways:
   - the Kirochnaya barracks;
   - "Uncle Tom's Cabin";
   - the "moving picture show near the Kazan Cathedral", and the Avrora's anchorage in the Neva;
-  - the parts of places Reed gives only by a street or a gate: the corners of the Liteiny and of the Sadovaya on the Nevsky, the Nevsky at "the corner of the Ekaterina Canal" on the Duma side, the Morskaya off St Isaac's Square, and Smolny's "outer gates".
+  - the parts of places Reed gives only by a street or a gate: the corners of the Liteiny and of the Sadovaya on the Nevsky, the Nevsky at "the corner of the Ekaterina Canal" on the Duma side, the Morskaya off St Isaac's Square, and Smolny's "outer gates", and the end of the Nicolai Bridge the picket ran to.
 - **The period plan.** Suvorin's *Plan of Petrograd with its immediate surroundings* (1916, 1:21,000, public domain, on Wikimedia Commons) is the natural replacement for the 1868 Musnitsky overlay, warped with the same `georef_plan.py` method. A 1917 edition is reportedly on Commons too; that has not been verified.
 - **Moscow** stays text only, as decided. Its seven places carry coordinates and OSM ids in case an inset is ever wanted.
 
@@ -181,13 +181,13 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 20 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, and the tram and rail lines of 1917.
    - *Done since:*
      - The tour keeps to Petrograd: 131 of the 157 scenes.
-     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 133 presence spans, each tied to a passage of his.
+     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 134 presence spans, each tied to a passage of his.
      - They stand in the formation Reed gives them in that scene: columns, lines, companies drawn up, columns marching past. Their banners and flags carry his words.
      - 55 pictures illustrate 51 scenes. 11 are Reed's own facsimiles; 44 are public-domain photographs, postcards and documents from Wikimedia Commons, each captioned with what it shows and when.
      - The uniforms rest on photographs; docs/uniforms.md lists them.
      - The fighting is drawn where Reed has a body fire, and as he has it: rings of sections round a besieged building ("surrounded the building and opened fire"), a garrison firing from its windows, field-guns whose shells leave holes in the walls for the later scenes, armoured cars "cruising back and forth", assault waves that "crumpled" or that "poured through" the doors, the dead where they fell, crowds "falling flat on their faces". A shot he only hears is not drawn, and neither is a shooter he does not see. Reed's own storming of the Winter Palace has no firing in it ("The shooting had ceased"), so the map draws it as he does: a mass that pours through the Red Arch, huddles behind the Alexander Column, and goes over the barricade of firewood past "a heap of rifles thrown down by the yunkers".
      - Where bodies stand was re-read scene by scene against Reed (a survey of every tour scene, then edit plans checked op by op): the parts of places he names have places of their own (Smolny's door and outer gates, the Nevsky before the Duma's door, the Kazan Square, the corner of the Liteiny, the western end of the Palace Square); lines stand across the street or the opening he names; defenders face out from their walls, and a body faces what Reed has it watch; moves he separates in time are separate scenes, so no column walks both ways at once.
-   - *What the figures are not:* a head count, or a claim about any uniform in particular. The counts drawn are display choices from Reed's phrases ("two thousand" is drawn as 140), the faces are all alike, and the uniforms are the common ones of 1917 Petrograd, not the regiment's. Where a body stands within a place is the open ground nearest the place (or its stage, the ground before its door), not something Reed says, except where the data names the part of the place he gives. So is how far off besiegers keep: Reed puts the sailors besieging the Telephone Exchange "in the middle of the Morskaya", not how far down it, and the map stands them in the street before the building, behind their barricades. A formation is drawn only where Reed's words give it. Which way a passing column walks is ours unless Reed has it face something or gives the way: "up the Nevsky" is read as Reed uses it when the procession goes "back up the Nevsky" to the Duma, away from the Admiralty; where a column comes from and goes to on the street is ours. In a fight, who fires at whom is Reed's; how often each man fires, where each section of a ring stands, which window a shot comes from, where a shell strikes and how far an armoured car cruises are the map's. One body is drawn that Reed does not name: the Military Hotel and the Telegraph Agency were "bloodily recaptured", by whom he does not say, and the map draws sailors (who had held the hotel) storming both, the yunkers firing from the windows; the scene's card says so. Two touches are the map's own, not the record's: the Red Guard's red arm band, and the machine-gun belts some sailors wear crossed on the chest.
+   - *What the figures are not:* a head count, or a claim about any uniform in particular. The counts drawn are display choices from Reed's phrases ("two thousand" is drawn as 140), the faces are all alike, and the uniforms are the common ones of 1917 Petrograd, not the regiment's. Where a body stands within a place is the open ground nearest the place (or its stage, the ground before its door), not something Reed says, except where the data names the part of the place he gives. So is how far off besiegers keep: Reed puts the sailors besieging the Telephone Exchange "in the middle of the Morskaya", not how far down it, and the map stands them in the street before the building, behind their barricades. A formation is drawn only where Reed's words give it. Which way a passing column walks is ours unless Reed has it face something or gives the way: "up the Nevsky" is read as Reed uses it when the procession goes "back up the Nevsky" to the Duma, away from the Admiralty; where a column comes from and goes to on the street is ours. In a fight, who fires at whom is Reed's; how often each man fires, where each section of a ring stands, which window a shot comes from, where a shell strikes and how far an armoured car cruises, where along a bridge it opens, and how loosely a crowd that "blocked the Nevsky" stands are the map's. One body is drawn that Reed does not name: the Military Hotel and the Telegraph Agency were "bloodily recaptured", by whom he does not say, and the map draws sailors (who had held the hotel) storming both, the yunkers firing from the windows; the scene's card says so. Two touches are the map's own, not the record's: the Red Guard's red arm band, and the machine-gun belts some sailors wear crossed on the chest.
    - *What the pictures are not:* evidence. Most show the place or the people, not the moment. The postcards are from before 1917, the Avrora from 1909–14, Trotsky probably from 1918, Lenin from August 1917, and several Commons photographs have no exact day. The captions say so. No public-domain photograph was found for six scenes' places: the Telephone Exchange, the Post Office, the Telegraph Agency, the Astoria, the Hotel France and the Kirochnaya barracks.
 3. **The front view**, if the tour is ever to leave the city: terrain, 1917 railways and roads, and towns without modern suburbs.
 4. **The 1916 plan overlay** and 1917 bridges, including raised and lowered states where the text gives them.
