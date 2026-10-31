@@ -201,6 +201,12 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 - **Uncertain buildings:**
   - house numbers may have changed since 1917: Nevsky 86 is now part of the plot 84-86, and which courtyard wing held apartment 229 is unknown;
   - the Pavlovsk school: OSM has no Krasnogo Kursanta 21, so the pin is in the academy building that fronts the street between nos. 18 and 23, taken to be it.
+- **Limits of the drawing** (the map's, not the record's):
+  - *Night.* After dark one warm light hangs over the scene, standing in for the street lamps, which are not drawn; buildings show no lit windows ("in the light that streamed out of all the Winter Palace windows" is not drawn).
+  - *The Nevsky.* The whole avenue is one place with one pin, by the Duma, so a body Reed puts "on the Nevsky" with no nearer landmark is drawn there, whichever stretch he means. Its named parts (the corners of the Morskaya, the Sadovaya and the Liteiny, the Kazan Bridge, the Duma's door) have places of their own.
+  - *Indoors.* A body is drawn inside a building only where Reed's words put it there ("in the lobby", "in the back rooms", "inside") or where the fighting does (besieged, stormed, taken); a body he sets at a building without saying it is inside stands at its door. Inside, it is a label on the building: no rooms, halls or stairs are drawn, so the scenes in Smolny's hall, the Duma's chambers or the Winter Palace's corridors show only who stands outside.
+  - *Movement off the city.* Moves that leave the detailed city (the front, Moscow, Gatchina) are drawn as a flying pennant on an arc, not as people on the road.
+  - *Vehicles.* Cars, trucks and cabs drive their route and stop short of the people at its end, but they do not make way for people they pass on the way.
 
 **What review found.** An independent reviewer checked a sample of 20 events and 20 places against the text and OSM. Every finding was re-read against the text before anything changed, and all but one held up:
 - Reed left the palace "through a door opening onto the Neva quay", not across the square.
