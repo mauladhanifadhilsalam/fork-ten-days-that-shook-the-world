@@ -2833,7 +2833,7 @@ function closeFrame(e) {
   var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0;
   GROUPS.forEach(function (g) {
     if (g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > reach(g)) return;
-    var w = Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);
+    var w = g.reed ? 12 : Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);   // Reed counts as his walk's end does
     if (g.p && g.p.from === seq.indexOf(e) && (g.pose || g.fire || g.assault || g.brief)) w *= 3;   // what happens in this scene before who stands by
     sx += g.cx * w; sy += g.cy * w; sw += w;
   });

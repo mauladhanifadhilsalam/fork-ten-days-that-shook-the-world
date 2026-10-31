@@ -1190,7 +1190,7 @@
   {"who": "pulkovo-detachment", "from": "pulkovo", "to": "tsarskoye-selo", "mode": "march", "rc": "none"}],
  "ctl": [
   {"place": "tsarskoye-selo", "state": "held", "holder": "mrc"}]},
-{"id": "holtzman-telegram", "t": "1917-11-13T02:55", "tq": "approx", "tr": ["1917-11-13T02:30", "1917-11-13T03:00"], "tp": "almost three o’clock in the morning", "cal": "none", "sec": "VIII", "p": 207, "loc": "smolny", "witness": "seen", "actors": ["holtzman", "mrc"],
+{"id": "holtzman-telegram", "t": "1917-11-13T02:55", "tq": "approx", "tr": ["1917-11-13T02:30", "1917-11-13T03:00"], "tp": "almost three o’clock in the morning", "cal": "none", "sec": "VIII", "p": 207, "loc": "smolny-hall", "witness": "seen", "actors": ["holtzman", "mrc"],
  "title": "“Kerensky is smashed!”",
  "sum": "Leaving the hall, Reed is met by Holtzman of the MRC, who reads out a pencilled telegram from the Pulkovo staff. It is dated in the Old Style.",
  "q": "It was almost three o’clock in the morning when, as we left the hall, Holtzman, of the Military Revolutionary Committee, came running down the hall with a transfigured face.",
@@ -1228,15 +1228,19 @@
  "q": ["November 13, 1917. 38 minutes past 9 a. m. After a cruel fight the troops of the Pulkovo detachment completely routed the counter-revolutionary forces", "Our advanced units occupied the northeastern extremity of Tsarskoye Selo and the station Alexandrovskaya."],
  "ctl": [
   {"place": "alexandrovskaya", "state": "held", "holder": "mrc"}]},
-{"id": "state-bank-commissar", "t": "1917-11-13T10:30", "tq": "inferred", "tr": ["1917-11-13T09:30", "1917-11-13T11:30"], "cal": "none", "sec": "IX", "p": 222, "loc": "state-bank", "witness": "seen", "actors": ["mrc"],
+{"id": "state-bank-commissar", "t": "1917-11-13T10:30", "tq": "inferred", "tr": ["1917-11-13T09:30", "1917-11-13T11:30"], "cal": "none", "sec": "IX", "p": 222, "loc": "state-bank-offices", "witness": "seen", "actors": ["mrc"],
  "title": "Volunteers at the ledgers",
  "why": "Between Smolny in the early morning and Smolny about noon.",
  "sum": "At the State Bank the new Commissar, Petrovitch, and sweating volunteer soldiers and sailors try to make sense of the ledgers the striking clerks left.",
  "q": "I went to the State Bank to see the new Commissar, a redhaired Ukrainean Bolshevik named Petrovitch.",
+ "also": [
+  {"sec": "IX", "q": "In all the offices of the huge place perspiring volunteer workers, soldiers and sailors, their tongues sticking out of their mouths in the intensity of their effort, were poring over the great ledgers with a bewildered air"}],
  "moves": [
   {"who": "reed", "from": "smolny", "to": "state-bank", "mode": "unknown", "rc": "none"}],
  "ctl": [
-  {"place": "state-bank", "state": "held", "holder": "mrc"}]},
+  {"place": "state-bank", "state": "held", "holder": "mrc"}],
+ "present": [
+  {"who": "workers", "place": "state-bank-offices", "size": "perspiring volunteer workers, soldiers and sailors", "inside": true, "brief": true}]},
 {"id": "ambulance-to-front", "t": "1917-11-13T12:00", "tq": "stated", "tp": "About noon", "cal": "none", "sec": "IX", "p": 224, "loc": "smolny", "witness": "seen",
  "title": "An ambulance for the front",
  "sum": "About noon Reed gets a ride in a volunteer ambulance bound for the revolutionary front.",
@@ -1374,14 +1378,18 @@
  "title": "The press decree crisis",
  "why": "“The night of November 17th”.",
  "sum": "At a packed and ominous Tsay-ee-kah, Bolsheviks attack the press decree; Lenin wins the vote, the Left SRs quit the Military Revolutionary Committee, and five Commissars resign.",
- "q": "On the night of November 17th the great hall was packed and ominous for the meeting of the Tsay-ee-kah."},
+ "q": "On the night of November 17th the great hall was packed and ominous for the meeting of the Tsay-ee-kah.",
+ "present": [
+  {"who": "tsay-ee-kah", "place": "smolny-hall", "inside": true, "brief": true}]},
 {"id": "uncle-toms-cabin", "t": "1917-11-18T20:00", "tq": "inferred", "tr": ["1917-11-12T18:00", "1917-11-25T23:00"], "cal": "none", "sec": "XII", "p": 295, "loc": "uncle-toms-cabin", "witness": "seen", "actors": ["red-guards"],
  "title": "“Uncle Tom’s Cabin”",
  "why": "An evening after the snow came; one Red Guard speaks of “last Sunday”, so probably the week after 11 Nov.",
  "sum": "One evening in a Red Guards’ traktir across from Smolny’s gates, an officer argues politics with the Red Guards at the tea tables.",
  "q": "I sat one evening in a traktir--a kind of lower-class inn--across the street from the gates of Smolny; a low-ceilinged, loud place called “Uncle Tom’s Cabin,” much frequented by Red Guards.",
  "moves": [
-  {"who": "reed", "from": "zagorodny", "to": "uncle-toms-cabin", "mode": "unknown", "rc": "none", "gap": true}]},
+  {"who": "reed", "from": "zagorodny", "to": "uncle-toms-cabin", "mode": "unknown", "rc": "none", "gap": true}],
+ "present": [
+  {"who": "red-guards", "place": "uncle-toms-cabin", "size": "much frequented by Red Guards", "inside": true, "brief": true}]},
 {"id": "moscow-train", "t": "1917-11-19T19:00", "tq": "inferred", "tr": ["1917-11-17T18:30", "1917-11-25T19:30"], "tp": "About seven o’clock in the evening", "cal": "none", "sec": "X", "p": 242, "loc": "nicolai-station", "witness": "seen", "tags": ["moscow"],
  "title": "The train to Moscow",
  "why": "Reed gives the hour, not the day. He decided to go once the Kremlin had been Bolshevik “for two days” (it surrendered on the 15th), and the Commissars who had just resigned were on the train: so the 17th at the earliest. The 19th is an estimate; Reed gives no date.",
@@ -1438,7 +1446,7 @@
   {"who": "reed", "from": "hotel-national", "to": "moscow-soviet", "mode": "foot", "rc": "none"},
   {"who": "reed", "with": ["mossoviet"], "from": "moscow-soviet", "via": ["iberian-gate"], "to": "brotherhood-grave", "mode": "march", "rc": "stated"},
   {"who": "workers", "from": "iberian-gate", "to": "red-square", "mode": "march", "rc": "stated"}]},
-{"id": "peasants-first-session", "t": "1917-11-24T15:00", "tq": "inferred", "tr": ["1917-11-23T00:00", "1917-11-26T23:59"], "cal": "none", "sec": "XII", "p": 297, "loc": "city-duma", "witness": "reported", "actors": ["peasants-congress", "left-srs", "srs", "bolsheviki"],
+{"id": "peasants-first-session", "t": "1917-11-24T15:00", "tq": "inferred", "tr": ["1917-11-23T00:00", "1917-11-26T23:59"], "cal": "none", "sec": "XII", "p": 297, "loc": "duma-alexander-hall", "witness": "reported", "actors": ["peasants-congress", "left-srs", "srs", "bolsheviki"],
  "title": "The Peasants’ Congress opens",
  "why": "“By November 23d about four hundred had gathered”; the first session followed.",
  "sum": "The Extraordinary Peasants’ Congress meets in the Duma’s Alexander Hall: more than half Left SRs, a fifth Bolsheviki, a quarter conservative SRs.",
@@ -1504,5 +1512,7 @@
  "sum": "At the Duma’s meeting of 2 December an officer and sailors walk into the Nicolai Hall and order the members out; they go, “ceding to violence”.",
  "q": "At the meeting of December 2d, an officer and some sailors entered the Nicolai Hall while a member was speaking, and ordered the members to leave, or force would be used.",
  "ctl": [
-  {"place": "city-duma", "state": "held", "holder": "mrc"}]}
+  {"place": "city-duma", "state": "held", "holder": "mrc"}],
+ "present": [
+  {"who": "sailors", "place": "duma-nicolai-hall", "size": "an officer and some sailors", "inside": true, "brief": true}]}
 ]
