@@ -53,7 +53,7 @@ STR, INT, BOOL, LIST, DICT, NUM = str, int, bool, list, dict, (int, float)
 TYPES = {
     'title': STR, 'note': STR, 'id': STR, 'kind': STR, 'url': STR, 'cite': STR, 'bloc': STR, 'track': BOOL,
     'part_of': STR, 'seat': STR, 'wd': STR, 'name': STR, 'reed': LIST, 'ru': STR, 'stance': LIST,
-    'from': STR, 's': STR, 'ev': STR, 'src': LIST, 'ref': DICT, 'zone': STR, 'in': STR, 'acc': INT,
+    'from': STR, 's': STR, 'ev': STR, 'src': LIST, 'ref': DICT, 'outside': DICT, 'source': STR, 'en': STR, 'zone': STR, 'in': STR, 'acc': INT,
     'conf': STR, 'osm': STR, 'site_osm': STR, 'geo': DICT, 'ctl0': DICT, 'addr1917': STR, 'addr_now': STR,
     'ident': STR, 'today': STR, 'm': STR, 'at': STR, 'osm_v': INT, 'on': STR, 'state': STR, 'holder': STR,
     'by': STR, 'as_of': STR, 't': STR, 'tq': STR, 'tr': LIST, 'tp': STR, 'cal': STR, 'dp': STR, 'sec': STR,
@@ -584,15 +584,17 @@ class Checker:
                 t0 = self.in_range(m['t0'], mw, 't0')
                 if t0 and t and t0 > t:
                     F.err('time.bounds', mw, 't0 (departure) is after the event')
-            if 'size' in m and pos is not None and not self.book.near(e['sec'], pos, m['size']):
+            osup = self.outside(m['outside'], mw) if 'outside' in m else None
+            if 'size' in m and pos is not None and 'outside' not in m and not self.book.near(e['sec'], pos, m['size']):
                 F.err('phrase.not-near', mw, f'size {m["size"]!r} is not within 1,500 characters of the quote')
             if 'ack' in m and not m['ack'].strip():
                 F.err('field.type', mw, 'ack explains the anomaly')
             self.count_n(m, mw)
-            if m.get('run') and pos is not None and not re.search(L.RUN_WORDS, self.scene_text(e) + ' ' + (m.get('size') or ''), re.I):
+            mtext = osup[2] if osup is not None else self.scene_text(e)
+            if m.get('run') and pos is not None and not re.search(L.RUN_WORDS, mtext + ' ' + (m.get('size') or ''), re.I):
                 F.err('fight.not-in-text', mw, f'run: the passage has no word for running at the enemy ({L.RUN_WORDS})')
             if 'kit' in m and pos is not None:
-                self.kit(m['kit'], self.scene_text(e), mw)
+                self.kit(m['kit'], mtext, mw)
             if 'say' in m and pos is not None:
                 self.say(m, e['sec'], pos, mw)
             if m.get('stay'):
@@ -633,7 +635,7 @@ class Checker:
                     self.count_n(r, rw)
                     if 'kit' in r:
                         self.kit(r['kit'], sup[2], rw)
-                    if 'say' in r:
+                    if 'say' in r and sup[0] is not None:
                         self.say(r, sup[0], sup[1], rw)
                     # the word checks read only fields of the right type (a wrong type is reported above)
                     if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol')):
@@ -672,6 +674,10 @@ class Checker:
     def support(self, e, r, where, pos):
         """What backs a presence: its own passage (ref), or else the scene's quotes.
         Returns (section, position of the passage, its text), or None if the passage is broken."""
+        if 'outside' in r and 'ref' not in r:   # not in Reed: another source fills the gap, and its words are checked as his are
+            return self.outside(r['outside'], where)
+        if 'outside' in r:   # Reed's body, with only where it stands from another source
+            self.outside(r['outside'], where)
         ref = r.get('ref')
         if ref is None:
             return (e.get('sec'), pos, self.scene_text(e)) if pos is not None else None
@@ -680,10 +686,25 @@ class Checker:
         at = self.quote_ok(ref.get('sec'), ref['q'], where + '.ref')
         return None if at is None else (ref['sec'], at, L.norm(ref['q']))
 
+    def outside(self, o, where):
+        """a body or a move that Reed does not give, from another source in sources.json, with its words"""
+        if not isinstance(o, dict) or not fields(self.F, o, 'outside', where + '.outside'):
+            return None
+        if o.get('source') not in self.S:
+            self.F.err('ref.unknown', where + '.outside', f'no source {o.get("source")!r} in sources.json')
+            return None
+        self.used['source'][o['source']] += 1
+        if not isinstance(o.get('q'), str) or not o['q'].strip():
+            self.F.err('field.missing', where + '.outside', 'q: the source\'s own words')
+            return None
+        return (None, None, L.norm(o['q']))
+
     def named(self, a, sup, where):
         """The body must be in the passage, or within 1,500 characters of it, under one of Reed's spellings."""
         sec, at, text = sup
         names = [L.norm(n).lower() for n in a.get('reed', []) if isinstance(n, str)]
+        if sec is None:   # another source's words: its own names for the body count too
+            names += [L.norm(n).lower() for n in (a.get('name'), a.get('ru')) if isinstance(n, str)]
         if any(n in text.lower() for n in names):
             return
         t = self.book.secs.get(sec, '').lower()
@@ -774,7 +795,7 @@ class Checker:
         F, words = self.F, text + ' ' + (r.get('size') or '')
         if (self.P.get(place) or {}).get('kind') not in ('building', 'station', 'complex', 'room'):
             F.err('field.range', where, 'inside: the place is a building, station, complex or room')
-        if not re.search(L.INSIDE_WORDS, words, re.I):
+        if (self.P.get(place) or {}).get('kind') != 'room' and not re.search(L.INSIDE_WORDS, words, re.I):   # a hall or a room is indoors
             F.err('form.not-in-text', where, f'inside: the passage has no word for indoors ({L.INSIDE_WORDS})')
         if any(k in r for k in ('form', 'march', 'assault', 'patrol')) or r.get('fire') is True:
             F.err('field.range', where, 'inside: a body indoors does not form up, march, assault, patrol or fire in the open')

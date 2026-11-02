@@ -84,7 +84,8 @@ var PEOPLE = (function (THREE) {
     var pose = o.pose || 'stand';
     if (pose === 'fallen' || pose === 'prone') return lieDown(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), pose === 'fallen', o.rifle);
     var m = new Model(), coat = o.coat, legs = o.legs || coat, boots = o.boots || C.boots, skin = o.skin || C.skin;
-    var kneel = pose === 'kneel' && !o.skirt && o.rifle, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
+    var squat = pose === 'squat' && !o.skirt;   // down on one knee by a fire, the arms at rest ("squatting around fires")
+    var kneel = (pose === 'kneel' && !o.skirt && o.rifle) || squat, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
     var dy = kneel ? -0.38 : 0;   // kneeling, everything above the hips comes down
     // legs swing about the hip at y = 0.86 (parts 1, 2)
     if (kneel) {   // the left knee up, the right knee on the ground
@@ -131,13 +132,13 @@ var PEOPLE = (function (THREE) {
       if (o.armband) m.box(o.armband, -0.29, 1.25 + dy, 0, 0.135, 0.08, 0.155, 0, 0, -0.07, 3);
     }
     if (aim || charge) { /* the arms are drawn above */ } else if (o.rifle) {
-      m.box(coat, 0.27, 1.13, 0.07, 0.12, 0.5, 0.14, -0.35, 0, 0.05, 0);
-      m.box(skin, 0.3, 0.92, 0.17, 0.09, 0.1, 0.1);
-      m.box(C.wood, 0.31, 1.2, 0.18, 0.04, 1.28, 0.06); m.box(C.steel, 0.31, 2.02, 0.18, 0.012, 0.42, 0.012);
+      m.box(coat, 0.27, 1.13 + dy, 0.07, 0.12, 0.5, 0.14, -0.35, 0, 0.05, 0);
+      m.box(skin, 0.3, 0.92 + dy, 0.17, 0.09, 0.1, 0.1);
+      m.box(C.wood, 0.31, 1.2 + dy, 0.18, 0.04, 1.28, 0.06); m.box(C.steel, 0.31, 2.02 + dy, 0.18, 0.012, 0.42, 0.012);
     } else {
-      m.box(coat, 0.285, 1.1, 0, 0.12, 0.58, 0.14, 0, 0, 0.07, armR);
-      m.box(skin, 0.31, 0.78, 0, 0.09, 0.1, 0.1, 0, 0, 0, armR);
-      if (o.notebook) m.box(C.white, 0.33, 0.86, 0.09, 0.1, 0.14, 0.03, -0.3);
+      m.box(coat, 0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, 0.07, armR);
+      m.box(skin, 0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, armR);
+      if (o.notebook) m.box(C.white, 0.33, 0.86 + dy, 0.09, 0.1, 0.14, 0.03, -0.3);
       if (o.cane) m.box(C.black, 0.33, 0.45, 0.04, 0.03, 0.8, 0.03, 0, 0, 0, armR);
     }
     if (o.sabre) m.box(C.steel, -0.25, 0.62 + dy, -0.06, 0.03, 0.8, 0.05, 0.25);

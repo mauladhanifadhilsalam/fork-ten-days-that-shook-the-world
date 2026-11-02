@@ -490,3 +490,39 @@ class Heading(unittest.TestCase):
         d = good()
         ev(d, 'reed-walks')['present'][0]['face'] = 'duma'
         self.assertFalse(errors(d), 'a column that "marched up the Nevsky" may face the way it goes')
+
+
+class Outside(unittest.TestCase):
+    """a body Reed does not give, from another source, checked against that source's words"""
+    def body(self, d, **o):
+        r = {'who': 'red-guards', 'place': 'winter-palace', 'size': 'a detachment of Red Guards', 'brief': True,
+             'outside': dict({'source': 'ref1917', 'q': 'A detachment of Red Guards stood at the palace.'}, **o)}
+        ev(d, 'cornice')['present'].append(r)
+        return r
+
+    def test_backed_by_its_source(self):
+        d = good(); self.body(d)
+        self.assertFalse(errors(d))
+
+    def test_unknown_source(self):
+        d = good(); self.body(d, source='nowhere')
+        self.assertIn('ref.unknown', errors(d))
+
+    def test_needs_the_sources_words(self):
+        d = good(); self.body(d, q='')
+        self.assertIn('field.missing', errors(d))
+
+    def test_the_source_must_name_the_body(self):
+        d = good(); self.body(d, q='Somebody stood at the palace.')
+        self.assertIn('presence.unnamed', errors(d))
+
+    def test_kit_needs_the_sources_word(self):
+        d = good(); self.body(d)['kit'] = ['gun:1']
+        self.assertIn('kit.not-in-text', errors(d))
+
+    def test_reeds_body_placed_by_another_source(self):
+        d = good(); r = ev(d, 'cornice')['present'][0]
+        r['outside'] = {'source': 'ref1917', 'q': 'The gun fired from the embankment.'}
+        self.assertFalse(errors(d), 'Reed backs the body; the source only says where it stood')
+        r['outside']['source'] = 'nowhere'
+        self.assertIn('ref.unknown', errors(d))

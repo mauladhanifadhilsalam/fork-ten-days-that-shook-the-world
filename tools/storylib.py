@@ -34,9 +34,10 @@ FIELDS = {
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone', 'raised'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
-    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack'],
+    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack', 'outside'],
+    'outside': ['source', 'q', 'en'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'brief', 'ref'],
+    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'brief', 'ref', 'outside'],
     'gone': ['who', 'place', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
 }
@@ -92,7 +93,7 @@ PRESENT_KINDS = {'unit', 'school', 'crowd', 'ship', 'organ', 'party'}
 KIT_WORDS = {
     'fire': r'fire|blaze', 'barricade': r'barricad|wood-pile|lumber|breastwork|piling', 'mg': r'machine.gun|rapid.fir',
     'gun': r'cannon|field-gun|field-piece|batter(y|ies)|artillery|three-inch', 'armoured': r'armou?red', 'truck': r'truck|lorr',
-    'car': r'automobile|motor|\bcars?\b', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
+    'car': r'automobile|motor|\bcars?\b|ambulance', 'banner': r'banner', 'flag': r'\bflags?\b', 'torch': r'torch', 'bicycle': r'bicycl|cyclist',
     'leaflets': r'papers|leaflet|proclamation|pamphlet|hand-bill',
     'rifles': r'heap of rifles|rifles thrown down|rifles stacked|stacked rifles|piles? of rifles|rifles (lay|lying) in',
     'whiteflag': r'white flag', 'redcross': r'Red Cross', 'band': r'\bband\b', 'trench': r'trench',
@@ -545,7 +546,7 @@ def presence_spans(events, actors, places):
 
     def merge(sp, rec):
         """a later word on the same body adds to what is known: its kit joins the kit already there"""
-        for k in ('size', 'n', 'say', 'inside'):
+        for k in ('size', 'n', 'say', 'inside', 'outside'):
             if k in rec:
                 sp[k] = rec[k]
         if rec.get('kit'):

@@ -599,7 +599,7 @@ for sp in spans:
         rec['ship'] = True
     else:
         rec['fig'], rec['n'] = figures(sp['who'], sp.get('size'), sp.get('n'))
-    for k in ('size', 'kit', 'say', 'inside'):
+    for k in ('size', 'kit', 'say', 'inside', 'outside'):
         if k in sp:
             rec[k] = sp[k]
     if sp.get('form') and in_tour[sp['start']]:   # drawn in its own scene only
@@ -622,7 +622,7 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['doc'] = e['doc']
     mv = []
     for m in e.get('moves', []):
-        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say', 'run') if k in m}
+        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say', 'run', 'outside') if k in m}
         if T_actors.get(m['who'], {}).get('kind') not in ('person', 'ship'):
             r['fig'], r['n'] = figures(m['who'], m.get('size'), m.get('n'))
         wf = [list(figures(w)) for w in m.get('with', []) if T_actors.get(w, {}).get('kind') not in ('person', 'ship')]
@@ -678,6 +678,10 @@ story = {
              'text': meta['meta']['text']['url']},
     'days': [{k: (d.get('city') or d['name']) if k == 'name' else d[k] for k in ('d', 'os', 'label', 'name')} for d in meta['days']],
     'places': PL, 'actors': actors, 'events': events, 'control': control, 'presence': presence,
+    # the other sources a body or a move comes from, where Reed is silent (named on the card)
+    'outside': {s['id']: {'cite': s['cite'], 'url': s.get('url')} for s in T['sources']
+                if any((r.get('outside') or {}).get('source') == s['id'] for r in presence) or
+                any((m.get('outside') or {}).get('source') == s['id'] for e in events for m in e.get('moves', []))},
 }
 os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
 with open(OUT, 'w', encoding='utf-8') as f:

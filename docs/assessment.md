@@ -16,11 +16,11 @@ It is worth doing, but it is not the same treatment, and pretending otherwise wo
 - **Many actors move at once,** and buildings change hands, some of them three times in five days.
 - **The dates are real, and both the calendar and the clock are traps** (§4).
 - **The action runs 43 km south,** to Gatchina, and the trip to Moscow covers 635 km.
-- **The places are mostly certain; the times and the vantage point are not.** Of 95 places, 41 are named outright by Reed. Of 157 scenes, only 94 are things Reed saw, and most times are estimates.
+- **The places are mostly certain; the times and the vantage point are not.** Of 104 places, 42 are named outright by Reed. Of 157 scenes, only 94 are things Reed saw, and most times are estimates.
 
 About 40% of the old engine carries over as it is (§6); the rest needs a new model. The deciding cost is not code but data. A reviewed dataset of this size took most of this round, and every line of it is tied to a verbatim quote and machine-checked against Reed's text.
 
-**The map follows Reed authoritatively.** It is the map of Reed's book, not of the revolution: his path, what he saw and heard, and how he knew it, told his way. It portrays his account, sympathies included, and is not a fact-check: nothing in it is corrected or flagged from other sources. Outside sources only locate his places and set the 1917 clock. Generic hour-by-hour maps of Petrograd in 1917 already exist (§8); this one is Reed's.
+**The map follows Reed authoritatively.** It is the map of Reed's book, not of the revolution: his path, what he saw and heard, and how he knew it, told his way. It portrays his account, sympathies included, and is not a fact-check: nothing in it is corrected or flagged from other sources. Outside sources locate his places and set the 1917 clock, and, where Reed leaves a gap in a scene he does tell, may fill it, always marked as not his (§10). In this round they placed one thing: the field-pieces that shelled the Vladimir school, on the Malaya Raznochinnaya, from a Russian Wikipedia sentence that carries no footnote of its own. For who retook the Military Hotel, where the cruisers Trotzky names lay, and the Telegraph Agency's house, no source reachable from here says, so those remain the map's, and say so. Generic hour-by-hour maps of Petrograd in 1917 already exist (§8); this one is Reed's.
 
 ## 2. What the book gives a mapmaker
 
@@ -37,9 +37,9 @@ What the dataset holds (`tools/check_story.py --report`):
 | events (scenes) | 157 |
 | moves (one actor's leg) | 142 |
 | places with a control timeline | 20 |
-| places | 95: 74 city, 10 front, 8 Moscow (text only), 3 off-map |
+| places | 104: 83 city, 10 front, 8 Moscow (text only), 3 off-map |
 | places tied to an OSM element | 38 (33 surviving structures, the Mikhailovsky school's building, 4 sites of vanished ones) |
-| actors (factions, bodies, units, people, crowds) | 74 |
+| actors (factions, bodies, units, people, crowds) | 77 |
 
 **Reed's own path** is the true counterpart of Raskolnikov's walks, and it is better than expected.
 - On 5–9 and 13 November he names his streets as often as Dostoevsky does:
@@ -57,7 +57,7 @@ The track has real holes, and the data marks them as `gap`:
 
 | | Raskolnikov Wandering | Ten Days |
 |---|---|---|
-| actors | one walker (plus Svidrigailov) | Reed, plus 73 factions, units and people, several moving at once |
+| actors | one walker (plus Svidrigailov) | Reed, plus 76 factions, units and people, several moving at once |
 | time | day index + "HH:MM" | real New Style dates. Old Style appears in documents. Clock on 1917 summer time. |
 | place doubt | which house the initials mean | mostly settled |
 | state | none | buildings and towns change hands (20 timelines) |
@@ -114,7 +114,7 @@ Every weekday–date pair in the book was tested both ways:
   - The Vladimir yunker school's barracks were demolished in October 2007, apart from one small wing.
   - Moscow's Iberian Gate is a 1995 rebuild.
   - These have `exists: false` (or `null`) and, where useful, `site_osm`. Bridges that did not exist in 1865 but did in 1917 (Palace, Trinity, Bolsheokhtinsky) must come back.
-- **Weak identifications.** Sixteen places are conjectural, and two are unlocated (Reed's lodging, and the cross-roads "toward Romanov" where he was nearly shot). The conjectural ones:
+- **Weak identifications.** Twenty-one places are conjectural, and two are unlocated (Reed's lodging, and the cross-roads "toward Romanov" where he was nearly shot). The conjectural ones:
   - the Telegraph Agency: TASS's history puts it on Pochtamtskaya, but the house is unknown;
   - the Tsarskoye Soviet's palace;
   - the 2nd Tsarskoye Rifles' barracks;
@@ -123,6 +123,7 @@ Every weekday–date pair in the book was tested both ways:
   - "Uncle Tom's Cabin";
   - the "moving picture show near the Kazan Cathedral", and the Avrora's anchorage in the Neva;
   - the parts of places Reed gives only by a street or a gate: the corners of the Liteiny and of the Sadovaya on the Nevsky, the Nevsky at "the corner of the Ekaterina Canal" on the Duma side, the Morskaya off St Isaac's Square, Smolny's "outer gates" and "inner gate", the end of the Nicolai Bridge the picket ran to, and Reed's "Voskressensky Prospect", taken to be the Voznesensky (the Voskresensky lay 4 km off, out of his sight from the Marinsky).
+  - points the map picks where Reed names no spot: the entrance to the Palace Square from the Millionnaya, a street-corner near Smolny, the anchorages of the Oleg and the Respublica in the Neva, and, from another source, the end of the Malaya Raznochinnaya where the Vladimir school's shelling is drawn from.
 - **The period plan.** Suvorin's *Plan of Petrograd with its immediate surroundings* (1916, 1:21,000, public domain, on Wikimedia Commons) is the natural replacement for the 1868 Musnitsky overlay, warped with the same `georef_plan.py` method. A 1917 edition is reportedly on Commons too; that has not been verified.
 - **Moscow** stays text only, as decided. Its seven places carry coordinates and OSM ids in case an inset is ever wanted.
 
@@ -181,7 +182,7 @@ None of these is a map of *Reed's book*: his route, what he saw and heard, and h
 2. **Port the engine.** *Begun.* The engine is copied into this repo and driven by the data: the 3D city core (7.0 × 5.0 km), Reed's track and the other moves, the 20 control timelines on Reed's buildings, the 1917 sky, the first snow, and a three-card introduction for readers new to the book. Next: a places index, and the tram and rail lines of 1917.
    - *Done since:*
      - The tour keeps to Petrograd: 131 of the 157 scenes.
-     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 161 presence spans, each tied to a passage of his.
+     - The people of each scene are on the map, as low-poly 1917 figures, vehicles, kit and the Avrora. They stay where Reed's text keeps them: 175 presence spans, each tied to a passage of his.
      - They stand in the formation Reed gives them in that scene: columns, lines, companies drawn up, columns marching past. Their banners and flags carry his words.
      - 55 pictures illustrate 51 scenes. 11 are Reed's own facsimiles; 44 are public-domain photographs, postcards and documents from Wikimedia Commons, each captioned with what it shows and when.
      - The uniforms rest on photographs; docs/uniforms.md lists them.

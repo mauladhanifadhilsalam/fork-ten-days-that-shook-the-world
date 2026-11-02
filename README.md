@@ -39,10 +39,10 @@ docs/assessment.md     the critical assessment: verdict, what the book gives, Re
 docs/schema.md         field reference for the data files
 data/meta.json         text and PDF pins, calendar rule, clock, map zones, move speeds, timeline days
 data/sources.json      the sources actually consulted
-data/actors.json       74 factions, bodies, units, people and crowds, with stance over time
-data/places.json       95 places in the city, at the front, off-map, and in Moscow (not toured)
+data/actors.json       77 factions, bodies, units, people and crowds, with stance over time
+data/places.json       104 places in the city, at the front, off-map, and in Moscow (not toured)
 data/events.json       157 scenes: time and its quality, verbatim quote, witness type, moves, control changes,
-                       and who is present or gone (161 presence spans)
+                       and who is present or gone (175 presence spans)
 data/pictures.json     the pictures the scenes show, each public domain, with its provenance; media/ holds them
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf
@@ -68,7 +68,7 @@ Dockerfile, deploy/    a small nginx container for Cloud Run, as in Raskolnikov 
 
 ## What the data asserts
 
-**The data follows Reed authoritatively.** The map portrays his account as he wrote it, sympathies included; it is not a fact-check. Every event, time, move and change of control comes from his text. Outside sources only locate his places and set the 1917 clock. Where two of his own passages disagree, the main narrative wins over his appendices, captions and the documents he prints.
+**The data follows Reed authoritatively.** The map portrays his account as he wrote it, sympathies included; it is not a fact-check. Every event, time, move and change of control comes from his text. Outside sources locate his places and set the 1917 clock. Where Reed leaves a gap in a scene he does tell (who, or where), another source may fill it, and never silently: a body or a move from another source carries `outside`, naming the source in `data/sources.json` and quoting its words, the checker reads those words as it reads Reed's, and the scene's card marks it "Not in Reed". A place may likewise be placed by another source (its `src`). Nothing Reed says is corrected from other sources. Where two of his own passages disagree, the main narrative wins over his appendices, captions and the documents he prints.
 
 Every scene quotes Reed verbatim, and the validator proves each quote occurs exactly once in the named section of Gutenberg #3076. Each scene also says:
 
