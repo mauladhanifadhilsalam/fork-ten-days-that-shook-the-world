@@ -181,7 +181,6 @@ blockquote.doc::before, blockquote.doc::after { content: none; }
 .who-reed::before, .who-reed::after, .who-q::before, .who-q::after { content: none; }
 .who-reed { margin: 8px 0 12px; padding: 0 0 0 14px; border-left: 3px solid var(--red); font: italic 17px/1.45 var(--body); max-width: 62ch; }
 .who-reed cite, .who-q cite { display: block; font: 11px var(--mono); font-style: normal; letter-spacing: .06em; color: var(--ink-3, #6b645b); margin-top: 3px; }
-.nr-mark { font: 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--ink); padding: 0 4px; }
 .side { display: inline-flex; align-items: center; gap: 6px; font: 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; }
 .side::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #7d7d74; flex: none; }
 .side.for::before { background: #b3261e; } .side.against::before { background: #2f4a6b; } .side.between::before { background: #b7791f; } .side.none::before { background: transparent; border: 1px solid #7d7d74; }
@@ -198,7 +197,6 @@ blockquote.doc::before, blockquote.doc::after { content: none; }
 .who-body { padding: 0 0 14px 18px; }
 .who-q { margin: 10px 0; padding-left: 12px; border-left: 2px solid var(--ink); font-style: italic; max-width: 66ch; }
 .who-bg { margin: 10px 0; font-size: 14px; max-width: 68ch; }
-.who-bg .nr-mark { margin-right: 6px; }
 .who-bg a, .who-see a { color: var(--red); }
 .who-see { font-size: 13px; color: var(--ink-3, #6b645b); }
 .who-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 14px; margin: 10px 0 4px; }
@@ -299,7 +297,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
   <nav id="tools" aria-label="Map layers">
     <button class="tbtn" id="t-all" aria-pressed="false" title="Show every route in the book, faintly">All routes</button>
     <button class="tbtn" id="t-lbl" aria-pressed="true" title="Place names">Labels</button>
-    <button class="tbtn" id="t-who" aria-pressed="false" title="The parties, soviets, committees and forces, and their people">Who’s who</button>
+    <button class="tbtn" id="t-who" aria-pressed="false" title="The parties, soviets, committees and forces, and their people">Faction Map</button>
     <button class="tbtn" id="t-about" aria-pressed="false">About this map</button>
   </nav>
 
@@ -350,9 +348,9 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
   <div id="who" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="who-h">
     <div class="sheet who-sheet">
       <button class="tbtn close" id="who-close">Close</button>
-      <h2 id="who-h">Who’s who</h2>
+      <h2 id="who-h">Faction Map</h2>
       <blockquote class="who-reed">“To the average reader the multiplicity of Russian organisations—political groups, Committees and Central Committees, Soviets, Dumas and Unions—will prove extremely confusing.”<cite>Reed, Notes and Explanations</cite></blockquote>
-      <p>Nearly everyone in Reed’s Petrograd called themselves socialist, a council or a committee, and they stood on both sides of the barricades. Each entry gives Reed’s own words for it, where it stood on the rising of 7 November, and its leading people. What Reed does not say is marked <span class="nr-mark">Not in Reed</span> and comes from the encyclopedia article linked with it.</p>
+      <p>Nearly everyone in Reed’s Petrograd called themselves socialist, a council or a committee, and they stood on both sides of the barricades. Each entry gives Reed’s own words for it, where it stood on the rising of 7 November, and its leading people. The quotations are Reed’s; the rest is ours, from the Wikipedia article linked at the end of each paragraph.</p>
       <div class="legend-row who-key"><span class="side for">For the rising</span><span class="side against">Against it</span><span class="side between">Between, or divided</span></div>
       <input id="who-q" type="search" placeholder="Find a party, a committee or a person" aria-label="Find a party, a committee or a person" autocomplete="off">
       <div id="who-list"></div>
@@ -367,8 +365,8 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <h3>What happened</h3>
       <p>In March 1917 a revolution ended the Tsar’s rule, and power was split between a Provisional Government and the Soviets, the councils of workers and soldiers. On 7 November (25 October in the old Russian calendar) the Bolsheviki took power through the Petrograd Soviet. Reed’s book follows those days and the weeks after; the introduction tells it at more length.</p>
       <p><button class="tbtn" id="replay-intro">Replay the introduction</button></p>
-      <h3>Who’s who</h3>
-      <p>The parties, soviets, committees and forces Reed names, many of them socialist and on opposite sides: his own definitions, where each stood on the rising, and their leading people. What he does not say comes from Wikipedia, in our words, and is marked “Not in Reed”. A name on a scene card opens its entry.</p>
+      <h3>Faction Map</h3>
+      <p>The parties, soviets, committees and forces Reed names, many of them socialist and on opposite sides: his own definitions, where each stood on the rising, and their leading people. What he does not say comes from Wikipedia, in our words, with the article linked. A name on a scene card opens its entry.</p>
 
       <h3>How to read it</h3>
       <div class="legend-row"><span class="wit seen"><i></i>Reed was there</span><span class="wit told"><i></i>told to Reed</span><span class="wit reported"><i></i>reported</span><span class="wit document"><i></i>a document he prints</span></div>
@@ -3946,7 +3944,7 @@ var WHO_GROUPS = [['parties', 'The parties, from right to left, as Reed lists th
 function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
 function reedQ(r) { var b = el('blockquote', 'who-q'); b.appendChild(document.createTextNode('“' + typo(r.q) + '”')); b.appendChild(el('cite', null, 'Reed, ' + secLabel(r.sec))); return b; }
 function notInReed(o) {
-  var p = el('p', 'who-bg'); p.appendChild(el('span', 'nr-mark', 'Not in Reed')); p.appendChild(document.createTextNode(o.en + ' '));
+  var p = el('p', 'who-bg'); p.appendChild(document.createTextNode(o.en + ' '));   // ours, from the article linked at its end
   var a = el('a', null, '(' + decodeURIComponent(o.url.split('/wiki/')[1] || 'source').replace(/_/g, ' ') + ', Wikipedia)'); a.href = o.url; a.target = '_blank'; a.rel = 'noopener'; p.appendChild(a);
   return p;
 }
@@ -4045,7 +4043,7 @@ function openWho(ref) {
 function whoLink(actorId, text) {
   var ref = (S.who || {})[actorId];
   if (!ref) return document.createTextNode(text);
-  var b = el('button', 'who-link', text); b.title = 'Who’s who: ' + (ref[0] === 'f' ? (FAC[ref.slice(2)] || {}).name : (PEO[ref.slice(2)] || {}).name);
+  var b = el('button', 'who-link', text); b.title = 'Faction Map: ' + (ref[0] === 'f' ? (FAC[ref.slice(2)] || {}).name : (PEO[ref.slice(2)] || {}).name);
   b.onclick = function () { openWho(ref); };
   return b;
 }

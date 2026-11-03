@@ -22,7 +22,7 @@
  "note": "At Bolshaya Spasskaya (now Krasnogo Kursanta) 21, the former Noble Regiment barracks of 1833–37, from November 1887 until it was disbanded in November 1917; the building now houses the Mozhaysky Military Space Academy."},
 {"id": "ruwikipedia", "kind": "reference", "url": "https://ru.wikipedia.org/",
  "cite": "Wikipedia, the free encyclopedia (Russian edition), the article named with each entry, read 2026-11-03.",
- "note": "For the who's who's people who have no English article; in our words, shown as “Not in Reed”."},
+ "note": "For the Faction Map's people who have no English article; in our words, each paragraph ending with a link to its article."},
 {"id": "tass-history", "kind": "reference", "url": "https://tass.com/history",
  "cite": "TASS, ‘History’: the Petrograd Telegraph Agency (PTA) and its building on Pochtamtskaya (Post Office) Street.",
  "note": "Puts the Petrograd Telegraph Agency’s building on Pochtamtskaya Street; the house is not given."},
@@ -34,5 +34,5 @@
  "note": "Basis of meta.clock."},
 {"id": "wikipedia", "kind": "reference", "url": "https://en.wikipedia.org/",
  "cite": "Wikipedia, the free encyclopedia (English edition), the article named with each entry, read 2026-11-03.",
- "note": "The who's who's background to each faction and the lives of its people, in our words and shown as “Not in Reed”; Reed's own words for them are quoted beside it. Nothing Reed says is corrected from it."}
+ "note": "The Faction Map's background to each faction and the lives of its people, in our words, each paragraph ending with a link to its article; Reed's own words for them are quoted beside it. Nothing Reed says is corrected from it."}
 ]
