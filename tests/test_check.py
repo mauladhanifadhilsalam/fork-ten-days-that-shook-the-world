@@ -113,7 +113,7 @@ def good():
          'moves': [{'who': 'reed', 'from': 'winter-palace', 'to': 'smolny', 'mode': 'unknown', 'rc': 'none'}]},
     ]
     pictures = [{'id': 'pass', 'kind': 'facsimile', 'from': 'reed-1919', 'file': 'media/pass.png', 'w': 4, 'h': 3, 'scenes': ['dan-bell'],
-                 'license': 'Public domain: a test', 'url': 'https://example.org/book.pdf', 'page': 1, 'title': 'A pass',
+                 'license': 'Public domain: printed in a book of 1919', 'url': 'https://example.org/book.pdf', 'page': 1, 'title': 'A pass',
                  'ref': {'sec': 'IV', 'q': 'Smolny was ablaze with lights.'}}]
     return {'meta': meta, 'sources': sources, 'actors': actors, 'places': places, 'events': events, 'pictures': pictures}
 
@@ -316,6 +316,7 @@ Breaks.test_stay_kind = case('presence.kind', mutate=lambda d: ev(d, 'reed-walks
 Breaks.test_picture_file = case('picture.file', mutate=lambda d: d['pictures'][0].update({'file': 'media/none.png'}), only=True)
 Breaks.test_picture_size = case('picture.size', mutate=lambda d: d['pictures'][0].update({'w': 5}), only=True)
 Breaks.test_picture_license = case('picture.license', mutate=lambda d: d['pictures'][0].update({'license': 'CC BY-SA 4.0'}), only=True)
+Breaks.test_picture_license_needs_its_rule = case('picture.license', mutate=lambda d: d['pictures'][0].update({'license': 'Public domain (Wikimedia Commons)'}), only=True)
 Breaks.test_picture_needs_caption = case('field.missing', mutate=lambda d: d['pictures'][0].pop('ref'), only=True)
 Breaks.test_picture_scene = case('ref.unknown', mutate=lambda d: d['pictures'][0].update({'scenes': ['nowhere']}), only=True)
 Breaks.test_picture_caption_quote = case('quote.not-found', mutate=lambda d: d['pictures'][0]['ref'].update({'q': 'Smolny was ablaze with light.'}), only=True)
@@ -515,6 +516,18 @@ class Outside(unittest.TestCase):
     def test_the_source_must_name_the_body(self):
         d = good(); self.body(d, q='Somebody stood at the palace.')
         self.assertIn('presence.unnamed', errors(d))
+
+    def test_size_must_be_the_sources(self):
+        d = good(); self.body(d)['size'] = 'an interminable column of soldiers'
+        self.assertIn('phrase.not-near', errors(d), 'an unchecked size must not vouch for a formation')
+
+    def test_size_from_the_sources_english(self):
+        d = good(); r = self.body(d, q='Отряд красногвардейцев стоял у дворца.', en='A detachment of Red Guards stood at the palace.')
+        self.assertFalse(errors(d), 'a source in Russian is checked against its English too')
+
+    def test_banner_words_must_be_the_sources(self):
+        d = good(); r = self.body(d); r['kit'] = ['banner:1']; r['say'] = ['Words Reed never wrote']
+        self.assertIn('phrase.not-near', errors(d))
 
     def test_kit_needs_the_sources_word(self):
         d = good(); self.body(d)['kit'] = ['gun:1']

@@ -714,8 +714,11 @@ function blocOf(actor) { var a = AC[actor]; return a ? a.bloc : 'neutral'; }
 var pulseList = [];
 function applyControl(t, skipEv) {
   pulseList = [];
+  // held back while the scene's march is on: only the buildings it marches on, not the others it reports
+  var marchedOn = {};
+  if (skipEv) MOVES.forEach(function (o) { if (o.e === skipEv && !o.m.done && o.m.who !== 'reed') marchedOn[rootOf(o.m.to)] = 1; });
   Object.keys(CTL).forEach(function (id) {
-    var s = holdAt(id, t, skipEv), col = null, by = null;
+    var s = holdAt(id, t, skipEv && marchedOn[rootOf(id)] ? skipEv : null), col = null, by = null;
     if (s && s.state === 'held' && s.holder) col = BLOCC[blocOf(s.holder)];
     else if (s && s.state === 'neutral') col = BLOCC.neutral;
     else if (s && (s.state === 'besieged' || s.state === 'contested')) { col = s.holder ? BLOCC[blocOf(s.holder)] : BLOCC.neutral; by = s.by ? BLOCC[blocOf(s.by)] : BLOCC.soviet; }
@@ -730,6 +733,12 @@ function applyControl(t, skipEv) {
     var pin = pinMeshes[id];
     if (pin && pin.userData.flag) { var f = pin.userData.flag; f.visible = !!col; if (col) f.material.color.copy(col); if (by) pulseList.push({ flag: f, a: col, by: by }); }
   });
+}
+
+// the scene's own building, faintly lit
+function hereGlow() {
+  var hereId = cur ? rootOf(cur.loc) : null;
+  Object.keys(KEYM).forEach(function (k) { var o = KEYM[k]; if (o.wallMat) o.wallMat.emissive.setRGB(k === hereId ? 0.18 : 0, k === hereId ? 0.12 : 0, k === hereId ? 0.06 : 0); });
 }
 
 // ---------- routes ----------
@@ -1622,6 +1631,20 @@ function layoutPlace(id, groups, t, loc, scene) {
     // a little ground round each body is its own, so the next one at the place does not stand in it
     if (!g.drift) g.members.forEach(function (mm) { var kq = cellAt(mm.x, mm.y); if (kq >= 0) take(kq, 1.6); });
   });
+  // a crowd moving in tides sweeps up and down the street, each of its people only as far as the ground is
+  // free that way: not through the others at the place (the Red Guards squatting at their fire), nor a wall
+  groups.forEach(function (g) {
+    if (!g.drift || !g.members) return;
+    var others = [];
+    groups.forEach(function (h) { if (h === g || h.inside) return; (h.members || []).forEach(function (m) { others.push([m.x + (m.ox || 0) * 2, m.y + (m.oy || 0) * 2, 1.8]); }); (h.props || []).forEach(function (pr) { if (!pr.ship) others.push([pr.x, pr.y, 3]); }); });
+    function freeAt2(x, y) { var kq = cellAt(x, y); if (kq < 0 || !G.ok[kq]) return false; for (var i = 0; i < others.length; i++) if (Math.abs(others[i][0] - x) < others[i][2] && Math.abs(others[i][1] - y) < others[i][2] && Math.hypot(others[i][0] - x, others[i][1] - y) < others[i][2]) return false; return true; }
+    g.members.forEach(function (mm) {
+      [1, -1].forEach(function (sd) {
+        var d = 0; while (d < 9 && freeAt2(mm.x + g.drift[0] * sd * (d + 0.5), mm.y + g.drift[1] * sd * (d + 0.5))) d += 0.5;
+        if (sd > 0) mm.dhi = d; else mm.dlo = d;
+      });
+    });
+  });
   // a body there for this scene only (come along to talk, or to watch), loose and with nothing named to
   // look at, turns to the nearest of the others at the place
   groups.forEach(function (g) {
@@ -1701,8 +1724,10 @@ function figScale(m, FS) { return m.room && m.ox == null ? Math.min(FS, Math.max
 // A bridge Reed has opened in the scene ("opened the Nicolai Bridge"): its deck parts, a little way off
 // the people on it, and its two leaves stand up. Where along the bridge it opens is the map's.
 var raisedGroup = new THREE.Group(); scene.add(raisedGroup);
+var raisedMats = null;
 function showRaised(e) {
   while (raisedGroup.children.length) { var o = raisedGroup.children.pop(); o.geometry.dispose(); }
+  if (!raisedMats) raisedMats = { water: new THREE.MeshLambertMaterial({ color: C.water }), leaf: new THREE.MeshLambertMaterial({ color: C.bridge }) };
   (e.raised || []).forEach(function (id) {
     var l = PL[id]; if (!l || !l.p) return;
     var best = null;
@@ -1720,15 +1745,18 @@ function showRaised(e) {
     var px = 0, py = 0, c = 0;
     GROUPS.forEach(function (g) { if (g.place === id || rootOf(g.place) === id) (g.members || []).forEach(function (m) { px += m.x; py += m.y; c++; }); });
     var side = c && ((px / c - l.p[0]) * ux + (py / c - l.p[1]) * uy) > 0 ? -1 : 1;
-    var gx = l.p[0] + ux * side * 32, gy = l.p[1] + uy * side * 32, GAP = 18, W2 = wid * 2 + 1, yaw = Math.atan2(uy, ux);
-    var water = new THREE.Mesh(new THREE.BoxGeometry(GAP, 0.3, W2), new THREE.MeshLambertMaterial({ color: C.water }));
+    var gx = l.p[0] + ux * side * 32, gy = l.p[1] + uy * side * 32, GAP = 18, yaw = Math.atan2(uy, ux);
+    // as wide as the deck is where it opens, not as the bridge's widest point (its abutments)
+    var across = 0; [-1, 1].forEach(function (sd) { for (var t = 0.5; t < wid + 1; t += 0.5) { if (!inRing(rg, gx - uy * sd * t, gy + ux * sd * t)) break; across += 0.5; } });
+    var W2 = (across > 4 ? across : wid * 2) + 1;
+    var water = new THREE.Mesh(new THREE.BoxGeometry(GAP, 0.3, W2), raisedMats.water);
     water.position.set(gx, 0.42, -gy); water.rotation.y = yaw; raisedGroup.add(water);
-    [-1, 1].forEach(function (k) {   // each leaf hinged at its edge of the gap, standing up at 70 degrees
+    [-1, 1].forEach(function (k) {   // each leaf hinged at its edge of the gap, its tip raised over the gap at 70 degrees
       var L2 = GAP / 2, a = 70 * Math.PI / 180, hx = gx + ux * k * GAP / 2, hy = gy + uy * k * GAP / 2;
-      var leaf = new THREE.Mesh(new THREE.BoxGeometry(L2, 0.7, W2 - 1), new THREE.MeshLambertMaterial({ color: C.bridge }));
+      var leaf = new THREE.Mesh(new THREE.BoxGeometry(L2, 0.7, W2 - 1), raisedMats.leaf);
       var cxl = hx - ux * k * Math.cos(a) * L2 / 2, cyl = hy - uy * k * Math.cos(a) * L2 / 2;
       leaf.position.set(cxl, 0.35 + Math.sin(a) * L2 / 2, -cyl);
-      leaf.rotation.set(0, yaw, 0); leaf.rotateZ(k * a); leaf.castShadow = true; raisedGroup.add(leaf);
+      leaf.rotation.set(0, yaw, 0); leaf.rotateZ(-k * a); leaf.castShadow = true; raisedGroup.add(leaf);   // the hinge end low, the tip high
     });
   });
 }
@@ -2563,7 +2591,7 @@ function drawPeople(now, FS) {
       var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS, wk = mm.walk ? 1 : mm.s0 != null && !mm.pose ? walking : 0;
       if (g.drift && !mm.pose) {   // "moving in tides up and down the Nevsky": a wave along the street, neighbours moving together
         var sAx = mm.x * g.drift[0] + mm.y * g.drift[1], ph = t * 0.26 - sAx * 0.045 + hash(i * 0.37) * 0.5;
-        var dof = Math.sin(ph) * 9, dv = Math.cos(ph); x += g.drift[0] * dof; y += g.drift[1] * dof; wk = Math.abs(dv) > 0.2 ? 1 : 0; mm.yaw = Math.atan2(g.drift[0] * dv, -g.drift[1] * dv);
+        var sn = Math.sin(ph), dof = sn * (sn > 0 ? (mm.dhi != null ? mm.dhi : 9) : (mm.dlo != null ? mm.dlo : 9)), dv = Math.cos(ph); x += g.drift[0] * dof; y += g.drift[1] * dof; wk = Math.abs(dv) > 0.2 ? 1 : 0; mm.yaw = Math.atan2(g.drift[0] * dv, -g.drift[1] * dv);
       }
       var fsM = figScale(mm, FS);
       put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, mm.yaw, fsM, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
@@ -2788,12 +2816,23 @@ function groupOf(e) { var t = ms(e.t), g = 0; for (var i = 0; i < DAYS.length; i
 // how many of the points (map x, y) a camera at pos looking at target would put outside the clear part of the
 // screen (on a phone, none: the sheet moves)
 var _fitCam = null;
-function offClear(pos, target, pts, offs, inset) {
-  if (PHONE) return 0;   // the score: ten for each of the scene's own left out, one for each other
+// the clear part of the screen, [left, right, top, bottom]: left of the card and between the title and the
+// timeline; on a phone, the full width between the title and the sheet the card sits in
+function clearBox(W, H) {
+  if (PHONE) {
+    var mb = document.querySelector('.mast'), pr = $('panel').getBoundingClientRect(), tr = $('tools') && $('tools').getBoundingClientRect();
+    var top = mb ? Math.min(H * 0.3, mb.getBoundingClientRect().bottom + 8) : 110, bot = pr.height ? pr.top - 16 : H - 220;
+    if (tr && tr.height && tr.top < bot) bot = tr.top - 8;   // the map's buttons sit above the sheet
+    bot = Math.max(top + H * 0.2, bot);
+    return [16, W - 16, top, bot];
+  }
+  return [40, W - ($('panel').offsetWidth || 0) - 40, 130, H - 140];
+}
+function offClear(pos, target, pts, offs, inset) {   // the score: ten for each of the scene's own left out, one for each other
   _fitCam = _fitCam || camera.clone(); _fitCam.copy(camera); _fitCam.position.copy(pos); _fitCam.lookAt(target); _fitCam.updateMatrixWorld(); _fitCam.updateProjectionMatrix();
   if (!pts.length) return 0;
-  var W = canvas.clientWidth, H = canvas.clientHeight, xr = W - ($('panel').offsetWidth || 0) - 40, v = new THREE.Vector3(), n = 0;
-  pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; var k = inset || 0; if (v.z > 1 || x < 40 + k || x > xr - k || y < 130 + k || y > H - 140 - k) { n += q[3] ? 10 : 1; if (offs) offs.push(q); } });
+  var W = canvas.clientWidth, H = canvas.clientHeight, cb = clearBox(W, H), v = new THREE.Vector3(), n = 0, k = inset || 0;
+  pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; if (v.z > 1 || x < cb[0] + k || x > cb[1] - k || y < cb[2] + k || y > cb[3] - k) { n += q[3] ? 10 : 1; if (offs) offs.push(q); } });
   return n;
 }
 // the ground shift that brings the middle of the points' box on screen to the middle of the clear part
@@ -2805,10 +2844,10 @@ function groundAt(cam, sx, sy, W, H) {
 function centreShift(pos, target, pts) {
   if (!pts.length) return null;
   offClear(pos, target, []);   // sets the fitting camera
-  var W = canvas.clientWidth, H = canvas.clientHeight, xr = W - ($('panel').offsetWidth || 0) - 40, v = new THREE.Vector3(), x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  var W = canvas.clientWidth, H = canvas.clientHeight, cb = clearBox(W, H), v = new THREE.Vector3(), x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
   pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); if (v.z > 1) return; var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
   if (x0 > x1) return null;
-  var a = groundAt(_fitCam, (x0 + x1) / 2, (y0 + y1) / 2, W, H), b = groundAt(_fitCam, (40 + xr) / 2, (130 + H - 140) / 2, W, H);
+  var a = groundAt(_fitCam, (x0 + x1) / 2, (y0 + y1) / 2, W, H), b = groundAt(_fitCam, (cb[0] + cb[1]) / 2, (cb[2] + cb[3]) / 2, W, H);
   if (!a || !b) return null;
   var sh = a.sub(b); sh.y = 0;
   return sh.length() > 2 ? sh : null;
@@ -2877,6 +2916,7 @@ function renderPanel(e) {
       var route = m.gap ? 'the text skips' : !m.line ? 'not on the map' : m.draw === 'street' ? (m.rc === 'stated' ? 'streets Reed gives, ' : 'route inferred, ') + fmtM(m.len) : 'no route known';
       if (m.done) route = 'over before Reed is told of it, ' + route;
       li.appendChild(whoLink(m.who, actorName(m.who))); li.appendChild(document.createTextNode((m.size ? ' (' + m.size + ')' : '') + ': ' + nameOf(m.from) + ' → ' + nameOf(m.to) + ', ' + MODE[m.mode] + ' · ' + route));
+      if (m.outside) li.appendChild(notReed(m.outside));   // a move another source gives, marked as a body is
       ul.appendChild(li);
     });
     fact('Moves', ul);
@@ -3068,16 +3108,17 @@ function frameFor(e) {
 }
 // down among the people of the scene, when there are people to see
 function closeFrame(e) {
-  // how far off a body still counts: the bodies the scene itself brings in, from further ("Down the
+  // how far off a body still counts: the bodies the scene itself brings in, up to 700 m ("Down the
   // Voskressensky Prospect a great mass of sailors were drawn up"), the rest within 260 m
   var idx0 = seq.indexOf(e);
   // a building the scene itself reports changing hands, with its own fight ("The Military Hotel and the
   // Telegraph Agency ... bloodily recaptured"): its bodies are the scene's as much as those at its place
-  function taken(g) { return g.p && g.p.from === idx0 && (g.fire || g.assault) && (e.ctl || []).some(function (c) { return rootOf(c.place) === rootOf(g.place); }); }
+  function taken(g) { return g.p && g.p.from === idx0 && (e.ctl || []).some(function (c) { return rootOf(c.place) === rootOf(g.place); }); }
   function reach(g) {   // and those at its building's gates; not a fight at another building the scene does not report
-    var k = (PL[g.place] || {}).kind, open = k === 'street' || k === 'area' || k === 'square';
-    var own = g.p && g.p.from === idx0;   // brought in by this scene ("strong patrols of soldiers guarded the gates and the near-by street-corners")
-    return (own && open) || (g.place !== rootOf(e.loc) && rootOf(g.place) === rootOf(e.loc)) || (own && partOf(g.place, rootOf(e.loc))) || taken(g) ? 420 : 260;
+    // brought in by this scene, however far off: what the scene names is in its frame ("Yunkers on the
+    // Morskaya"; "strong patrols of soldiers guarded the gates and the near-by street-corners")
+    if (g.p && g.p.from === idx0) return 700;
+    return (g.place !== rootOf(e.loc) && rootOf(g.place) === rootOf(e.loc)) ? 420 : 260;
   }
   function onReedsWay(q) {   // within 60 m of the way Reed walks in the scene
     return movers.some(function (mv) { return mv.m.who === 'reed' && (mv.o.pts || []).some(function (p, i, a) { return i && segDist(q[0], q[1], a[i - 1].x, -a[i - 1].z, p.x, -p.z) < 60; }); });
@@ -3227,7 +3268,7 @@ function closeFrame(e) {
   // Three passes, so the scene's own (its place, the bodies it brings in, Reed, where its moves set out and
   // arrive) are in view and in the middle, and the bodies still standing from before come in as far as the
   // limit allows, round them:
-  var fitCap = Math.max(capD * 1.15, PHONE ? 700 : 620), fitSteps = 0, own = must.filter(function (q) { return q[3]; });
+  var fitCap = Math.max(capD * 1.15, PHONE ? 900 : 620), fitSteps = 0, own = must.filter(function (q) { return q[3]; });
   function camAt(t, d) { var p = t.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * d)); p.y = Math.cos(pol) * d; return p; }
   // 1. its own in view: a fifth of the way toward those left out, and further back; the best try is kept
   var offs = [], out0 = offClear(pos, target, own, offs), best1 = { n: out0, t: target.clone(), d: dist };
@@ -3456,7 +3497,7 @@ function select(id, opts) {
   renderPanel(e); markTimeline(); styleRoutes(); applyControl(e.t, ctlWait ? e : null); setSnow(e.t >= SNOW_FROM);
   var hereId = rootOf(e.loc);
   Object.keys(pinMeshes).forEach(function (k) { pinMeshes[k].userData.ring.material.opacity = k === hereId ? 1 : 0.6; });
-  Object.keys(KEYM).forEach(function (k) { var o = KEYM[k]; if (o.wallMat) o.wallMat.emissive.setRGB(k === hereId ? 0.18 : 0, k === hereId ? 0.12 : 0, k === hereId ? 0.06 : 0); });
+  hereGlow();
   var to = sunAtEvent(e), k = skyAt(to.el);
   skyFrom = lightNow ? lightNow : k; skyTo = k; skyT = REDUCED ? 1 : 0; lightTarget = to;
   if (REDUCED) setLight(to, k);
@@ -3539,7 +3580,7 @@ $('t-about').onclick = function () { showAbout(true); };
 // stood on the rising, and what Reed does not say, from the encyclopedia, marked so. The names on the scene
 // card open their entries.
 var FAC = {}, PEO = {}; (S.factions || []).forEach(function (f) { FAC[f.id] = f; }); (S.people || []).forEach(function (p) { PEO[p.id] = p; });
-var SIDE = { 'for': 'For the rising', against: 'Against it', between: 'Between, or divided', none: '' };
+var SIDE_LABEL = { 'for': 'For the rising', against: 'Against it', between: 'Between, or divided', none: '' };   // not SIDE: that is the fight's map of blocs to sides
 var WHO_GROUPS = [['parties', 'The parties, from right to left, as Reed lists them'], ['soviets', 'The Soviets and their committees'], ['government', 'The Government and its allies'], ['forces', 'The armed forces']];
 function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
 function reedQ(r) { var b = el('blockquote', 'who-q'); b.appendChild(document.createTextNode('“' + typo(r.q) + '”')); b.appendChild(el('cite', null, 'Reed, ' + secLabel(r.sec))); return b; }
@@ -3575,10 +3616,11 @@ function personCard(p) {
 function factionCard(f) {
   var d = el('details', 'who-f'); d.id = 'who-f-' + f.id;
   var mem = (f.members || []).map(function (m) { return PEO[m]; }).filter(Boolean);
-  d.dataset.k = (f.name + ' ' + (f.names || []).join(' ') + ' ' + (f.ru || '') + ' ' + f.sum + ' ' + mem.map(function (p) { return p.name + ' ' + (p.names || []).join(' '); }).join(' ')).toLowerCase();
+  d.dataset.own = (f.name + ' ' + (f.names || []).join(' ') + ' ' + (f.ru || '')).toLowerCase();   // the faction's own names
+  d.dataset.k = (d.dataset.own + ' ' + f.sum + ' ' + mem.map(function (p) { return p.name + ' ' + (p.names || []).join(' ') + ' ' + (p.ru || ''); }).join(' ')).toLowerCase();
   var sm = el('summary'), nm = el('span', 'nm', f.name);
   sm.appendChild(nm);
-  sm.appendChild(f.side && f.side !== 'none' ? el('span', 'side ' + f.side, SIDE[f.side]) : el('span'));
+  sm.appendChild(f.side && f.side !== 'none' ? el('span', 'side ' + f.side, SIDE_LABEL[f.side]) : el('span'));
   sm.appendChild(el('span', 'sm', f.sum)); d.appendChild(sm);
   var b = el('div', 'who-body');
   if (f.ru) b.appendChild(el('div', 'ru', f.ru));
@@ -3615,7 +3657,11 @@ function filterWho(q) {
     var any = false;
     sec.querySelectorAll('.who-f').forEach(function (d) {
       var hit = !q || d.dataset.k.indexOf(q) >= 0; d.hidden = !hit; any = any || hit;
-      d.querySelectorAll('.who-p').forEach(function (p) { p.hidden = !!q && p.dataset.k.indexOf(q) < 0 && (d.querySelector('summary').textContent.toLowerCase().indexOf(q) < 0); });
+      // a faction found by one of its names ("Essaires") shows all its people; found by one of them ("Kerensky"),
+      // only those who match; found by its summary alone, all of them again, so its list is never empty
+      var ps = Array.prototype.slice.call(d.querySelectorAll('.who-p')), match = ps.filter(function (p) { return q && p.dataset.k.indexOf(q) >= 0; });
+      var all = !q || d.dataset.own.indexOf(q) >= 0 || !match.length;
+      ps.forEach(function (p) { p.hidden = !all && match.indexOf(p) < 0; });
       if (q && hit) d.open = true;
     });
     sec.hidden = !any;
@@ -3707,6 +3753,7 @@ function showSlide(k) {
 }
 function startIntro() {
   stop(); walk = null; hideMovers(); flight = null;
+  trains = []; showRaised({});   // the last scene's trains and opened bridge go with it
   MOVES.forEach(function (o) { o.line.visible = false; });
   $('offmap').hidden = true;
   applyControl(INTRO_T); setSnow(false);
@@ -3786,7 +3833,7 @@ function frame(now) {
     movers.forEach(function (mv) { mv.f = s; trailTo(mv.o, s); });
     if (f >= 1) {
       movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); }); walk = null;
-      if (ctlWait) { ctlWait = false; applyControl(cur.t); }
+      if (ctlWait) { ctlWait = false; applyControl(cur.t); hereGlow(); }   // the change of hands, and the scene's own building still lit
       if (closeAfter && !flight) flyTo(closeAfter, 2400);   // the walk done, down to the scene
       closeAfter = null; follow = null;
     }

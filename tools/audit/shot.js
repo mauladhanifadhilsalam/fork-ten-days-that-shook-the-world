@@ -8,17 +8,19 @@
 //   node tools/audit/shot.js OUTDIR --play ID...             arrive from the scene before and let the scene
 //                                                            play at its own pace, the camera following
 //                                                            (what a reader sees; slow)
+// --phone first takes them at 390 x 844, as on a phone.
 'use strict';
 const fs = require('fs');
 const { open, stage, sceneIds } = require('./page');
-const args = process.argv.slice(2), out = args.shift();
-if (!out || !args.length) { console.error('usage: shot.js OUTDIR [--close METRES | --play] ID...'); process.exit(2); }
+const args = process.argv.slice(2), out = args.shift(), phone = args[0] === '--phone';
+if (phone) args.shift();
+if (!out || !args.length) { console.error('usage: shot.js OUTDIR [--phone] [--close METRES | --play] ID...'); process.exit(2); }
 let mode = 'frame', dist = 110;
 if (args[0] === '--close') { mode = 'close'; args.shift(); dist = +args.shift(); }
 else if (args[0] === '--play') { mode = 'play'; args.shift(); }
 (async () => {
   fs.mkdirSync(out, { recursive: true });
-  const all = sceneIds(), { page, errors, close } = await open({ hash: all[0] });
+  const all = sceneIds(), { page, errors, close } = await open({ hash: all[0], viewport: phone ? { width: 390, height: 844 } : undefined });
   for (const spec of args) {
     const [id, who, place] = spec.split(':');
     if (all.indexOf(id) < 0) { console.log(`${id}: no such scene`); continue; }

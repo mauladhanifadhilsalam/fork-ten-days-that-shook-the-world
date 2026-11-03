@@ -199,7 +199,7 @@
  "role": "Cadet; deputy minister in 1917",
  "def": {"sec": "XI", "q": "the former Minister, Countess Panina, had gone off with all the funds, which she refused to surrender except on the order of the Constituent Assembly."},
  "bio": {"source": "wikipedia", "url": "https://en.wikipedia.org/wiki/Sofia_Panina", "en": "A philanthropist who built a people’s house for the workers of Petrograd, she was the first woman in a Russian government, as deputy minister of state welfare and then of education in 1917. Tried by a revolutionary tribunal in December 1917 for keeping her ministry’s funds from the Soviets, she was let off lightly, left Russia in 1920 and died in New York in 1956."}},
-{"id": "peshekhonov", "born": 1867, "died": 1933, "factions": ["populist-socialists"], "pic": "portrait-peshekhonov",
+{"id": "peshekhonov", "born": 1867, "died": 1933, "factions": ["populist-socialists"],
  "name": "Aleksey Peshekhonov",
  "names": ["Peshekhanov", "Peshekhonov"],
  "ru": "Алексей Васильевич Пешехонов",

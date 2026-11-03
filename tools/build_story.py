@@ -266,7 +266,7 @@ def around_small(a, b):
     for i in sorted(set(hits)):
         o = _obst[i]
         c = o.centroid.coords[0]
-        r = max(math.dist(c, q) for q in o.exterior.coords)
+        r = max(math.dist(c, q) for q in o.convex_hull.exterior.coords)   # a MultiPolygon (two islands after the inset) has no exterior of its own
         t = (c[0] - a[0]) * ux + (c[1] - a[1]) * uy
         fx, fy = a[0] + ux * t, a[1] + uy * t
         nx, ny = fx - c[0], fy - c[1]

@@ -601,7 +601,7 @@ class Checker:
             if 'kit' in m and pos is not None:
                 self.kit(m['kit'], mtext, mw)
             if 'say' in m and pos is not None:
-                self.say(m, e['sec'], pos, mw)
+                self.say(m, lambda t, s0=e['sec'], p0=pos: self.book.near(s0, p0, t), 'within 1,500 characters of the passage', mw)
             if m.get('done'):   # told as over before the scene: it cannot be one Reed watches, and it is not a skip
                 if e.get('witness') == 'seen' or m.get('who') == 'reed':
                     F.err('move.done', mw, 'done: a move told as already over goes with an event Reed did not see, and not with his own')
@@ -640,13 +640,21 @@ class Checker:
                 if a is not None:
                     self.named(a, sup, rw)
                 if key == 'present':
-                    if 'size' in r and sup[1] is not None and not self.book.near(sup[0], sup[1], r['size']):
-                        F.err('phrase.not-near', rw, f'size {r["size"]!r} is not within 1,500 characters of the quote')
+                    # Reed's words near his passage; for a body only another source gives, that source's own
+                    # words (its size phrase then vouches for a formation or a facing as Reed's would)
+                    if sup[0] is None:
+                        near = lambda t: L.norm(t).lower() in sup[2].lower()
+                        where_ = "in the source's words"
+                    else:
+                        near = lambda t, s0=sup[0], p0=sup[1]: p0 is None or self.book.near(s0, p0, t)
+                        where_ = 'within 1,500 characters of the quote'
+                    if 'size' in r and isinstance(r['size'], str) and not near(r['size']):
+                        F.err('phrase.not-near', rw, f'size {r["size"]!r} is not {where_}')
                     self.count_n(r, rw)
                     if 'kit' in r:
                         self.kit(r['kit'], sup[2], rw)
-                    if 'say' in r and sup[0] is not None:
-                        self.say(r, sup[0], sup[1], rw)
+                    if 'say' in r:
+                        self.say(r, near, where_, rw)
                     # the word checks read only fields of the right type (a wrong type is reported above)
                     if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol')):
                         continue
@@ -707,7 +715,10 @@ class Checker:
         if not isinstance(o.get('q'), str) or not o['q'].strip():
             self.F.err('field.missing', where + '.outside', 'q: the source\'s own words')
             return None
-        return (None, None, L.norm(o['q']))
+        if 'en' in o and not isinstance(o['en'], str):
+            self.F.err('field.type', where + '.outside', 'en: the source\'s words in English')
+            return None
+        return (None, None, L.norm(o['q'] + ' ' + o.get('en', '')))   # its words, and their English for a source in Russian
 
     def named(self, a, sup, where):
         """The body must be in the passage, or within 1,500 characters of it, under one of Reed's spellings."""
@@ -730,9 +741,10 @@ class Checker:
             elif not re.search(L.KIT_WORDS[name], text, re.I):
                 self.F.err('kit.not-in-text', where, f'kit {name!r}: the passage has no word for it ({L.KIT_WORDS[name]})')
 
-    def say(self, r, sec, pos, where):
-        """words on a banner or a flag: Reed's, verbatim, within 1,500 characters of the passage, no more
-        of them than the banners and flags the kit has"""
+    def say(self, r, near, near_words, where):
+        """words on a banner or a flag: Reed's, verbatim, within 1,500 characters of the passage (or, for a
+        body only another source gives, in that source's words), no more of them than the banners and flags
+        the kit has"""
         carry = [L.kit_item(k) for k in r.get('kit', []) if isinstance(k, str) and k.split(':')[0] in ('banner', 'flag')]
         if not carry:
             self.F.err('field.missing', where, 'say (the words on a banner or a flag) needs a banner or a flag in kit')
@@ -741,8 +753,8 @@ class Checker:
         for t in r['say']:
             if not isinstance(t, str) or not t.strip():
                 self.F.err('field.type', where, 'say holds the words on each banner')
-            elif not self.book.near(sec, pos, t):
-                self.F.err('phrase.not-near', where, f'say {t!r} is not within 1,500 characters of the passage')
+            elif not near(t):
+                self.F.err('phrase.not-near', where, f'say {t!r} is not {near_words}')
 
     def formation(self, r, text, where, place=None):
         """a column, a line or ranks, and a body on the move: each needs its word in the passage or in
@@ -850,8 +862,9 @@ class Checker:
                 F.err('picture.file', w, 'not a JPEG or PNG')
             elif size != (pic.get('w'), pic.get('h')):
                 F.err('picture.size', w, f'the file is {size[0]}x{size[1]}, not {pic.get("w")}x{pic.get("h")}')
-        if not str(pic.get('license', '')).startswith('Public domain'):
-            F.err('picture.license', w, 'only public-domain pictures are shown; say which rule ("Public domain (PD-…)")')
+        lic = str(pic.get('license', ''))
+        if not lic.startswith('Public domain: ') or len(lic) < len('Public domain: ') + 12:
+            F.err('picture.license', w, 'only public-domain pictures are shown; say by which rule, in words ("Public domain: published in the Russian Empire before 1917 (Wikimedia Commons: {{PD-RusEmpire}})")')
         if not re.match(r'^https://', str(pic.get('url', ''))):
             F.err('field.pattern', w, 'url is the https page the picture comes from')
         for e in pic.get('scenes', []):

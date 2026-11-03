@@ -11,7 +11,8 @@ three.js and its fonts from the network, as it does for a reader.
 |---|---|---|
 | `node tools/audit/smoke.js` | every scene, chosen from the timeline as a reader would: page errors, failed requests, figures or a camera with a coordinate that is not a number | 1 on any |
 | `node tools/audit/crowds.js` | how the people stand in every scene, seen from its own close frame (below) | 1 past the limits |
-| `node tools/audit/shot.js OUTDIR ID...` | screenshots: each scene in its own close frame; `--close 110 ID[:WHO[:PLACE]]` close up over a body; `--play ID` the scene played at its own pace, the camera following | 1 on page errors |
+| `node tools/audit/frames.js [--phone]` | each scene's own bodies (those it brings in, and Reed) on screen in its close frame: left of the card on a desktop, above the sheet on a phone | 1 if more than 2% are off (5% on a phone) |
+| `node tools/audit/shot.js OUTDIR [--phone] ID...` | screenshots: each scene in its own close frame; `--close 110 ID[:WHO[:PLACE]]` close up over a body; `--play ID` the scene played at its own pace, the camera following | 1 on page errors |
 | `python3 -I tools/audit/sheet.py SHOTDIR OUTDIR` | contact sheets, six scenes to a sheet, for looking through the whole tour | |
 
 `crowds.js --shots DIR` saves each scene's frame as it goes, so one run gives both the numbers and the
@@ -36,9 +37,11 @@ or are hidden, or two or more stand in another body. It fails if any member stan
 body is drawn short, or more than 1% of all figures run together, 1% stand in a wall, or 8% are hidden.
 
 The scenes are taken in tour order from the first, because a frame depends a little on where the camera
-comes from: the numbers repeat only along the same path. At commit `d4c8692`, over 131 scenes and 6,405
-figures: 26 closer than 1.3 m, 14 run together (all in columns of fours), 22 in a wall, 316 hidden
-(4.9%, most in reported scenes framed from 500 m or more), none in another body, no body drawn short.
+comes from: the numbers repeat only along the same path. After the review fixes (the commit after
+`7e8912d`), over 131 scenes and 6,010 figures standing in the open: 26 closer than 1.3 m, 14 run together
+(all in columns of fours), 22 in a wall, 279 hidden (4.6%, most in reported scenes framed from 500 m or
+more), none in another body, no body drawn short. `frames.js`: 69 of the 4,146 members of the scenes' own
+bodies are off the clear screen on a desktop (1.7%), 185 on a phone (4.5%).
 
 These numbers say where to look, not that a scene is right: a body can pass every test and still stand
 where Reed does not put it. Look at the sheets as well.
