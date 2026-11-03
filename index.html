@@ -1667,7 +1667,7 @@ function layoutPlace(id, groups, t, loc, scene) {
       g.form = null; return fi;   // no street here: they stand as a body
     }
     if (g.form === 'column') {
-      var ab = g.abreast || 4, bike = kitHas(g.kit, 'bicycle'), rowG = bike ? 2.6 : 1.9, colG = bike ? 1.4 : 1.15;
+      var ab = g.abreast || 4, bike = kitHas(g.kit, 'bicycle'), rowG = bike ? 2.6 : 2.2, colG = bike ? 1.5 : 1.4;   // a figure drawn twice life size is a metre across
       var rows = Math.ceil(left / ab), L = rows * rowG, adv = g.march ? 1.25 * 50 : 0, half = L / 2 + adv / 2 + 6;
       // down the middle of the street it is in, as far as the ground is open; else along the open ground
       var st = streetSpine(ax, ay, half + adv), f, b;
@@ -1687,6 +1687,24 @@ function layoutPlace(id, groups, t, loc, scene) {
       if (sp.len < L) { rows = Math.max(1, Math.floor(sp.len / rowG)); L = rows * rowG; }
       adv = Math.max(0, Math.min(adv, sp.len - L));
       var head = Math.max(L, Math.min(sp.len - adv, s0 + L / 2 - adv / 2));   // where the head is as the scene opens
+      // a column in a street where a body is already drawn up stands clear of it, behind it if it can ("a great
+      // mass of sailors were drawn up, and behind them came marching soldiers"), and marches up to it, not into it
+      var hwB = (ab - 1) / 2 * colG + 0.6;
+      function blockedOn(s1, s2) {
+        var n = 0;
+        for (var ss = Math.max(0, s1); ss <= Math.min(sp.len, s2); ss += 1.5) for (var la = -hwB; la <= hwB; la += 1.2) { var q = spineAt(sp, ss), kk = cellAt(q[0] - q[3] * la, q[1] + q[2] * la); if (kk >= 0 && used[kk]) n++; }
+        return n;
+      }
+      if (blockedOn(head - L, head)) {
+        var hB = null;
+        for (var dh = 3; dh < sp.len && hB == null; dh += 3) {
+          if (head - dh >= L && !blockedOn(head - dh - L, head - dh)) hB = head - dh;
+          else if (head + dh <= sp.len && !blockedOn(head + dh - L, head + dh)) hB = head + dh;
+        }
+        if (hB != null) head = hB;
+      }
+      var roomA = 0; while (roomA < adv && head + roomA + 3 <= sp.len && !blockedOn(head + roomA, head + roomA + 4)) roomA += 3;
+      adv = Math.min(adv, roomA);
       g.spine = sp; g.adv = adv; g.speed = g.march ? 1.25 : 0;
       for (var r = 0; r < rows && fi < figs.length; r++) for (var c = 0; c < ab && fi < figs.length; c++) {
         var mm = { k: figs[fi], s0: head - r * rowG + (g.ragged ? rnd(fi) * 0.8 : 0), lat: (c - (ab - 1) / 2) * colG + (g.ragged ? rnd(fi + 91) * 0.6 : 0),
@@ -1708,7 +1726,7 @@ function layoutPlace(id, groups, t, loc, scene) {
     else if (ol > 4) { fx = ox / ol; fy = oy / ol; if (!defend) { fx = -fx; fy = -fy; } }
     else { fx = Math.cos(lie.axis); fy = Math.sin(lie.axis); }
     var ux = -fy, uy = fx, yaw = Math.atan2(fx, -fy), ranks = g.form === 'ranks';
-    var blocks = ranks ? (g.blocks || 1) : 1, per = Math.ceil(left / blocks), colG2 = ranks ? 1.0 : 2.0, gapB = 3.2, rowG2 = ranks ? 1.3 : 1.6;
+    var blocks = ranks ? (g.blocks || 1) : 1, per = Math.ceil(left / blocks), colG2 = ranks ? 1.35 : 2.0, gapB = 3.4, rowG2 = ranks ? 1.8 : 2.0;
     var depth = ranks ? Math.max(2, Math.round(Math.sqrt(per / 2))) : (left > 40 ? 2 : 1), cols = Math.ceil(per / depth);
     var width = blocks * cols * colG2 + (blocks - 1) * gapB;
     function slots(cx, cy) {
@@ -1770,10 +1788,10 @@ function layoutPlace(id, groups, t, loc, scene) {
     var fx = -uy, fy = ux, toIn = (inn[0] - mx) * fx + (inn[1] - my) * fy;
     if (fxy) { if ((fxy[0] - mx) * fx + (fxy[1] - my) * fy < 0) { fx = -fx; fy = -fy; } }
     else if (!!(crowd || defend) === (toIn > 0)) { fx = -fx; fy = -fy; }
-    var depth = left > 60 ? 2 : 1, cols = Math.ceil(left / depth), gap = Math.max(1.2, Math.min(4, (best.w - 3) / Math.max(1, cols - 1)));
+    var depth = Math.max(left > 60 ? 2 : 1, Math.min(4, Math.ceil(left * 1.5 / Math.max(6, best.w - 3)))), cols = Math.ceil(left / depth), gap = Math.max(1.5, Math.min(4, (best.w - 3) / Math.max(1, cols - 1)));
     var yaw = Math.atan2(fx, -fy);
     for (var j = 0; j < left && fi < figs.length; j++) {
-      var along = (Math.floor(j / depth) - (cols - 1) / 2) * gap, back = (j % depth) * 1.6;
+      var along = (Math.floor(j / depth) - (cols - 1) / 2) * gap, back = (j % depth) * 2.0;
       var x = mx + ux * along - fx * back, y = my + uy * along - fy * back, kq = cellAt(x, y);
       if (kq < 0 || !free(kq)) continue;   // in a wall, or ground already taken (Reed's): the figure joins the rest below
       g.members.push({ k: figs[fi++], x: x, y: y, yaw: yaw + (hash(g.seed + j * 2.37) - 0.5) * 0.08, idle: 0.15 });
@@ -1827,13 +1845,33 @@ function layoutPlace(id, groups, t, loc, scene) {
     var ux = -fy, uy = fx, depth = count > 6 ? 2 : 1, cols = Math.ceil(count / depth), placed = 0;
     for (var j = 0; j < count * 3 && placed < count && fi < figs.length; j++) {
       var slot = j < count ? j : count + (j - count);   // spill past the ends if the ground is taken
-      var along = (Math.floor(slot / depth) - (cols - 1) / 2) * 1.4, back = (slot % depth) * 1.5;
+      var along = (Math.floor(slot / depth) - (cols - 1) / 2) * 1.9, back = (slot % depth) * 2.0;
       var x = sec.x + ux * along - fx * back + (hash(g.seed + j * 3.1) - 0.5) * 0.5, y = sec.y + uy * along - fy * back + (hash(g.seed + j * 5.3) - 0.5) * 0.5, kq = cellAt(x, y);
       if (kq < 0 || !free(kq)) continue;
       used[kq] = 1; placed++;
       g.members.push({ k: figs[fi++], x: x, y: y, yaw: facingYaw(x, y, sec.wx, sec.wy) + (hash(g.seed + j * 2.37) - 0.5) * 0.15, idle: 0.2, sec: sec });
     }
     return fi;
+  }
+  // a cell against a house wall or the water's edge
+  function atWall(k) {
+    var kx = k % W, ky = (k / W) | 0;
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var x = kx + dx, y = ky + dy; if (x < 0 || y < 0 || x >= W || y >= G.R.h || G.R.a[y * W + x] !== 0) return true; }
+    return false;
+  }
+  // a yard walled in on every side: of twelve sight-lines from it, at most one runs 32 m without meeting a house
+  function shutIn(k) {
+    if (!G.shut) G.shut = new Int8Array(W * G.R.h).fill(-1);
+    if (G.shut[k] < 0) {
+      var x0 = cellX(G, k), y0 = cellY(G, k), clear = 0;
+      for (var a = 0; a < 12; a++) {
+        var ux = Math.cos(a * Math.PI / 6), uy = Math.sin(a * Math.PI / 6), hit = false;
+        for (var d = 1.8; d <= 32 && !hit; d += 1.8) { var kq = cellAt(x0 + ux * d, y0 + uy * d); if (kq < 0) break; if (G.R.a[kq] === 1) hit = true; }
+        if (!hit) clear++;
+      }
+      G.shut[k] = clear <= 1 ? 1 : 0;
+    }
+    return G.shut[k] === 1;
   }
   function isCrowd(h) { return h.bloc === 'public' || (AC[h.who] && AC[h.who].kind === 'crowd'); }
   // a heap of rifles thrown down: just inside a barricade of the body's, toward its building, else on the
@@ -2004,11 +2042,6 @@ function layoutPlace(id, groups, t, loc, scene) {
       var vc = []; for (var kv = 0; kv < W * G.R.h; kv++) if (G.ok[kv] && !used[kv] && Math.hypot(cellX(G, kv) - myVeh.x, cellY(G, kv) - myVeh.y) < 25) vc.push(kv);
       if (vc.length) aord = vc.sort(function (a, b) { return Math.hypot(cellX(G, a) - myVeh.x, cellY(G, a) - myVeh.y) - Math.hypot(cellX(G, b) - myVeh.x, cellY(G, b) - myVeh.y); });
     }
-    // a crowd Reed has fill the street ("the whole street before the Duma building was crowded with people",
-    // "the enormous crowd which blocked the Nevsky") stands looser and further, over more of it
-    if (!aord && !g.form && isCrowd(g) && FULL_RE.test(sceneText(scene))) {
-      aord = G.order.slice(cur).filter(function (kk) { return G.ok[kk] && ((kk % W) + ((kk / W) | 0)) % 2 === 0; });
-    }
     // "Soldiers were standing in every doorway": in twos against the house walls along the street
     if (!aord && !g.form && /doorway/i.test(g.size || '')) {
       var wallC = [], doors = [];
@@ -2026,12 +2059,39 @@ function layoutPlace(id, groups, t, loc, scene) {
       var ka = G.order[Math.min(cur, G.order.length - 1)], axb = cellX(G, ka), ayb = cellY(G, ka);
       aord = G.order.slice(cur).filter(function (kk) { return G.ok[kk]; }).sort(function (a, b) { return Math.hypot(cellX(G, a) - axb, cellY(G, a) - ayb) - Math.hypot(cellX(G, b) - axb, cellY(G, b) - ayb); });
     }
-    for (; fi < figs.length; fi++) {
-      if (aord) { while (aord.length && !free(aord[0])) aord.shift(); if (!aord.length) break; k = aord.shift(); }
-      else { ix = pick(cur, 0); if (ix < 0) break; k = G.order[ix]; }
-      take(k, 0);
-      var x = cellX(G, k) + (hash(seed + fi * 3.1) - 0.5) * 0.9, y = cellY(G, k) + (hash(seed + fi * 5.7) - 0.5) * 0.9, wy = watched.length ? faceWatch(x, y) : null;
+    // A body with no formation stands loose: a figure is drawn at least twice life size, a metre across, so
+    // nobody stands nearer than `spc` to another of the body (more where Reed has the crowd fill the street:
+    // "the whole street before the Duma building was crowded with people", "the enormous crowd which blocked
+    // the Nevsky", which stands looser and over more of it),
+    // nor against a house wall, where the figure would stand half in it; and it keeps out of the yards walled
+    // in on every side, where the houses hide it, while there is open ground nearby (the guards of a house
+    // stand at its doors on the street; a meeting held in a factory yard has only the yard, and stands in it;
+    // Peter-Paul's yard is too wide to count as walled in)
+    var nLeft = figs.length - fi, doorway = /doorway/i.test(g.size || '');
+    var spc = doorway ? 1.6 : nLeft >= 14 ? (isCrowd(g) && FULL_RE.test(sceneText(scene)) ? 3.0 : 2.5) : 2.1;
+    var cand = (aord || G.order.slice(cur)).filter(function (kk) { return G.ok[kk]; });
+    if (!doorway) {
+      var rank = {}; cand.forEach(function (kk, ci) { rank[kk] = ci + (shutIn(kk) ? 500 : 0); });
+      cand = cand.filter(function (kk) { return !atWall(kk); }).sort(function (a, b) { return rank[a] - rank[b]; })
+        .concat(cand.filter(atWall));   // the walls only when the open ground is all taken
+    }
+    var near = {}, nb = function (x, y) { return Math.floor(x / spc) + ',' + Math.floor(y / spc); };
+    function roomAt(x, y) {
+      var bx = Math.floor(x / spc), by = Math.floor(y / spc);
+      for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) {
+        var L = near[(bx + ox) + ',' + (by + oy)]; if (!L) continue;
+        for (var q = 0; q < L.length; q++) if (Math.hypot(L[q][0] - x, L[q][1] - y) < spc) return false;
+      }
+      return true;
+    }
+    for (var ci2 = 0; ci2 < cand.length && fi < figs.length; ci2++) {
+      k = cand[ci2]; if (!free(k)) continue;
+      var x = cellX(G, k) + (hash(seed + fi * 3.1 + ci2 * 0.13) - 0.5) * 0.9, y = cellY(G, k) + (hash(seed + fi * 5.7 + ci2 * 0.29) - 0.5) * 0.9;
+      if (!roomAt(x, y)) { x = cellX(G, k); y = cellY(G, k); if (!roomAt(x, y)) continue; }
+      take(k, 0); (near[nb(x, y)] = near[nb(x, y)] || []).push([x, y]);
+      var wy = watched.length ? faceWatch(x, y) : null;
       g.members.push({ k: figs[fi], x: x, y: y, yaw: wy != null ? wy : yawAt(x, y), idle: g.brief ? 0.8 : 0.35 });
+      fi++;
     }
     // barricades in front of the body, across the way in
     var nBar = kitN('barricade', 2);
@@ -2053,7 +2113,11 @@ function layoutPlace(id, groups, t, loc, scene) {
     g.cx = g.members.length ? sx / g.members.length : car0 ? car0.x : G.sx; g.cy = g.members.length ? sy / g.members.length : car0 ? car0.y : G.sy;
     var r = 4; g.members.forEach(function (mm) { r = Math.max(r, Math.hypot(mm.x - g.cx, mm.y - g.cy)); }); g.r = r;
     var stext = sceneText(scene);
-    if (isCrowd(g) && !g.form && !fxy && DEBATE_RE.test(stext)) g.members.forEach(function (mm, j) { if (!mm.pose) mm.yaw = facingYaw(mm.x, mm.y, g.cx, g.cy) + (hash(seed + j * 1.3) - 0.5) * 0.9; });
+    if (isCrowd(g) && !g.form && !fxy && DEBATE_RE.test(stext)) g.members.forEach(function (mm, j) {   // arguing in twos and threes: each turns to the nearest
+      if (mm.pose) return;
+      var bq = null, bd = 1e9; g.members.forEach(function (o) { var d = o === mm ? 1e9 : (o.x - mm.x) * (o.x - mm.x) + (o.y - mm.y) * (o.y - mm.y); if (d < bd) { bd = d; bq = o; } });
+      if (bq && bd < 36) mm.yaw = facingYaw(mm.x, mm.y, bq.x, bq.y) + (hash(seed + j * 1.3) - 0.5) * 0.6;
+    });
     if (isCrowd(g) && !g.form && DRIFT_RE.test(stext)) { var la2 = groundLie(G, g.cx, g.cy, 30).axis; g.drift = [Math.cos(la2), Math.sin(la2)]; }
     // a little ground round each body is its own, so the next one at the place does not stand in it
     if (!g.drift) g.members.forEach(function (mm) { var kq = cellAt(mm.x, mm.y); if (kq >= 0) take(kq, 1.6); });
@@ -2109,6 +2173,7 @@ function stageScene(e, noReed) {
       GROUPS.push({ members: [{ k: 'reed', x: spot[0], y: spot[1], yaw: facingYaw(spot[0], spot[1], look[0], look[1]), idle: 0.3 }], props: [], fires: [], bloc: 'observer', label: 'Reed', place: rootOf(e.loc), seed: 3, cx: spot[0], cy: spot[1], r: 3, reed: true });
     }
   }
+  roomOf();
   armFights();
   GROUPS.forEach(function (g) {
     if (!g.ship) return;
@@ -2119,6 +2184,20 @@ function stageScene(e, noReed) {
   linkShares(e);
   stageDirty = true;
 }
+// the room each standing figure has: the distance to the nearest other one, of any body. Far out a figure
+// is drawn larger, up to seven times life size, so as to be seen at all; one in a crowd is drawn no wider
+// than its room, so the crowd stays so many people and does not run together into one dark mass. A gun's
+// or machine gun's crew (placed round the gun at its scale) and Reed keep the full size.
+function roomOf() {
+  var B = {}, all = [];
+  GROUPS.forEach(function (g) { if (g.ship || g.inside) return; (g.members || []).forEach(function (m) { if (m.ox != null || m.k === 'reed') return; all.push(m); var key = Math.floor(m.x / 5) + ',' + Math.floor(m.y / 5); (B[key] = B[key] || []).push(m); }); });
+  all.forEach(function (m) {
+    var bx = Math.floor(m.x / 5), by = Math.floor(m.y / 5), best = 99;
+    for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) (B[(bx + ox) + ',' + (by + oy)] || []).forEach(function (o) { if (o !== m) best = Math.min(best, Math.hypot(o.x - m.x, o.y - m.y)); });
+    m.room = best;
+  });
+}
+function figScale(m, FS) { return m.room && m.ox == null ? Math.min(FS, Math.max(2, m.room / 0.8)) : FS; }
 // A bridge Reed has opened in the scene ("opened the Nicolai Bridge"): its deck parts, a little way off
 // the people on it, and its two leaves stand up. Where along the bridge it opens is the map's.
 var raisedGroup = new THREE.Group(); scene.add(raisedGroup);
@@ -2712,7 +2791,7 @@ function assault(g, t, dt) {
   var A = g.aw = g.aw || { next: t + 1 + hash(g.seed) * 3, dead: 0 }, carried = g.assault === 'carried';
   var free = g.members.filter(function (m) { return m.T && !m.run && !m.dead && !m.gone; });
   if (t >= A.next && free.length) {
-    var k = carried ? Math.min(free.length, 2 + Math.floor(Math.random() * 3)) : Math.min(free.length, Math.max(4, Math.round(free.length * 0.3)));
+    var k = carried ? Math.min(free.length, 5 + Math.floor(Math.random() * 6)) : Math.min(free.length, Math.max(4, Math.round(free.length * 0.3)));   // carried: a stream of them at once ("the eager wave of men")
     free.sort(function () { return Math.random() - 0.5; }).slice(0, k).forEach(function (m) {
       var T = m.T, gx = T.x + (Math.random() - 0.5) * T.r, gy = T.y + (Math.random() - 0.5) * T.r, L = Math.hypot(gx - m.hx, gy - m.hy) || 1, stop = Math.min(T.wall ? 0.6 : 3, L * 0.5);
       if (L - stop < 1) return;   // already there
@@ -2720,7 +2799,7 @@ function assault(g, t, dt) {
         fall: !carried && A.dead < g.members.length * 0.35 && Math.random() < 0.45 ? 0.3 + Math.random() * 0.55 : 0, back: 0.5 + Math.random() * 0.35 };
       if (m.run.fall) A.dead++;
     });
-    A.next = t + (carried ? 0.6 + Math.random() * 0.8 : 9 + Math.random() * 6);
+    A.next = t + (carried ? 0.4 + Math.random() * 0.5 : 9 + Math.random() * 6);
   }
   g.members.forEach(function (m) {
     var R = m.run; if (!R || t < R.t0) return;
@@ -2744,8 +2823,8 @@ function assault(g, t, dt) {
   if (carried) g.members.forEach(function (m) { if (m.gone && t > m.back) { m.gone = false; m.x = m.hx; m.y = m.hy; m.yaw = m.hyaw; m.pose = m.hpose; m.walk = 0; } });
 }
 function muzzle(m, FS) {
-  var l = PK.muzzle[m.pose] || PK.muzzle.aim, x = m.x + (m.ox || 0) * FS, y = m.y + (m.oy || 0) * FS, s = Math.sin(m.yaw), c = Math.cos(m.yaw);
-  return [x + (l[0] * c + l[2] * s) * FS, l[1] * FS, -y + (-l[0] * s + l[2] * c) * FS];
+  var l = PK.muzzle[m.pose] || PK.muzzle.aim, x = m.x + (m.ox || 0) * FS, y = m.y + (m.oy || 0) * FS, s = Math.sin(m.yaw), c = Math.cos(m.yaw), f = figScale(m, FS);
+  return [x + (l[0] * c + l[2] * s) * f, l[1] * f, -y + (-l[0] * s + l[2] * c) * f];
 }
 function propPoint(pr, l, FS) { var s = Math.sin(pr.yaw), c = Math.cos(pr.yaw); return [pr.x + (l[0] * c + l[2] * s) * FS, l[1] * FS, -pr.y + (-l[0] * s + l[2] * c) * FS]; }
 var DUST = [0.6, 0.55, 0.47], PLASTER = [0.6, 0.57, 0.52], DEBRIS = [0.33, 0.3, 0.27], SNOWDUST = [0.93, 0.94, 0.96];
@@ -2986,9 +3065,10 @@ function drawPeople(now, FS) {
         var sAx = mm.x * g.drift[0] + mm.y * g.drift[1], ph = t * 0.26 - sAx * 0.045 + hash(i * 0.37) * 0.5;
         var dof = Math.sin(ph) * 9, dv = Math.cos(ph); x += g.drift[0] * dof; y += g.drift[1] * dof; wk = Math.abs(dv) > 0.2 ? 1 : 0; mm.yaw = Math.atan2(g.drift[0] * dv, -g.drift[1] * dv);
       }
-      put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, mm.yaw, FS, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
-      if (mm.carry) carried(mm.carry, x, y, mm.yaw, FS, t, i, mm.say);
-      if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * FS, 0, -y - Math.sin(mm.yaw) * 0.5 * FS, mm.yaw, FS, 0, 0, 0);
+      var fsM = figScale(mm, FS);
+      put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, mm.yaw, fsM, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
+      if (mm.carry) carried(mm.carry, x, y, mm.yaw, fsM, t, i, mm.say);
+      if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * fsM, 0, -y - Math.sin(mm.yaw) * 0.5 * fsM, mm.yaw, fsM, 0, 0, 0);
       if (mm.k === 'reed') { reedGlow.position.set(x, 0.8, -y); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
     });
   });
@@ -3614,15 +3694,18 @@ function closeFrame(e) {
   } else if (lie && lie.open < 0.4) { pol = 0.8; }
   // look from where the people show: the first heading (and, if need be, the steeper angle) from which
   // most of them are not hidden behind buildings, turning as little as will do
-  var FSc = Math.max(2, Math.min(7, dist / 85)), pts = [];
+  // (each body counts the same, however many it is, and the scene's own twice: a street of sailors hidden
+  // behind the houses is not made up for by a square of soldiers in full view)
+  var FSc = Math.max(2, Math.min(7, dist / 85)), pts = [], wSum = 0;
   GROUPS.forEach(function (g) {
     if (g.cx == null || g.inside || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
-    var m = g.members || [], st = Math.max(1, Math.floor(m.length / 4));
-    for (var i = 0; i < m.length; i += st) pts.push([m[i].x, m[i].y, 1.3 * FSc]);
-    (g.props || []).forEach(function (pr) { if (!pr.ship) pts.push([pr.x, pr.y, 1.0 * FSc]); });
+    var m = g.members || [], st = Math.max(1, Math.floor(m.length / 5)), q = [], own = (g.p && g.p.from === idx0) || rootOf(g.place) === rootOf(e.loc);
+    for (var i = 0; i < m.length; i += st) q.push([m[i].x, m[i].y, 1.3 * FSc]);
+    (g.props || []).forEach(function (pr) { if (!pr.ship) q.push([pr.x, pr.y, 1.0 * FSc]); });
+    q.forEach(function (p) { p[3] = (own ? 2 : 1) / q.length; pts.push(p); });
   });
-  ends.forEach(function (q) { pts.push([q[0], q[1], 1.3 * FSc]); });
-  if (pts.length > 24) { var keep = []; for (var pi = 0; pi < pts.length; pi += pts.length / 24) keep.push(pts[Math.floor(pi)]); pts = keep; }
+  ends.forEach(function (q) { pts.push([q[0], q[1], 1.3 * FSc, 0.5]); });
+  pts.forEach(function (q) { wSum += q[3]; });
   if (pts.length) {
     var base = Math.atan2(dir.x, dir.z), best = null, tries = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6];
     // and from the open side if there is one, not over a roof that fills the near half of the picture
@@ -3631,7 +3714,7 @@ function closeFrame(e) {
       [pol, Math.min(pol, 0.62)].forEach(function (pp, pj) {
         if (best && best.good) return;
         var hh = Math.cos(pp) * dist, rr = Math.sin(pp) * dist, cx = target.x + Math.sin(th) * rr, cy = -(target.z + Math.cos(th) * rr);
-        var seen = pts.filter(function (q) { return !hiddenBy(cx, cy, hh, q[0], q[1], q[2]); }).length / pts.length;
+        var seen = 0; pts.forEach(function (q) { if (!hiddenBy(cx, cy, hh, q[0], q[1], q[2])) seen += q[3]; }); seen /= wSum;
         var sc = seen - Math.abs(tries[ti]) * 0.03 - pj * 0.04 - roofs * 0.3;
         if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp, seen: seen, good: seen >= 0.85 && roofs < 0.25 };
       });
@@ -4260,7 +4343,7 @@ function boot(state) {
     }
   }, 30);
 }
-if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
+if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing,
   finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
