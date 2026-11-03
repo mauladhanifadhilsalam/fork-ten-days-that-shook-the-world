@@ -545,3 +545,39 @@ class Done(unittest.TestCase):
     def test_not_with_gap(self):
         d = good(); self.move(d)['gap'] = True
         self.assertIn('move.done', errors(d))
+
+
+class Glossary(unittest.TestCase):
+    """the who's who: Reed's words checked against the text, the rest cited, the links held"""
+    def add(self, d):
+        d['factions'] = [{'id': 'mrc-f', 'kind': 'committee', 'group': 'soviets', 'order': 1, 'side': 'for', 'actors': ['mrc'], 'members': ['holtzman-p'],
+                          'name': 'Military Revolutionary Committee', 'names': ['Military Revolutionary Committee'], 'sum': 'It takes the city.',
+                          'def': {'sec': 'App.III.7', 'q': 'occupied by the Military Revolutionary Committee'},
+                          'background': {'source': 'ref1917', 'url': 'https://example.org/mrc', 'en': 'Set up by the Petrograd Soviet.'}}]
+        d['people'] = [{'id': 'holtzman-p', 'factions': ['mrc-f'], 'name': 'Holtzman', 'names': ['Holtzman'], 'role': 'A messenger',
+                        'bio': {'source': 'ref1917', 'url': 'https://example.org/h', 'en': 'He ran.'}}]
+        return d['factions'][0], d['people'][0]
+
+    def test_a_good_entry_passes(self):
+        d = good(); self.add(d)
+        self.assertFalse(errors(d))
+
+    def test_reeds_words_must_be_his(self):
+        d = good(); f, _ = self.add(d); f['def']['q'] = 'the committee took everything'
+        self.assertIn('quote.not-found', errors(d))
+
+    def test_names_must_be_reeds(self):
+        d = good(); f, _ = self.add(d); f['names'] = ['MRC']
+        self.assertIn('glossary.name', errors(d))
+
+    def test_members_name_their_faction(self):
+        d = good(); _, p = self.add(d); p['factions'] = []
+        self.assertIn('glossary.member', errors(d))
+
+    def test_what_is_not_in_reed_cites_a_source(self):
+        d = good(); _, p = self.add(d); p['bio']['source'] = 'nowhere'
+        self.assertIn('ref.unknown', errors(d))
+
+    def test_side_is_one_of_the_four(self):
+        d = good(); f, _ = self.add(d); f['side'] = 'neutral'
+        self.assertIn('field.enum', errors(d))

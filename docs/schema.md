@@ -1,6 +1,6 @@
 # Data schema
 
-The data lives in five files under `data/`, with an optional sixth, `pictures.json`. `tools/check_story.py` enforces every rule here, and an unknown field is an error, so a typo cannot slip through. `tools/fmt_story.py` writes the canonical layout: a header line of short fields per record, then one line for each prose field and each nested item.
+The data lives in five files under `data/`, with three optional ones: `pictures.json`, and the who's who's `factions.json` and `people.json`. `tools/check_story.py` enforces every rule here, and an unknown field is an error, so a typo cannot slip through. `tools/fmt_story.py` writes the canonical layout: a header line of short fields per record, then one line for each prose field and each nested item.
 
 **The data follows Reed authoritatively.** Every event, time, move and change of control comes from his text, and the data does not check him against other accounts. Outside sources are used for locating his places (a place's `src` and `geo`), for the 1917 clock, and for filling a gap in a scene Reed tells: a presence or a move may carry `outside: {source, q, en?}`, the id of a source in `sources.json`, that source's own words, and an English translation if they are not in English. With Reed's own `ref` beside it, the body is his and only where it stands is the other source's. Its words are checked as Reed's are (the body named in them, its kit, its formation), and the card marks it "Not in Reed". Where two of Reed's own passages disagree, the main narrative wins over his appendices, captions and the documents he prints; between two documents, the more specific one wins.
 
@@ -177,6 +177,27 @@ A presence also ends, after the scene, when control of its place (or of a place 
 | `caption`, `author`, `date` | for anything else: what it shows and when, in our words, and who took it. A photograph illustrates a scene; it is not evidence for it. |
 
 A card shows its scene's pictures in this order: Reed's facsimiles, then photographs, documents, portraits, buildings and equipment. The `license` text gives the rule in words ("its photographer, Yakov Steinberg, died in 1942", "a postcard published in the Russian Empire before 1917") and then Commons' own templates. A picture whose Commons date is wrong says so in `note`.
+
+## factions.json and people.json: the who's who
+
+Reed warns that "the multiplicity of Russian organisations—political groups, Committees and Central Committees, Soviets, Dumas and Unions—will prove extremely confusing", and many of them called themselves socialist or a committee while standing on opposite sides. The who's who sorts them out. It follows the rule of the rest of the data: Reed's own words are quoted and checked; what he does not say comes from a named source, in our words, and is shown as "Not in Reed".
+
+`factions.json`: `{id, kind, group, order, side, part_of?, actors[]?, members[]?, see[]?, name, names[], ru?, sum, def, also[]?, background, note?}`.
+
+| field | meaning |
+|---|---|
+| `kind` | `party | wing | soviet | committee | government | council | union | force` |
+| `group`, `order` | where it is listed: `parties` (in Reed's own order, right to left), `soviets` (the Soviets and their committees), `government` (the Government and its allies) or `forces`, then by `order` |
+| `side` | where it stood on the rising of 7 November: `for`, `against`, `between` (neutral or divided), or `none` for a kind of body rather than a side (the Soviets, the Zemstvos) |
+| `part_of` | the party it is a wing of (the Mensheviki of the Social Democrats) |
+| `actors[]` | the bodies the map draws that belong to it: their names on the scene card open its entry |
+| `members[]` | its leading people, in `people.json`; each must name the faction among their own |
+| `names[]` | the names Reed uses for it, each of which must occur in his text |
+| `sum` | what it does in Reed's ten days, in our words |
+| `def`, `also[]` | Reed's definition and more of his words, `{sec, q}`, quote-checked; most come from his Notes and Explanations |
+| `background` | `{source, url, en}`: what Reed does not say, in our words, from the article at `url` |
+
+`people.json`: `{id, born?, died?, factions[], actor?, pic?, wp?, name, names[], ru?, role, def?, bio, note?}`. `names[]` are Reed's spellings ("Trotzky", "Kameniev"), each in his text; `def` is what Reed writes of the person, quote-checked; `bio` is `{source, url, en}`, the life, not in Reed; `actor` links the person the map draws; `pic` is a portrait in `pictures.json`. `tools/fetch_portraits.py` takes each `wp` article's lead image from Wikimedia Commons, keeps it only if Commons marks it public domain or CC0, and writes it to `media/portrait-<id>.jpg` and `pictures.json`; the others are left out and reported.
 
 ## The tour
 

@@ -170,6 +170,50 @@ blockquote.doc::before, blockquote.doc::after { content: none; }
 .ln.dash { background: repeating-linear-gradient(90deg, var(--ink) 0 7px, transparent 7px 11px); }
 .ln.dot { background: repeating-linear-gradient(90deg, var(--ink-3) 0 2px, transparent 2px 6px); }
 
+/* ---------- who's who ---------- */
+.who-sheet { max-width: 820px; }
+.who-sheet > .close { position: sticky; top: 0; float: right; margin: -12px -16px 0 8px; z-index: 3; background: var(--paper); }
+.who-reed::before, .who-reed::after, .who-q::before, .who-q::after { content: none; }
+.who-reed { margin: 8px 0 12px; padding: 0 0 0 14px; border-left: 3px solid var(--red); font: italic 17px/1.45 var(--body); max-width: 62ch; }
+.who-reed cite, .who-q cite { display: block; font: 11px var(--mono); font-style: normal; letter-spacing: .06em; color: var(--ink-3, #6b645b); margin-top: 3px; }
+.nr-mark { font: 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--ink); padding: 0 4px; }
+.side { display: inline-flex; align-items: center; gap: 6px; font: 11px var(--mono); letter-spacing: .05em; text-transform: uppercase; }
+.side::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: #7d7d74; flex: none; }
+.side.for::before { background: #b3261e; } .side.against::before { background: #2f4a6b; } .side.between::before { background: #b7791f; } .side.none::before { background: transparent; border: 1px solid #7d7d74; }
+#who-q { width: 100%; box-sizing: border-box; margin: 10px 0 4px; padding: 8px 10px; font: 15px var(--body); background: var(--paper-2); border: 1px solid var(--ink); color: var(--ink); border-radius: 0; }
+#who-list h3 { margin-top: 24px; }
+.who-f { border-top: 1px solid var(--rule, #c9c1b0); }
+.who-f > summary { list-style: none; cursor: pointer; padding: 10px 76px 9px 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
+.who-f > summary::-webkit-details-marker { display: none; }
+.who-f > summary .nm { font: 400 21px/1.15 var(--display); }
+.who-f > summary .nm::before { content: '+ '; font: 14px var(--mono); color: var(--red); }
+.who-f[open] > summary .nm::before { content: '– '; }
+.who-f > summary .sm { grid-column: 1 / -1; font-size: 14px; color: var(--ink-2, #4a443d); max-width: 70ch; }
+.who-f .ru { font: italic 13px var(--body); color: var(--ink-3, #6b645b); }
+.who-body { padding: 0 0 14px 18px; }
+.who-q { margin: 10px 0; padding-left: 12px; border-left: 2px solid var(--ink); font-style: italic; max-width: 66ch; }
+.who-bg { margin: 10px 0; font-size: 14px; max-width: 68ch; }
+.who-bg .nr-mark { margin-right: 6px; }
+.who-bg a, .who-see a { color: var(--red); }
+.who-see { font-size: 13px; color: var(--ink-3, #6b645b); }
+.who-people { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px 14px; margin: 10px 0 4px; }
+.who-p { border: 1px solid var(--rule, #c9c1b0); background: var(--paper-2); }
+.who-p > summary { list-style: none; cursor: pointer; display: flex; gap: 10px; align-items: center; padding: 6px; }
+.who-p > summary::-webkit-details-marker { display: none; }
+.who-p .ph { width: 46px; height: 58px; object-fit: cover; flex: none; background: var(--paper); filter: grayscale(1) contrast(1.05); border: 1px solid var(--rule, #c9c1b0); }
+.who-p .ph.none { display: grid; place-items: center; font: 18px var(--display); color: var(--ink-3, #6b645b); }
+.who-p .pn { font: 400 16px/1.15 var(--display); display: block; }
+.who-p .pr { font-size: 12.5px; line-height: 1.3; color: var(--ink-2, #4a443d); display: block; }
+.who-p[open] { grid-column: 1 / -1; }
+.who-pb { display: grid; grid-template-columns: 150px 1fr; gap: 4px 16px; padding: 4px 10px 12px; }
+.who-pb img { width: 150px; height: auto; filter: grayscale(1) contrast(1.05); border: 1px solid var(--rule, #c9c1b0); }
+.who-pb .yrs { font: 12px var(--mono); color: var(--ink-3, #6b645b); }
+.who-pb .cr { display: block; font: 10.5px/1.35 var(--mono); color: var(--ink-3, #6b645b); margin-top: 4px; word-break: break-word; }
+.who-pb .cr a { color: inherit; }
+.who-hit { outline: 2px solid var(--red); outline-offset: 2px; }
+.who-link { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-decoration-color: var(--red); text-underline-offset: 2px; }
+@media (max-width: 640px) { .who-pb { grid-template-columns: 1fr; } .who-pb img { width: 140px; } }
+
 /* ---------- introduction ---------- */
 #intro { position: absolute; inset: 0; z-index: 15; display: flex; align-items: flex-end; pointer-events: none;
   padding: calc(env(safe-area-inset-top, 0px) + 64px) var(--gutter-r) calc(env(safe-area-inset-bottom, 0px) + 28px) var(--gutter-l);
@@ -248,6 +292,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
   <nav id="tools" aria-label="Map layers">
     <button class="tbtn" id="t-all" aria-pressed="false" title="Show every route in the book, faintly">All routes</button>
     <button class="tbtn" id="t-lbl" aria-pressed="true" title="Place names">Labels</button>
+    <button class="tbtn" id="t-who" aria-pressed="false" title="The parties, soviets, committees and forces, and their people">Who’s who</button>
     <button class="tbtn" id="t-about" aria-pressed="false">About this map</button>
   </nav>
 
@@ -295,6 +340,18 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
   </footer>
   <div id="tip" hidden></div>
 
+  <div id="who" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="who-h">
+    <div class="sheet who-sheet">
+      <button class="tbtn close" id="who-close">Close</button>
+      <h2 id="who-h">Who’s who</h2>
+      <blockquote class="who-reed">“To the average reader the multiplicity of Russian organisations—political groups, Committees and Central Committees, Soviets, Dumas and Unions—will prove extremely confusing.”<cite>Reed, Notes and Explanations</cite></blockquote>
+      <p>Nearly everyone in Reed’s Petrograd called themselves socialist, a council or a committee, and they stood on both sides of the barricades. Each entry gives Reed’s own words for it, where it stood on the rising of 7 November, and its leading people. What Reed does not say is marked <span class="nr-mark">Not in Reed</span> and comes from the encyclopedia article linked with it.</p>
+      <div class="legend-row who-key"><span class="side for">For the rising</span><span class="side against">Against it</span><span class="side between">Between, or divided</span></div>
+      <input id="who-q" type="search" placeholder="Find a party, a committee or a person" aria-label="Find a party, a committee or a person" autocomplete="off">
+      <div id="who-list"></div>
+    </div>
+  </div>
+
   <div id="about" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="about-h">
     <div class="sheet">
       <button class="tbtn close" id="about-close">Close</button>
@@ -303,6 +360,8 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <h3>What happened</h3>
       <p>In March 1917 a revolution ended the Tsar’s rule, and power was split between a Provisional Government and the Soviets, the councils of workers and soldiers. On 7 November (25 October in the old Russian calendar) the Bolsheviki took power through the Petrograd Soviet. Reed’s book follows those days and the weeks after; the introduction tells it at more length.</p>
       <p><button class="tbtn" id="replay-intro">Replay the introduction</button></p>
+      <h3>Who’s who</h3>
+      <p>The parties, soviets, committees and forces Reed names, many of them socialist and on opposite sides: his own definitions, where each stood on the rising, and their leading people. What he does not say comes from Wikipedia, in our words, and is marked “Not in Reed”. A name on a scene card opens its entry.</p>
 
       <h3>How to read it</h3>
       <div class="legend-row"><span class="wit seen"><i></i>Reed was there</span><span class="wit told"><i></i>told to Reed</span><span class="wit reported"><i></i>reported</span><span class="wit document"><i></i>a document he prints</span></div>
@@ -2638,6 +2697,7 @@ function clockLabel(e) {
 function secLabel(s) {
   var m = /^App\.([IVX]+)\.(\d+)$/.exec(s); if (m) return 'App. ' + m[1] + ' §' + m[2];
   if (/^[IVX]+$/.test(s)) return 'Ch. ' + s;
+  if (s === 'Notes') return 'Notes and Explanations';
   return s;
 }
 var GSTART = DAYS.map(function (d) { return ms(d.d + 'T00:00'); });
@@ -2734,7 +2794,7 @@ function renderPanel(e) {
       var li = document.createElement('li'), sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = moverHex(m); li.appendChild(sw);
       var route = m.gap ? 'the text skips' : !m.line ? 'not on the map' : m.draw === 'street' ? (m.rc === 'stated' ? 'streets Reed gives, ' : 'route inferred, ') + fmtM(m.len) : 'no route known';
       if (m.done) route = 'over before Reed is told of it, ' + route;
-      li.appendChild(document.createTextNode(actorName(m.who) + (m.size ? ' (' + m.size + ')' : '') + ': ' + nameOf(m.from) + ' → ' + nameOf(m.to) + ', ' + MODE[m.mode] + ' · ' + route));
+      li.appendChild(whoLink(m.who, actorName(m.who))); li.appendChild(document.createTextNode((m.size ? ' (' + m.size + ')' : '') + ': ' + nameOf(m.from) + ' → ' + nameOf(m.to) + ', ' + MODE[m.mode] + ' · ' + route));
       ul.appendChild(li);
     });
     fact('Moves', ul);
@@ -2804,7 +2864,7 @@ function renderHere(e) {
     var li = document.createElement('li'), sw = document.createElement('span'), from = EVBYID[g.p.ev];
     sw.className = 'sw'; sw.style.background = BLOC[g.bloc] || BLOC.neutral; li.appendChild(sw);
     var since = from && from !== e ? ', since ' + dateLabel(from.t).replace(/ 1917$/, '').replace(/^\w+ /, '') : '';
-    li.appendChild(document.createTextNode(g.label + (g.size ? ': “' + typo(g.size) + '”' : '') + (g.place !== loc ? ' (' + nameOf(g.place) + ')' : '') + since));
+    li.appendChild(whoLink(g.who, g.label)); li.appendChild(document.createTextNode((g.size ? ': “' + typo(g.size) + '”' : '') + (g.place !== loc ? ' (' + nameOf(g.place) + ')' : '') + since));
     if (g.p.outside) li.appendChild(notReed(g.p.outside));
     ul.appendChild(li);
   });
@@ -3376,6 +3436,122 @@ function showAbout(open) {
   if (open) { $('about-close').focus(); $('about').querySelector('.sheet').scrollTop = 0; } else $('t-about').focus({ preventScroll: true });
 }
 $('t-about').onclick = function () { showAbout(true); };
+// ---------- who's who ----------
+// The parties, soviets, committees and forces Reed names, and their people: Reed's words for each, where it
+// stood on the rising, and what Reed does not say, from the encyclopedia, marked so. The names on the scene
+// card open their entries.
+var FAC = {}, PEO = {}; (S.factions || []).forEach(function (f) { FAC[f.id] = f; }); (S.people || []).forEach(function (p) { PEO[p.id] = p; });
+var SIDE = { 'for': 'For the rising', against: 'Against it', between: 'Between, or divided', none: '' };
+var WHO_GROUPS = [['parties', 'The parties, from right to left, as Reed lists them'], ['soviets', 'The Soviets and their committees'], ['government', 'The Government and its allies'], ['forces', 'The armed forces']];
+function el(tag, cls, text) { var x = document.createElement(tag); if (cls) x.className = cls; if (text != null) x.textContent = text; return x; }
+function reedQ(r) { var b = el('blockquote', 'who-q'); b.appendChild(document.createTextNode('“' + typo(r.q) + '”')); b.appendChild(el('cite', null, 'Reed, ' + secLabel(r.sec))); return b; }
+function notInReed(o) {
+  var p = el('p', 'who-bg'); p.appendChild(el('span', 'nr-mark', 'Not in Reed')); p.appendChild(document.createTextNode(o.en + ' '));
+  var a = el('a', null, '(' + decodeURIComponent(o.url.split('/wiki/')[1] || 'source').replace(/_/g, ' ') + ', Wikipedia)'); a.href = o.url; a.target = '_blank'; a.rel = 'noopener'; p.appendChild(a);
+  return p;
+}
+function personCard(p) {
+  var d = el('details', 'who-p'); d.id = 'who-p-' + p.id; d.dataset.k = (p.name + ' ' + (p.names || []).join(' ') + ' ' + (p.ru || '')).toLowerCase();
+  var sm = el('summary'), ph;
+  if (p.pic) { ph = el('img', 'ph'); ph.loading = 'lazy'; ph.src = p.pic.f; ph.alt = ''; } else { ph = el('span', 'ph none', p.name.split(' ').pop()[0]); }
+  sm.appendChild(ph); var tx = el('span'); tx.appendChild(el('span', 'pn', p.name)); tx.appendChild(el('span', 'pr', p.role)); sm.appendChild(tx); d.appendChild(sm);
+  var b = el('div', 'who-pb'), left = el('div'), right = el('div');
+  if (p.pic) {
+    var big = el('img'); big.loading = 'lazy'; big.src = p.pic.f; big.alt = 'Portrait of ' + p.name; left.appendChild(big);
+    var cr = el('span', 'cr', 'Photograph: ' + (p.pic.by || 'unknown') + (p.pic.date && p.pic.date !== 'unknown' ? ', ' + p.pic.date : '') + '. ' + p.pic.lic + ' ');
+    var ca = el('a', null, 'source'); ca.href = p.pic.url; ca.target = '_blank'; ca.rel = 'noopener'; cr.appendChild(ca); left.appendChild(cr);
+  } else left.appendChild(el('span', 'cr', 'No public-domain portrait found.'));
+  right.appendChild(el('div', 'yrs', [p.ru, p.born || p.died ? (p.born || '?') + '–' + (p.died || '?') : ''].filter(Boolean).join(' · ')));
+  if (p.names && p.names.length && p.names[0] !== p.name.split(' ').pop()) right.appendChild(el('div', 'yrs', 'Reed writes: ' + p.names.join(', ')));
+  if (p.def) right.appendChild(reedQ(p.def));
+  right.appendChild(notInReed(p.bio));
+  var also = (p.factions || []).filter(function (x) { return FAC[x]; });
+  if (also.length) {
+    var sp = el('p', 'who-see', 'In: ');
+    also.forEach(function (x, i) { var a = el('a', null, FAC[x].name); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openWho('f:' + x); }; if (i) sp.appendChild(document.createTextNode(', ')); sp.appendChild(a); });
+    right.appendChild(sp);
+  }
+  b.appendChild(left); b.appendChild(right); d.appendChild(b);
+  return d;
+}
+function factionCard(f) {
+  var d = el('details', 'who-f'); d.id = 'who-f-' + f.id;
+  var mem = (f.members || []).map(function (m) { return PEO[m]; }).filter(Boolean);
+  d.dataset.k = (f.name + ' ' + (f.names || []).join(' ') + ' ' + (f.ru || '') + ' ' + f.sum + ' ' + mem.map(function (p) { return p.name + ' ' + (p.names || []).join(' '); }).join(' ')).toLowerCase();
+  var sm = el('summary'), nm = el('span', 'nm', f.name);
+  sm.appendChild(nm);
+  sm.appendChild(f.side && f.side !== 'none' ? el('span', 'side ' + f.side, SIDE[f.side]) : el('span'));
+  sm.appendChild(el('span', 'sm', f.sum)); d.appendChild(sm);
+  var b = el('div', 'who-body');
+  if (f.ru) b.appendChild(el('div', 'ru', f.ru));
+  b.appendChild(reedQ(f.def));
+  (f.also || []).forEach(function (r) { b.appendChild(reedQ(r)); });
+  b.appendChild(notInReed(f.bg));
+  if (mem.length) { b.appendChild(el('h3', null, 'Its people')); var g = el('div', 'who-people'); mem.forEach(function (p) { g.appendChild(personCard(p)); }); b.appendChild(g); }
+  var rel = [];
+  if (f.part_of && FAC[f.part_of]) rel.push(['Part of', f.part_of]);
+  (f.see || []).forEach(function (x) { if (FAC[x]) rel.push(['See also', x]); });
+  if (rel.length) {
+    var sp = el('p', 'who-see');
+    rel.forEach(function (r, i) { if (i) sp.appendChild(document.createTextNode(' · ')); sp.appendChild(document.createTextNode(r[0] + ': ')); var a = el('a', null, FAC[r[1]].name); a.href = '#'; a.onclick = function (ev) { ev.preventDefault(); openWho('f:' + r[1]); }; sp.appendChild(a); });
+    b.appendChild(sp);
+  }
+  d.appendChild(b);
+  return d;
+}
+var whoBuilt = false;
+function buildWho() {
+  if (whoBuilt) return; whoBuilt = true;
+  var list = $('who-list');
+  WHO_GROUPS.forEach(function (g) {
+    var fs = (S.factions || []).filter(function (f) { return f.group === g[0]; }); if (!fs.length) return;
+    var sec = el('section'); sec.dataset.g = g[0]; sec.appendChild(el('h3', null, g[1]));
+    fs.forEach(function (f) { sec.appendChild(factionCard(f)); });
+    list.appendChild(sec);
+  });
+}
+function filterWho(q) {
+  q = (q || '').trim().toLowerCase();
+  document.querySelectorAll('#who-list section').forEach(function (sec) {
+    var any = false;
+    sec.querySelectorAll('.who-f').forEach(function (d) {
+      var hit = !q || d.dataset.k.indexOf(q) >= 0; d.hidden = !hit; any = any || hit;
+      d.querySelectorAll('.who-p').forEach(function (p) { p.hidden = !!q && p.dataset.k.indexOf(q) < 0 && (d.querySelector('summary').textContent.toLowerCase().indexOf(q) < 0); });
+      if (q && hit) d.open = true;
+    });
+    sec.hidden = !any;
+  });
+}
+$('who-q').addEventListener('input', function () { filterWho(this.value); });
+function showWho(open) {
+  buildWho();
+  $('who').hidden = !open; $('t-who').setAttribute('aria-pressed', open);
+  if (open) $('who-close').focus({ preventScroll: true }); else $('t-who').focus({ preventScroll: true });
+}
+// open the who's who at one entry: 'f:id' a faction, 'p:id' a person (inside its first faction)
+function openWho(ref) {
+  showWho(true);
+  $('who-q').value = ''; filterWho('');
+  document.querySelectorAll('#who-list .who-hit').forEach(function (x) { x.classList.remove('who-hit'); });
+  var kind = ref.slice(0, 1), id = ref.slice(2), target = null;
+  if (kind === 'f') { target = $('who-f-' + id); if (target) target.open = true; }
+  else {
+    var p = PEO[id], f = p && (p.factions || []).filter(function (x) { return FAC[x]; })[0];
+    var fd = f && $('who-f-' + f); if (fd) fd.open = true;
+    target = fd && fd.querySelector('#who-p-' + id); if (target) target.open = true;
+  }
+  if (target) { target.classList.add('who-hit'); target.scrollIntoView({ block: 'start' }); }
+}
+function whoLink(actorId, text) {
+  var ref = (S.who || {})[actorId];
+  if (!ref) return document.createTextNode(text);
+  var b = el('button', 'who-link', text); b.title = 'Who’s who: ' + (ref[0] === 'f' ? (FAC[ref.slice(2)] || {}).name : (PEO[ref.slice(2)] || {}).name);
+  b.onclick = function () { openWho(ref); };
+  return b;
+}
+$('t-who').onclick = function () { showWho(true); };
+$('who-close').onclick = function () { showWho(false); };
+$('who').addEventListener('click', function (ev) { if (ev.target === this) showWho(false); });
 $('about-close').onclick = function () { showAbout(false); };
 $('about').addEventListener('click', function (ev) { if (ev.target === this) showAbout(false); });
 var sheetOpen = false;
@@ -3383,6 +3559,7 @@ $('handle').onclick = function () { sheetOpen = !sheetOpen; document.documentEle
 window.addEventListener('keydown', function (ev) {
   if (!$('lightbox').hidden) { if (ev.key === 'Escape') closePic(); return; }
   if (!$('about').hidden) { if (ev.key === 'Escape') showAbout(false); return; }
+  if (!$('who').hidden) { if (ev.key === 'Escape') showWho(false); return; }
   if (intro) {
     if (ev.key === 'Escape') { endIntro(false); ev.preventDefault(); }
     else if (ev.key === 'ArrowRight' && intro.k < SLIDES.length - 1) { showSlide(intro.k + 1); ev.preventDefault(); }
@@ -3569,7 +3746,7 @@ function boot(state) {
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
   finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
-  movers: function () { return movers; }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
+  movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
   // run the fighting for the last `secs` seconds at 60 frames a second, as a real browser would, so a slow test renderer shows its steady state

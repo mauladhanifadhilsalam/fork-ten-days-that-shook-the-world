@@ -751,6 +751,38 @@ story = {
                 if any((r.get('outside') or {}).get('source') == s['id'] for r in presence) or
                 any((m.get('outside') or {}).get('source') == s['id'] for e in events for m in e.get('moves', []))},
 }
+# ---------- the who's who ----------
+# the factions, in their own order, and their people, with Reed's words, what is not in Reed and its source,
+# and the portraits; `who` links each body or person the map draws to its entry
+FACTIONS = L.load_json(os.path.join(DATA, 'factions.json')) if os.path.exists(os.path.join(DATA, 'factions.json')) else []
+PEOPLE = L.load_json(os.path.join(DATA, 'people.json')) if os.path.exists(os.path.join(DATA, 'people.json')) else []
+PICBY = {p['id']: p for p in PICS}
+def _ref(r):
+    return {'sec': r['sec'], 'q': r['q']}
+story['factions'] = [{**{k: f[k] for k in ('id', 'kind', 'group', 'side', 'name', 'ru', 'sum') if k in f},
+                      'names': f.get('names', []), 'members': f.get('members', []), 'see': f.get('see', []), 'part_of': f.get('part_of'),
+                      'def': _ref(f['def']), 'also': [_ref(r) for r in f.get('also', [])], 'bg': f['background']} for f in FACTIONS]
+story['people'] = []
+for p in PEOPLE:
+    r = {k: p[k] for k in ('id', 'name', 'ru', 'role', 'born', 'died', 'factions') if k in p}
+    r['names'] = p.get('names', [])
+    if p.get('def'):
+        r['def'] = _ref(p['def'])
+    r['bio'] = p['bio']
+    if p.get('pic') in PICBY:
+        q = PICBY[p['pic']]
+        r['pic'] = {'f': q['file'], 'w': q['w'], 'h': q['h'], 'lic': q['license'], 'url': q['url'], 'by': q.get('author', ''), 'date': q.get('date', '')}
+    story['people'].append(r)
+who = {}
+for f in FACTIONS:
+    for a in f.get('actors', []):
+        who.setdefault(a, 'f:' + f['id'])
+for p in PEOPLE:
+    if p.get('actor'):
+        who[p['actor']] = 'p:' + p['id']
+story['who'] = who
+story['whoSource'] = next(({'cite': s['cite'], 'url': s.get('url')} for s in T['sources'] if s['id'] == 'wikipedia'), None)
+
 os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)
 with open(OUT, 'w', encoding='utf-8') as f:
     json.dump(story, f, ensure_ascii=False, separators=(',', ':'))

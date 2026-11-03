@@ -20,6 +20,9 @@
 {"id": "ruwiki-pavlovsk-school", "kind": "reference", "url": "https://ru.wikipedia.org/wiki/Павловское_военное_училище",
  "cite": "“Павловское военное училище”. Russian Wikipedia, read 2026-10-29. A tertiary source; its own citations were not checked.",
  "note": "At Bolshaya Spasskaya (now Krasnogo Kursanta) 21, the former Noble Regiment barracks of 1833–37, from November 1887 until it was disbanded in November 1917; the building now houses the Mozhaysky Military Space Academy."},
+{"id": "ruwikipedia", "kind": "reference", "url": "https://ru.wikipedia.org/",
+ "cite": "Wikipedia, the free encyclopedia (Russian edition), the article named with each entry, read 2026-11-03.",
+ "note": "For the who's who's people who have no English article; in our words, shown as “Not in Reed”."},
 {"id": "tass-history", "kind": "reference", "url": "https://tass.com/history",
  "cite": "TASS, ‘History’: the Petrograd Telegraph Agency (PTA) and its building on Pochtamtskaya (Post Office) Street.",
  "note": "Puts the Petrograd Telegraph Agency’s building on Pochtamtskaya Street; the house is not given."},
@@ -28,5 +31,8 @@
  "note": "Raises whether tzdb's 1917 dates are Old or New Style; November is inside the summer-time period either way."},
 {"id": "tzdb", "kind": "data", "url": "https://github.com/eggert/tz/blob/main/europe",
  "cite": "IANA Time Zone Database, file europe: Rule Russia 1917 (Jul 1 23:00 +1:00; Dec 28 0:00, Decree No. 142 of 1917-12-22).",
- "note": "Basis of meta.clock."}
+ "note": "Basis of meta.clock."},
+{"id": "wikipedia", "kind": "reference", "url": "https://en.wikipedia.org/",
+ "cite": "Wikipedia, the free encyclopedia (English edition), the article named with each entry, read 2026-11-03.",
+ "note": "The who's who's background to each faction and the lives of its people, in our words and shown as “Not in Reed”; Reed's own words for them are quoted beside it. Nothing Reed says is corrected from it."}
 ]

@@ -63,6 +63,8 @@ TYPES = {
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
+    'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
+    'born': INT, 'died': INT, 'factions': LIST, 'actor': STR, 'pic': STR, 'wp': STR, 'role': STR, 'bio': DICT,
 }
 
 
@@ -129,6 +131,7 @@ class Checker:
         self.dir, self.book, self.F = data_dir, book, F
         self.meta = self.days = None
         self.sources, self.actors, self.places, self.events, self.pictures = [], [], [], [], []
+        self.factions, self.people = [], []
 
     # -- loading --
     def load(self):
@@ -179,6 +182,7 @@ class Checker:
         self.meta, self.days = m['meta'], m.get('days', [])
         self.sources, self.actors, self.places, self.events = (raw[n] for n in L.TABLES)
         self.pictures = raw.get('pictures', [])
+        self.factions, self.people = raw.get('factions', []), raw.get('people', [])
         return True
 
     # -- helpers --
@@ -433,6 +437,7 @@ class Checker:
         self.ids(self.pictures, 'pictures')
         for pic in self.pictures:
             self.picture(pic)
+        self.glossary(used)
         for k, table in (('source', self.S), ('actor', self.A), ('place', self.P)):
             for i in table:
                 if not used[k][i]:
@@ -865,6 +870,75 @@ class Checker:
         ref = pic.get('ref')
         if isinstance(ref, dict) and fields(F, ref, 'ref', w + '.ref') and isinstance(ref.get('q'), str):
             self.quote_ok(ref.get('sec'), ref['q'], w + '.ref')
+
+    def glossary(self, used):
+        """The who's who. Reed's words for each faction and person are quote-checked like a scene's; what is
+        not in Reed (a faction's background, a person's life) cites its source; every name is one Reed uses;
+        and the links hold: members, factions, actors, portraits."""
+        F = self.F
+        Fa = self.ids(self.factions, 'factions')
+        Pe = self.ids(self.people, 'people')
+        FA = {f['id']: f for f in self.factions if isinstance(f, dict) and 'id' in f}
+        PE = {p['id']: p for p in self.people if isinstance(p, dict) and 'id' in p}
+        PIC = {p['id']: p for p in self.pictures if isinstance(p, dict) and 'id' in p}
+        def reeds(rec, w):   # each name Reed's: in his text, as written
+            for n in rec.get('names', []):
+                if not isinstance(n, str) or L.norm(n) not in self.book.all:
+                    F.err('glossary.name', w, f'names: Reed never writes {n!r}')
+        def outside(o, w):
+            if not isinstance(o, dict) or not fields(F, o, 'bio', w):
+                return
+            if o.get('source') not in self.S:
+                F.err('ref.unknown', w, f'source {o.get("source")!r} is not in sources.json')
+            else:
+                used['source'][o['source']] += 1
+            if not re.match(r'^https://', str(o.get('url', ''))):
+                F.err('field.pattern', w, 'url is the https page the words come from')
+            if not str(o.get('en', '')).strip():
+                F.err('field.missing', w, 'en: what the source says, in our words')
+        def quotes(rec, w):
+            if isinstance(rec.get('def'), dict) and fields(F, rec['def'], 'ref', w + '.def') and isinstance(rec['def'].get('q'), str):
+                self.quote_ok(rec['def'].get('sec'), rec['def']['q'], w + '.def')
+            for i, r in enumerate(rec.get('also', [])):
+                if fields(F, r, 'ref', f'{w}.also[{i}]') and isinstance(r.get('q'), str):
+                    self.quote_ok(r.get('sec'), r['q'], f'{w}.also[{i}]')
+        for f in self.factions:
+            w = f'factions/{f.get("id")}'
+            if not fields(F, f, 'faction', w):
+                continue
+            for k in ('kind', 'group', 'side'):
+                enum(F, f, k, 'faction.' + k, w)
+            if 'part_of' in f and f['part_of'] not in FA:
+                F.err('ref.unknown', w, f'part_of: no faction {f["part_of"]!r}')
+            for k, table, what in (('actors', self.A, 'actor'), ('members', PE, 'person'), ('see', FA, 'faction')):
+                for x in f.get(k, []):
+                    if x not in table:
+                        F.err('ref.unknown', w, f'{k}: no {what} {x!r}')
+                    elif k == 'actors':
+                        used['actor'][x] += 1
+                    elif k == 'members' and f['id'] not in PE[x].get('factions', []):
+                        F.err('glossary.member', w, f'members: {x} does not name {f["id"]} among their factions')
+            reeds(f, w); quotes(f, w); outside(f.get('background'), w + '.background')
+        for p in self.people:
+            w = f'people/{p.get("id")}'
+            if not fields(F, p, 'person', w):
+                continue
+            for x in p.get('factions', []):
+                if x not in FA:
+                    F.err('ref.unknown', w, f'factions: no faction {x!r}')
+            if 'actor' in p:
+                if p['actor'] not in self.A:
+                    F.err('ref.unknown', w, f'actor: no actor {p["actor"]!r}')
+                else:
+                    used['actor'][p['actor']] += 1
+            if 'pic' in p:
+                if p['pic'] not in PIC:
+                    F.err('ref.unknown', w, f'pic: no picture {p["pic"]!r}')
+                elif PIC[p['pic']].get('kind') != 'portrait':
+                    F.err('glossary.pic', w, f'pic: {p["pic"]} is not a portrait')
+            if isinstance(p.get('born'), int) and isinstance(p.get('died'), int) and not 1800 < p['born'] < p['died'] <= 2000:
+                F.err('field.range', w, 'born and died are years, born before died')
+            reeds(p, w); quotes(p, w); outside(p.get('bio'), w + '.bio')
 
     def presence(self):
         """Who stays where between scenes (storylib.presence_spans). A `gone` must find someone, and a
@@ -1311,7 +1385,7 @@ def main():
     tls = len(getattr(C, 'timelines', {}))
     pres = len(getattr(C, 'spans', []))
     print(f'checked {len(C.sources)} sources, {len(C.actors)} actors, {len(C.places)} places, {len(C.events)} events '
-          f'({moves} moves, {tls} control timelines, {pres} presences), {len(C.pictures)} pictures: {n_err} errors, {n_warn} warnings')
+          f'({moves} moves, {tls} control timelines, {pres} presences), {len(C.pictures)} pictures, {len(C.factions)} factions, {len(C.people)} people: {n_err} errors, {n_warn} warnings')
     sys.exit(1 if n_err or (a.strict and n_warn) else 0)
 
 

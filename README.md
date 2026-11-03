@@ -26,6 +26,7 @@ A 3D map of John Reed's *Ten Days That Shook the World* (1919): Reed's own path 
     - Reed's buildings on postcards printed before 1917.
   - Each caption says what the picture shows and when, and says so where it is from before or after these days. It corrects Commons where its date is wrong: the morning of 26 October Old Style is 8 November. The licence names the rule that makes the picture public domain.
   - The pictures illustrate; they are not evidence. Click one to enlarge it.
+- **Who's who.** Reed warned that "the multiplicity of Russian organisations ... will prove extremely confusing": nearly everyone called themselves socialist, a council or a committee, and they stood on both sides of the barricades. The "Who's who" button lists 45 parties, soviets, committees and forces in four groups (the parties in Reed's own order, right to left), each marked for the rising of 7 November, against it, or between. Each entry gives Reed's own definition, mostly from his Notes and Explanations, quote-checked like a scene; a line on what it does in his ten days; a background that is not in Reed, in our words, from the Wikipedia article linked with it, and marked "Not in Reed"; and its leading people, 51 in all, with Reed's own words for them where he gives any, a short life (also not in Reed), and a public-domain portrait where Commons has one (43 of them). The names on a scene card open their entries.
 - **Reed's walks along the streets he names.** Routes with `rc: "stated"` are solid, routes we inferred are dashed, and moves Reed gives no route for (or that go by train or leave the city) are arcs. Reed is ink by day and pale by night; every other mover takes its bloc's colour.
 - **Who holds what.** The 22 buildings that are Reed's places stand out of the city, and the ones Reed reports as held take the holder's colour on the roof, as he reports it at that moment. A besieged building pulses in the besieger's colour.
 - **A sky for each scene** on the 1917 Petrograd clock (about UTC+3:01), and the city turns white after Reed's first snow on 13 November.
@@ -43,11 +44,14 @@ data/actors.json       77 factions, bodies, units, people and crowds, with stanc
 data/places.json       104 places in the city, at the front, off-map, and in Moscow (not toured)
 data/events.json       157 scenes: time and its quality, verbatim quote, witness type, moves, control changes,
                        and who is present or gone (175 presence spans)
-data/pictures.json     the pictures the scenes show, each public domain, with its provenance; media/ holds them
+data/pictures.json     the pictures the scenes and the who's who show, each public domain, with its provenance; media/ holds them
+data/factions.json     the who's who: parties, soviets, committees and forces, with Reed's definitions and a cited background
+data/people.json       the who's who's people: Reed's words for them, a cited life, a portrait
 tools/text.py          downloads Gutenberg #3076 and splits it into sections (pinned by SHA-256)
 tools/check_story.py   the validator; fails hard. --report, --osm, --pdf
 tools/fmt_story.py     writes the canonical layout; --check, --pages
 tools/geocode.py       finds OSM buildings around a hint (OSM API only), --accept writes them
+tools/fetch_portraits.py  the who's who's portraits from Wikimedia Commons, public domain only (--fetch asks the APIs)
 tools/storylib.py      shared schema, layout, quote normalisation, date and time parsers, geometry, sun
 tests/test_check.py    one failing fixture per error code, plus mutation tests on the real data
 

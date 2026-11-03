@@ -16,7 +16,7 @@ import json, math, re, datetime as dt
 from collections import OrderedDict
 
 TABLES = ['sources', 'actors', 'places', 'events']   # plus meta.json, which has its own shape
-OPTIONAL = ['pictures']                             # tables a data set may leave out
+OPTIONAL = ['pictures', 'factions', 'people']       # tables a data set may leave out
 
 # ---------- schema ----------
 # Field order here is the canonical order on disk. PROSE fields get a line of their own.
@@ -40,6 +40,10 @@ FIELDS = {
     'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'brief', 'ref', 'outside'],
     'gone': ['who', 'place', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
+    # the who's who: the parties, soviets, committees and forces Reed names, and their people
+    'faction': ['id', 'kind', 'group', 'order', 'side', 'part_of', 'actors', 'members', 'see', 'name', 'names', 'ru', 'sum', 'def', 'also', 'background', 'note'],
+    'person': ['id', 'born', 'died', 'factions', 'actor', 'pic', 'wp', 'name', 'names', 'ru', 'role', 'def', 'bio', 'note'],
+    'bio': ['source', 'url', 'en'],
 }
 REQUIRED = {
     'day': ['d', 'os', 'label', 'name'],
@@ -57,11 +61,14 @@ REQUIRED = {
     'presence': ['who'],
     'gone': ['who'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'url'],
+    'faction': ['id', 'kind', 'group', 'order', 'side', 'name', 'names', 'sum', 'def', 'background'],
+    'person': ['id', 'factions', 'name', 'names', 'role', 'bio'],
+    'bio': ['source', 'url', 'en'],
 }
 PROSE = {'cite', 'name', 'note', 'title', 'why', 'sum', 'q', 'ident', 'today', 'ru', 'reed',
-         'addr1917', 'addr_now', 'caption'}
+         'addr1917', 'addr_now', 'caption', 'names', 'role'}
 NESTED_LIST = {'stance', 'also', 'moves', 'ctl', 'present', 'gone'}   # one line per item
-NESTED_ONE = {'geo', 'ctl0', 'doc', 'ref'}                  # one line for the whole object
+NESTED_ONE = {'geo', 'ctl0', 'doc', 'ref', 'def', 'background', 'bio'}                  # one line for the whole object
 
 ENUM = {
     'source.kind': {'primary', 'secondary', 'reference', 'map', 'data'},
@@ -85,6 +92,9 @@ ENUM = {
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons'},
+    'faction.kind': {'party', 'wing', 'soviet', 'committee', 'government', 'council', 'union', 'force'},
+    'faction.group': {'parties', 'soviets', 'government', 'forces'},
+    'faction.side': {'for', 'against', 'between', 'none'},
 }
 HOLDABLE = {'building', 'complex', 'square', 'bridge', 'station', 'district', 'town', 'area'}
 # Who can stand somewhere between scenes: bodies of people, and ships; not single persons
@@ -179,7 +189,7 @@ def _order(rec, kind):
 
 def _sub(kind_of, key):
     return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl', 'present': 'presence', 'gone': 'gone',
-            'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc', 'ref': 'ref'}.get(key)
+            'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc', 'ref': 'ref', 'def': 'ref', 'background': 'bio', 'bio': 'bio'}.get(key)
 
 
 def _flat(obj, kind):
@@ -239,7 +249,7 @@ def canonical(name, obj):
     """The exact text a data file must contain."""
     if name == 'meta':
         return dump_meta(obj)
-    kind = {'sources': 'source', 'actors': 'actor', 'places': 'place', 'events': 'event', 'pictures': 'picture'}[name]
+    kind = {'sources': 'source', 'actors': 'actor', 'places': 'place', 'events': 'event', 'pictures': 'picture', 'factions': 'faction', 'people': 'person'}[name]
     return dump_table(obj, kind)
 
 
@@ -252,6 +262,9 @@ def sort_table(name, recs):
     if name == 'actors':
         ko = {k: i for i, k in enumerate(['person', 'party', 'organ', 'unit', 'school', 'ship', 'crowd', 'press', 'foreign'])}
         return sorted(recs, key=lambda a: (ko.get(a.get('kind'), 99), a.get('id', '')))
+    if name == 'factions':   # the who's who's own order: by group, then Reed's order within it (right to left, for the parties)
+        go = {g: i for i, g in enumerate(['parties', 'soviets', 'government', 'forces'])}
+        return sorted(recs, key=lambda f: (go.get(f.get('group'), 9), f.get('order', 999), f.get('id', '')))
     return sorted(recs, key=lambda s: s.get('id', ''))
 
 
