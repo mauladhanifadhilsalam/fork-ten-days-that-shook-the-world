@@ -8,16 +8,19 @@
 //   node tools/audit/shot.js OUTDIR --play ID...             arrive from the scene before and let the scene
 //                                                            play at its own pace, the camera following
 //                                                            (what a reader sees; slow)
+//   node tools/audit/shot.js OUTDIR --film ID...             the scene as it plays, from the scene before:
+//                                                            OUTDIR/<id>-<s>s.png at 2, 6, 10, 14 and 18 s
 // --phone first takes them at 390 x 844, as on a phone.
 'use strict';
 const fs = require('fs');
 const { open, stage, sceneIds } = require('./page');
 const args = process.argv.slice(2), out = args.shift(), phone = args[0] === '--phone';
 if (phone) args.shift();
-if (!out || !args.length) { console.error('usage: shot.js OUTDIR [--phone] [--close METRES | --play] ID...'); process.exit(2); }
+if (!out || !args.length) { console.error('usage: shot.js OUTDIR [--phone] [--close METRES | --play | --film] ID...'); process.exit(2); }
 let mode = 'frame', dist = 110;
 if (args[0] === '--close') { mode = 'close'; args.shift(); dist = +args.shift(); }
 else if (args[0] === '--play') { mode = 'play'; args.shift(); }
+else if (args[0] === '--film') { mode = 'film'; args.shift(); }
 (async () => {
   fs.mkdirSync(out, { recursive: true });
   const all = sceneIds(), { page, errors, close } = await open({ hash: all[0], viewport: phone ? { width: 390, height: 844 } : undefined });
@@ -25,6 +28,15 @@ else if (args[0] === '--play') { mode = 'play'; args.shift(); }
     const [id, who, place] = spec.split(':');
     if (all.indexOf(id) < 0) { console.log(`${id}: no such scene`); continue; }
     let note = '', name = id;
+    if (mode === 'film') {
+      const prev = all[all.indexOf(id) - 1];
+      if (prev) { await page.evaluate((p) => { window.__td.select(p, { instant: true }); window.__td.finish(); }, prev); await page.waitForTimeout(1500); }
+      await page.evaluate((id) => window.__td.select(id), id);
+      let at = 0;
+      for (const s of [2, 6, 10, 14, 18]) { await page.waitForTimeout((s - at) * 1000); at = s; await page.screenshot({ path: `${out}/${id}-${s}s.png` }); }
+      console.log(`${out}/${id}-{2,6,10,14,18}s.png`);
+      continue;
+    }
     if (mode === 'play') {
       const prev = all[all.indexOf(id) - 1];
       if (prev) { await page.evaluate((p) => { window.__td.select(p, { instant: true }); window.__td.finish(); }, prev); await page.waitForTimeout(2500); }

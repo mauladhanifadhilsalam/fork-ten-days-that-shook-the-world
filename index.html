@@ -385,6 +385,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. One body is ours too: who “bloodily recaptured” the Military Hotel and the Telegraph Agency Reed does not say, and the map draws sailors, who had held the hotel. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
+          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -1918,7 +1919,7 @@ function layoutPlace(id, groups, t, loc, scene) {
     // defenders Reed never shows stand at the gates), and not for the side that has just lost it: its men
     // come out among the victors ("Yunkers came out, in bunches of three or four")
     var held = owner && groups.some(function (h) { return SIDE[h.bloc] && SIDE[h.bloc] === SIDE[owner]; }), lost = owner && lostBy(id, t, g.bloc);
-    var cur = lost ? 0 : (owner && held ? opposed(g.bloc, owner) : groups.slice(0, gi).some(function (h) { return opposed(h.bloc, g.bloc) && h.members && h.members.length; })) ? gapIx : 0;
+    var cur = lost || g.flee ? 0 : (owner && held ? opposed(g.bloc, owner) : groups.slice(0, gi).some(function (h) { return opposed(h.bloc, g.bloc) && h.members && h.members.length; })) ? gapIx : 0;
     var fxy = faceXY(g), pk = PL[id] && PL[id].kind, bldg = pk === 'building' || pk === 'station' || pk === 'complex' ? outlinesOf(id) : [];
     function yawAt(x, y) {
       var j = hash(seed + x * 0.37 + y) - 0.5;
@@ -2166,17 +2167,20 @@ function stageScene(e, noReed) {
   // a brief entry is the body already there plus what Reed adds, for this scene: draw it once (a
   // column marching past is a body of its own)
   (S.presence || []).forEach(function (p) { if (p.brief && !p.march && on(p)) briefs[p.who + '|' + p.place] = 1; });
+  // and those whose building the other side takes in this scene: there as it begins, to run off
+  var takenTo = {}; (e.ctl || []).forEach(function (c) { if (c.holder) takenTo[rootOf(c.place)] = blocOf(c.holder); });
+  function fled(p) { return p.to === idx && p.from < idx && !p.ship && takenTo[rootOf(p.place)] && opposed(takenTo[rootOf(p.place)], blocOf(p.who)); }
   (S.presence || []).forEach(function (p, pi) {
-    if (!on(p) || (!p.brief && briefs[p.who + '|' + p.place])) return;
+    if (!(on(p) || fled(p)) || (!p.brief && briefs[p.who + '|' + p.place])) return;
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
-    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && (p.from === idx || p.form === 'line') ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && (p.from === idx || p.form === 'line') ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship };
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && (p.from === idx || p.form === 'line') ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && (p.from === idx || p.form === 'line') ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship, flee: !on(p) };
     GROUPS.push(g);
     if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
   });
   Object.keys(byPlace).forEach(function (id) {
     // the ones who were there before come first, so they keep their ground from scene to scene
     // (and Reed's formations and cruising cars before them, so the others make way)
-    var gs = byPlace[id].sort(function (a, b) { return (!!b.form - !!a.form) || (b.patrol - a.patrol) || (a.brief - b.brief) || (a.pi - b.pi); });
+    var gs = byPlace[id].sort(function (a, b) { return (a.flee - b.flee) || (!!b.form - !!a.form) || (b.patrol - a.patrol) || (a.brief - b.brief) || (a.pi - b.pi); });   // the ones about to run off last, on what ground is left by their building
     layoutPlace(id, gs, e.t, e.loc, e);
   });
   if (!noReed && e.witness === 'seen' && (PL[e.loc] || {}).kind !== 'room' && !MOVES.some(function (o) { return o.e === e && o.m.who === 'reed'; })) {   // not when he is in a hall inside
@@ -2205,6 +2209,7 @@ function stageScene(e, noReed) {
   });
   linkArrivals(e, idx);
   linkShares(e);
+  stageEngagements(e, idx);
   stageDirty = true;
 }
 // the room each standing figure has: the distance to the nearest other one, of any body. Far out a figure
@@ -2707,15 +2712,17 @@ function armFights() {
   // under siege the defenders are in their building: a body at a building that the other side rings
   // round, fires at or storms in the scene is inside it (its label on the building, its fire from the
   // windows), and so is one whose building is besieged ("Albert Rhys Williams was in the Telephone
-  // Exchange"), or taken from it in the scene. Not when the ones firing hold the building: "When the
-  // relief came it was met by a blast of rifle-fire", and the relief lies in the street
+  // Exchange"), or taken from it by storm in the scene; taken by men marching in, its people run off (see
+  // the engagements). Not when the ones firing hold the building: "When the relief came it was met by a
+  // blast of rifle-fire", and the relief lies in the street
   GROUPS.forEach(function (g) {
     var pk = (PL[g.place] || {}).kind, hb = holderBloc(rootOf(g.place), cur ? cur.t : '');
     if (!g.members || g.inside || g.form || (pk !== 'building' && pk !== 'station')) return;
     var st = cur && holdAt(rootOf(g.place), cur.t);
     var shut = GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.place === g.place && (h.form === 'ring' || h.assault); }) ||
       st && st.state === 'besieged' && st.holder && !opposed(g.bloc, blocOf(st.holder)) && SIDE[g.bloc] && st.by && opposed(g.bloc, blocOf(st.by)) ||
-      st && st.state === 'held' && st.ev === cur.id && st.t === cur.t && st.holder && opposed(g.bloc, blocOf(st.holder)) ||
+      st && st.state === 'held' && st.ev === cur.id && st.t === cur.t && st.holder && opposed(g.bloc, blocOf(st.holder)) &&   // taken by storm: they are inside it; taken by men marching in, they run off
+        GROUPS.some(function (h) { return opposed(h.bloc, g.bloc) && rootOf(h.place) === rootOf(g.place) && (h.fire || h.assault || h.form === 'ring'); }) ||
       GROUPS.some(function (h) { return h !== g && opposed(g.bloc, h.bloc) && h.fire && (h.at === g.place || h.at === g.who) && !(SIDE[hb] && SIDE[hb] === SIDE[h.bloc]); });
     if (!shut) return;
     g.inside = true;
@@ -2815,7 +2822,7 @@ function patrolStep(g, pr, t) {
 // crumples under the fire: some fall where they are hit and lie there, the rest run back to their
 // places; one that is "carried" pours into the building and is gone, and the next follows it.
 function assault(g, t, dt) {
-  if (!g.assault) return;
+  if (!g.assault || engOn(g, t)) return;   // the waves go in once the body is up
   var A = g.aw = g.aw || { next: t + 1 + hash(g.seed) * 3, dead: 0 }, carried = g.assault === 'carried';
   var free = g.members.filter(function (m) { return m.T && !m.run && !m.dead && !m.gone; });
   if (t >= A.next && free.length) {
@@ -2849,6 +2856,258 @@ function assault(g, t, dt) {
   });
   // the ones who went in come back out to their places, and the stream goes on
   if (carried) g.members.forEach(function (m) { if (m.gone && t > m.back) { m.gone = false; m.x = m.hx; m.y = m.hy; m.yaw = m.hyaw; m.pose = m.hpose; m.walk = 0; } });
+}
+// ---------- engagements ----------
+// Reed's fights as they happen, not as standoffs. Only what the scene's fields and his words give:
+//   a body that comes into the scene to fire or to storm comes up from behind its place in rushes
+//     (run, drop and fire, run on) before it fights ("Soviet troops surrounded the building and opened fire");
+//   a body that takes a building in the scene marches up to it ("taken by large forces of yunkers"), and the
+//     other side's people there run off, away from it;
+//   a body the scene has shot down where it is fired at walks up and falls ("When the relief came it was
+//     met by a blast of rifle-fire, several being killed"); people standing where a car arrives firing fall
+//     when it fires ("In the archway ... seven people were shot dead");
+//   a patrol come with an ultimatum walks up, and three of it go to the door and back;
+//   a garrison "driven back" comes out of its door toward the fire and runs back in;
+//   men who "rushed" a stalled car close round it ("closing around the monster").
+// The motion is the map's; who is there, whom they fire at and what becomes of them are Reed's.
+var PARLEY_RE = /ultimatum|gave the \w+ \w+ minutes|minutes to lay down/i, SORTIE_RE = /driven back|beaten back|forced back/i,
+  CARRUSH_RE = /closing (a)?round the|rushed into the|leaped up and rushed/i;
+var ENG = { t0: 0, dur: 0 };
+function engNow() { return performance.now() / 1000; }
+function engOn(g, t) { return !!(g.eng && t < g.eng.t0 + g.eng.dur); }
+// where the body is going: what it fires at or storms, or the building it takes, or its place
+function engTarget(g) {
+  var foe = g.foe || foeOf(g);
+  if (foe && foe.cx != null) return [foe.cx, foe.cy];
+  var l = PL[g.at] && PL[g.at].p ? PL[g.at] : PL[rootOf(g.place)];
+  return l && l.p ? l.p : [g.cx, g.cy];
+}
+// the open ground behind (x, y), heading (ux, uy): how far, up to D metres
+function freeRun(G, x, y, ux, uy, D) {
+  var d = 0;
+  while (d < D) { var px = x + ux * (d + 1), py = y + uy * (d + 1), i = Math.floor((px - G.R.x0) / G.R.cs), j = Math.floor((py - G.R.y0) / G.R.cs); if (i < 0 || j < 0 || i >= G.R.w || j >= G.R.h || !G.ok[j * G.R.w + i]) break; d += 1; }
+  return d;
+}
+// the way a body comes from: away from its target, or along the street it stands in, whichever way the
+// ground runs furthest on the side away from the target
+function engDir(g, G, T, D) {
+  var M = g.members.filter(function (m) { return m.ox == null; }); if (!M.length) return null;
+  var ux = g.cx - T[0], uy = g.cy - T[1], ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+  var lie = groundLie(G, g.cx, g.cy, 30), cands = [[ux, uy], [Math.cos(lie.axis), Math.sin(lie.axis)], [-Math.cos(lie.axis), -Math.sin(lie.axis)]], best = null;
+  cands.forEach(function (c, ci) {
+    if (ci && c[0] * ux + c[1] * uy < 0.2) return;   // not toward the target
+    var runs = M.map(function (m) { return freeRun(G, m.x, m.y, c[0], c[1], D); }).sort(function (a, b) { return a - b; }), med = runs[Math.floor(runs.length / 2)];
+    if (!best || med > best.med + 2) best = { c: c, med: med };
+  });
+  return best && best.med >= 6 ? best.c : null;
+}
+// each member's way in: from its start, up the line to where the layout stands it
+function engIn(g, G, mode, D, delay) {
+  var T = engTarget(g), dir = engDir(g, G, T, D), n = 0, dur = 0;
+  if (!dir && !g.secs) return 0;
+  g.members.forEach(function (m, i) {
+    if (m.ox != null || m.dead) return;   // a gun's crew stays at its gun
+    var c = dir;
+    if (m.sec) { var vx = m.x - m.sec.wx, vy = m.y - m.sec.wy, vl = Math.hypot(vx, vy) || 1; c = [vx / vl, vy / vl]; }   // a ring closes in on the building
+    var d = freeRun(G, m.x, m.y, c[0], c[1], D) * (0.8 + 0.2 * hash(g.seed + i * 1.7)); if (d < 3) return;
+    m.ein = { sx: m.x + c[0] * d, sy: m.y + c[1] * d, L: d, mode: mode, delay: (delay || 0) + hash(g.seed + i * 2.3) * (mode === 'rush' ? 2.5 : 1.4) };
+    var sp = mode === 'rush' ? 3.1 : mode === 'march' ? 2.4 : 1.3;   // a rush makes 10 m in 3.2 s
+    dur = Math.max(dur, m.ein.delay + d / sp); n++;
+  });
+  return n ? dur : 0;
+}
+function stageEngagements(e, idx) {
+  var t0 = engNow() + 1.4, text = sceneText(e), ctlTo = {};
+  ENG = { t0: t0, dur: 0 };
+  (e.ctl || []).forEach(function (c) { if (c.holder) ctlTo[rootOf(c.place)] = blocOf(c.holder); });
+  function newHere(g) { return g.p && g.p.from === idx && !(S.presence || []).some(function (q) { return q.who === g.who && q.place === g.place && q.from < idx && (q.to == null || q.to >= idx); }); }
+  GROUPS.forEach(function (g) {
+    if (!g.members || !g.members.length || g.ship || g.reed) return;
+    g.members.forEach(function (m) { m.ax = m.x; m.ay = m.y; m.ayaw = m.yaw; m.apose = m.pose || null; delete m.ein; delete m.eout; delete m.env; delete m.efall; });
+    g.eng = null;
+  });
+  var dur = 0;
+  GROUPS.forEach(function (g) {
+    if (!g.members || !g.members.length || g.ship || g.reed || g.inside || g.ride) return;
+    var G = openGround(rootOf(g.place), false); if (!G) return;
+    var here = rootOf(g.place), d = 0;
+    if (g.flee) return;   // after the ones who come in, so they run the other way
+    if (g.pose === 'fallen' && newHere(g)) {
+      var shotAt = GROUPS.some(function (h) { return h !== g && h.fire && (h.at === g.who || h.at === g.place) && opposed(h.bloc, g.bloc); });
+      var carIn = GROUPS.filter(function (h) { return h !== g && h.arrival && rootOf(h.place) === here; })[0];
+      if (shotAt) { d = engIn(g, G, 'walk', 26, 0); g.members.forEach(function (m) { if (m.ein) { m.apose = 'fallen'; m.pose = null; } }); }
+      else if (carIn) g.members.forEach(function (m, i) { m.efall = { by: carIn, after: 2.5 + hash(g.seed + i) * 1.5 }; m.pose = null; m.yaw = facingYaw(m.x, m.y, carIn.cx, carIn.cy); });
+    } else if (newHere(g) && g.brief && PARLEY_RE.test(text) && holderBloc(here, e.t) && opposed(holderBloc(here, e.t), g.bloc)) {
+      d = engIn(g, G, 'walk', 28, 0);
+      var bl = outlinesOf(here), door = bl.length ? nearestOn(bl, g.cx, g.cy) : null;
+      if (door && door.d < 120) g.members.filter(function (m) { return m.ox == null; }).sort(function (a, b) { return Math.hypot(a.ax - door.x, a.ay - door.y) - Math.hypot(b.ax - door.x, b.ay - door.y); }).slice(0, 3).forEach(function (m, k) {
+        var L = Math.hypot(door.x - m.ax, door.y - m.ay) - 2.5; if (L > 3) m.env = { gx: m.ax + (door.x - m.ax) * L / (L + 2.5) + (k - 1) * 1.1, gy: m.ay + (door.y - m.ay) * L / (L + 2.5), L: L, at: d + 1 + k * 0.4 };
+      });
+      g.members.forEach(function (m) { if (m.env) d = Math.max(d, m.env.at + 2 * m.env.L / 1.3 + 5); });
+    } else if (newHere(g) && (g.fire && g.fire !== 'windows' || g.assault || g.secs)) {
+      d = engIn(g, G, 'rush', 30, 0);
+    } else if (newHere(g) && ctlTo[here] && SIDE[ctlTo[here]] && SIDE[ctlTo[here]] === SIDE[g.bloc]) {
+      d = engIn(g, G, 'march', 30, 0);
+    }
+    if (d) { g.eng = { t0: t0, dur: d }; dur = Math.max(dur, d); }
+  });
+  // the other side's people at a building taken in the scene run off, away from the ones coming in
+  GROUPS.forEach(function (g) {
+    if (!g.members || !g.members.length || g.inside || !ctlTo[rootOf(g.place)] || !opposed(ctlTo[rootOf(g.place)], g.bloc)) return;
+    if (!g.flee && !(g.p && g.p.from < idx)) return;
+    var G = openGround(rootOf(g.place), false); if (!G) return;
+    var inc = GROUPS.filter(function (h) { return h.eng && rootOf(h.place) === rootOf(g.place) && !opposed(ctlTo[rootOf(g.place)], h.bloc); })[0];
+    var T = inc ? [inc.cx, inc.cy] : engTarget(g), away = engDir({ members: g.members, cx: g.cx, cy: g.cy }, G, T, 26) || [g.cx - T[0], g.cy - T[1]];
+    var al = Math.hypot(away[0], away[1]) || 1, at = inc ? inc.eng.dur * 0.4 : 1.5, dd = 0;
+    g.members.forEach(function (m, i) {
+      var run = freeRun(G, m.x, m.y, away[0] / al, away[1] / al, 26);
+      m.eout = { gx: m.x + away[0] / al * run, gy: m.y + away[1] / al * run, L: Math.max(1, run), delay: at + hash(g.seed + i * 3.7) * 1.2 };
+      dd = Math.max(dd, m.eout.delay + m.eout.L / 3.6);
+    });
+    g.eng = { t0: t0, dur: dd, flee: true }; dur = Math.max(dur, dd);
+  });
+  // a garrison "driven back": a party of it comes out of its door toward the fire, and runs back in
+  if (SORTIE_RE.test(text)) GROUPS.slice().forEach(function (g) {
+    if (!g.inside || !g.members) return;
+    var shooter = GROUPS.filter(function (h) { return h.fire && h.at === g.who && h.cx != null; })[0], bl = outlinesOf(rootOf(g.place));
+    if (!shooter || !bl.length) return;
+    var door = nearestOn(bl, shooter.cx, shooter.cy), G = openGround(rootOf(g.place), false); if (!G || door.d > 400) return;
+    var ux = shooter.cx - door.x, uy = shooter.cy - door.y, ul = Math.hypot(ux, uy) || 1; ux /= ul; uy /= ul;
+    var x0 = door.x + ux * 1.5, y0 = door.y + uy * 1.5, out = Math.min(14, freeRun(G, x0, y0, ux, uy, 14));
+    if (out < 5) return;
+    var figs = members(g.fig || [['soldier', 1]], Math.min(14, g.n || 14), g.seed + 91), sg = { who: g.who, place: g.place, bloc: g.bloc, label: g.label, nolabel: true, seed: g.seed + 91, props: [], fires: [], cx: x0, cy: y0, r: 6, members: [], sortie: true };
+    figs.forEach(function (k, i) {
+      var lat = ((i % 4) - 1.5) * 1.6, back = Math.floor(i / 4) * 1.8, mx = x0 - uy * lat - ux * back, my = y0 + ux * lat - uy * back;
+      sg.members.push({ k: k, x: mx, y: my, yaw: facingYaw(mx, my, shooter.cx, shooter.cy), idle: 0, ax: mx, ay: my, ayaw: facingYaw(mx, my, shooter.cx, shooter.cy), apose: null, gone: true,
+        esort: { gx: mx + ux * out, gy: my + uy * out, L: out, at: 1 + i * 0.25 } });
+    });
+    sg.eng = { t0: t0, dur: 1 + figs.length * 0.25 + out / 1.6 + 2.5 + out / 4 + 1 };
+    GROUPS.push(sg); dur = Math.max(dur, sg.eng.dur);
+  });
+  // men who rushed a stalled car close round it
+  if (CARRUSH_RE.test(text)) GROUPS.forEach(function (g) {
+    if (!g.fire || !g.members) return;
+    var foe = g.foe || foeOf(g), car = foe && (foe.props || []).filter(function (pr) { return pr.k === 'armoured'; })[0];
+    if (!car) return;
+    g.carRush = { car: car, foe: foe, t: null };
+    dur = Math.max(dur, 12);
+  });
+  ENG.dur = dur;
+}
+function engage(t) {
+  if (!cur || intro) return;
+  GROUPS.forEach(function (g) {
+    if (!g.members) return;
+    var e0 = g.eng ? g.eng.t0 : ENG.t0;
+    g.members.forEach(function (m) {
+      var tau;
+      if (m.ein) {   // coming up
+        var E = m.ein; tau = t - e0 - E.delay;
+        var dist = tau <= 0 ? 0 : E.mode === 'rush' ? Math.floor(tau / 3.2) * 10 + Math.min(tau % 3.2, 2.0) * 5.0 : tau * (E.mode === 'march' ? 2.4 : 1.3);
+        if (dist >= E.L) { m.x = m.ax; m.y = m.ay; m.yaw = m.ayaw; m.pose = m.apose; m.walk = 0; delete m.ein; return; }
+        var f = dist / E.L, dropped = E.mode === 'rush' && tau > 0 && tau % 3.2 > 2.0;
+        m.x = E.sx + (m.ax - E.sx) * f; m.y = E.sy + (m.ay - E.sy) * f; m.yaw = facingYaw(m.x, m.y, m.ax + (m.ax - E.sx), m.ay + (m.ay - E.sy));
+        m.pose = dropped ? (m.T ? 'kneel' : null) : (E.mode === 'rush' && tau > 0 ? 'charge' : null); m.walk = dropped || tau <= 0 ? 0 : 1;
+        if (dropped && m.T) m.yaw = facingYaw(m.x, m.y, m.T.x, m.T.y);
+        return;
+      }
+      if (m.env) {   // the envoys go to the door, wait, and come back
+        var V = m.env; tau = t - e0 - V.at; if (tau < 0) return;
+        var go = V.L / 1.3, u = tau < go ? tau / go : tau < go + 5 ? 1 : Math.max(0, 1 - (tau - go - 5) / go);
+        m.x = m.ax + (V.gx - m.ax) * u; m.y = m.ay + (V.gy - m.ay) * u; m.walk = (tau < go || (tau > go + 5 && u > 0)) ? 1 : 0;
+        m.yaw = tau < go + 5 ? facingYaw(m.ax, m.ay, V.gx, V.gy) : facingYaw(V.gx, V.gy, m.ax, m.ay);
+        if (u <= 0 && tau > go) { m.x = m.ax; m.y = m.ay; m.yaw = m.ayaw; m.walk = 0; delete m.env; }
+        return;
+      }
+      if (m.eout) {   // running off
+        var O = m.eout; tau = t - e0 - O.delay; if (tau < 0) return;
+        var fo = Math.min(1, tau * 3.6 / O.L);
+        m.x = m.ax + (O.gx - m.ax) * fo; m.y = m.ay + (O.gy - m.ay) * fo; m.yaw = facingYaw(m.ax, m.ay, O.gx, O.gy); m.pose = null; m.walk = 1;
+        if (fo >= 1) { m.gone = true; m.away = true; m.walk = 0; delete m.eout; }
+        return;
+      }
+      if (m.esort) {   // out of the door toward the fire, and back in under it
+        var Q = m.esort; tau = t - e0 - Q.at; if (tau < 0) { m.gone = true; return; }
+        var outT = Q.L / 1.6, hold = 2.5, backT = Q.L / 4, us;
+        if (tau < outT) { us = tau / outT; m.yaw = facingYaw(m.ax, m.ay, Q.gx, Q.gy); m.pose = null; }
+        else if (tau < outT + hold) { us = 1; m.pose = 'kneel'; }
+        else { us = Math.max(0, 1 - (tau - outT - hold) / backT); m.yaw = facingYaw(Q.gx, Q.gy, m.ax, m.ay); m.pose = 'charge'; }
+        m.gone = tau > outT + hold + backT; m.x = m.ax + (Q.gx - m.ax) * us; m.y = m.ay + (Q.gy - m.ay) * us; m.walk = m.pose === 'kneel' ? 0 : 1;
+        if (m.gone) { delete m.esort; m.away = true; }
+        return;
+      }
+      if (m.efall) {   // standing where the car comes, until it fires
+        var F = m.efall;
+        if (F.by.arrival && F.by.arrival.f < 1) return;
+        F.t = F.t || t;
+        if (t - F.t >= F.after) { m.pose = 'fallen'; m.yaw = hash(m.ax * 3.1) * 6.283; delete m.efall; }
+      }
+    });
+    if (g.carRush) {   // up from the wood-piles and round the car
+      var R = g.carRush; if (R.foe.arrival && R.foe.arrival.f < 1) return;
+      R.t = R.t || t; var tau2 = t - R.t - 5; if (tau2 < 0) return;
+      var M = g.members.filter(function (m) { return m.ox == null && !m.dead; });
+      M.forEach(function (m, i) {
+        var a = i / M.length * 6.283, gx = R.car.x + Math.cos(a) * 3.6, gy = R.car.y + Math.sin(a) * 3.6, L = Math.hypot(gx - m.ax, gy - m.ay) || 1, f = Math.min(1, tau2 * 4.5 / L);
+        m.x = m.ax + (gx - m.ax) * f; m.y = m.ay + (gy - m.ay) * f; m.yaw = facingYaw(m.x, m.y, R.car.x, R.car.y); m.pose = 'charge'; m.walk = f < 1 ? 1 : 0; m.T = null;
+      });
+    }
+  });
+}
+// A fight at two places a street or more apart is framed whole, then close at each in turn while it
+// plays, then whole again; a touch on the map hands the camera back
+var bcam = null;
+function siteFrame(site) {
+  var d = Math.max(170, Math.min(320, site.r * 2.4 + 110)), cur3 = camera.position.clone().sub(controls.target), base = Math.atan2(cur3.x, cur3.z), best = null;
+  [0, 1, -1, 2, -2, 3, -3, 4].forEach(function (k) {
+    var th = base + k * Math.PI / 4;
+    [0.95, 0.72].forEach(function (pp, pj) {
+      var hh = Math.cos(pp) * d, rr = Math.sin(pp) * d, cx = site.x + Math.sin(th) * rr, cy = site.y - Math.cos(th) * rr, seen = 0;
+      site.pts.forEach(function (q) { if (!hiddenBy(cx, cy, hh, q[0], q[1], 4)) seen++; });
+      var sc = seen / Math.max(1, site.pts.length) - Math.abs(k) * 0.03 - pj * 0.05;
+      if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp };
+    });
+  });
+  var t = new THREE.Vector3(site.x, 0, -site.y), pos = new THREE.Vector3(site.x + Math.sin(best.th) * Math.sin(best.pp) * d, Math.cos(best.pp) * d, -site.y + Math.cos(best.th) * Math.sin(best.pp) * d);
+  return { target: t, pos: pos };
+}
+function battleCam(e, close) {
+  bcam = null;
+  if (REDUCED || !ENG.dur || !close || walk || follow) return;
+  var sites = [];
+  GROUPS.forEach(function (g) {
+    if (!(g.eng || g.sortie || g.carRush) || !g.members || !g.members.length) return;
+    var pts = []; g.members.forEach(function (m) { pts.push([m.ax != null ? m.ax : m.x, m.ay != null ? m.ay : m.y]); if (m.ein) pts.push([m.ein.sx, m.ein.sy]); if (m.esort) pts.push([m.esort.gx, m.esort.gy]); });
+    var cx = 0, cy = 0; pts.forEach(function (q) { cx += q[0]; cy += q[1]; }); cx /= pts.length; cy /= pts.length;
+    var s0 = sites.filter(function (st) { return Math.hypot(st.x - cx, st.y - cy) < 130; })[0];
+    if (!s0) { s0 = { x: cx, y: cy, pts: [], dur: 0, own: false }; sites.push(s0); }
+    s0.pts = s0.pts.concat(pts); s0.dur = Math.max(s0.dur, g.eng ? g.eng.dur : 10); s0.own = s0.own || rootOf(g.place) === rootOf(e.loc);
+  });
+  if (!sites.length || (sites.length < 2 && close.dist < 330)) return;   // already close enough to watch
+  sites.forEach(function (st) {
+    var cx = 0, cy = 0; st.pts.forEach(function (q) { cx += q[0]; cy += q[1]; }); st.x = cx / st.pts.length; st.y = cy / st.pts.length;
+    st.r = 0; st.pts.forEach(function (q) { st.r = Math.max(st.r, Math.hypot(q[0] - st.x, q[1] - st.y)); });
+  });
+  sites.sort(function (a, b) { return (b.own - a.own) || (b.pts.length - a.pts.length); });
+  var at = ENG.t0 + 0.3, steps = [];
+  sites.slice(0, 3).forEach(function (st, i) { steps.push({ at: at, site: st }); at += Math.max(6, st.dur * (i ? 0.7 : 0.85)) + 1.6; });
+  steps.push({ at: at, fr: close });
+  bcam = { steps: steps, i: 0 };
+}
+function battleCamStep(t) {
+  if (!bcam || bcam.i >= bcam.steps.length || t < bcam.steps[bcam.i].at) return;
+  var st = bcam.steps[bcam.i++];
+  flyTo(st.fr || siteFrame(st.site), 1600);
+}
+// the scene at its end: everybody where the engagement leaves them
+function engageFinish() {
+  ENG.t0 = -1e9; bcam = null;
+  GROUPS.forEach(function (g) {
+    if (g.eng) g.eng.t0 = -1e9;
+    if (g.carRush) { g.carRush.t = -1e9; }
+    (g.members || []).forEach(function (m) { if (m.efall) { m.efall.after = 0; m.efall.t = -1e9; } });
+  });
+  engage(engNow());
 }
 function muzzle(m, FS) {
   var l = PK.muzzle[m.pose] || PK.muzzle.aim, x = m.x + (m.ox || 0) * FS, y = m.y + (m.oy || 0) * FS, s = Math.sin(m.yaw), c = Math.cos(m.yaw), f = figScale(m, FS);
@@ -2941,7 +3200,8 @@ function battle(t, FS) {
     if ((!g.fire && !g.assault && !g.patrol) || !g.members || !arrived(g) || (g.foe && !arrived(g.foe))) return;   // nothing before both sides are there
     assault(g, t, dt);
     if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path) patrolStep(g, pr, t); }); return; }
-    if (g.windows) g.windows.forEach(function (w) {
+    var held = g.foe && g.foe.eng && t < g.foe.eng.t0 + g.foe.eng.dur * 0.8;   // the relief walks into it ("met by a blast of rifle-fire")
+    if (g.windows && !held) g.windows.forEach(function (w) {
       if ((w.tf -= dt) > 0) return; w.tf = 1.2 + Math.random() * 4;
       if (shots++ > 30) return;
       flashAt([w.x, w.h, -w.y], 1.8 * FS, t); strike(w.T, t, FS);
@@ -3075,7 +3335,7 @@ function drawPeople(now, FS) {
       g.members.forEach(function (mm) { if (mm.s0 != null) posOnSpine(g, mm, adv); sx += mm.x; sy += mm.y; });
       if (g.members.length) { g.cx = sx / g.members.length; g.cy = sy / g.members.length; }
     }
-    if (!g.ship && !g.reed && !g.inside && g.members && g.members.length) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
+    if (!g.ship && !g.reed && !g.inside && g.members && g.members.length && !g.sortie && !g.members.every(function (m) { return m.gone || m.away; })) { if (g.form) formPatches(g, FS); else patch(g.cx, g.cy, g.r + 1.4 * FS, g.bloc); }
     (g.props || []).forEach(function (pr) {
       if (pr === g.ride) patch(pr.x, pr.y, 3.2 * FS, g.bloc);
       var kick = pr.kick ? Math.max(0, 1 - (t - pr.kick) / 0.45) * 0.7 * FS : 0;   // a gun's recoil
@@ -3222,7 +3482,7 @@ function placeGroupLabels(w, h, placed) {
   if (labelsOn && camD < 1700 && here && here.p) {
     var cands = [];
     GROUPS.forEach(function (g) {
-      if (g.cx == null || g.reed || !arrived(g) || Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) >= 900) return;
+      if (g.cx == null || g.reed || g.nolabel || !arrived(g) || Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) >= 900) return;
       if (g.members && g.members.length && g.members.every(function (m) { return m.away; })) return;   // marched off: its label goes with the march
       var lx = g.cx, ly = g.cy;
       if (g.ride) { lx = g.ride.x; ly = g.ride.y; }
@@ -3489,7 +3749,8 @@ function renderHere(e) {
     var li = document.createElement('li'), sw = document.createElement('span'), from = EVBYID[g.p.ev];
     sw.className = 'sw'; sw.style.background = BLOC[g.bloc] || BLOC.neutral; li.appendChild(sw);
     var since = from && from !== e ? ', since ' + dateLabel(from.t).replace(/ 1917$/, '').replace(/^\w+ /, '') : '';
-    li.appendChild(whoLink(g.who, g.label)); li.appendChild(document.createTextNode((g.size ? ': “' + typo(g.size) + '”' : '') + (g.place !== loc ? ' (' + nameOf(g.place) + ')' : '') + since));
+    var out = g.eng && g.eng.flee ? ', until the other side takes the building' : '';   // drawn running off
+    li.appendChild(whoLink(g.who, g.label)); li.appendChild(document.createTextNode((g.size ? ': “' + typo(g.size) + '”' : '') + (g.place !== loc ? ' (' + nameOf(g.place) + ')' : '') + since + out));
     if (g.p.outside) li.appendChild(notReed(g.p.outside));
     ul.appendChild(li);
   });
@@ -3632,6 +3893,12 @@ function closeFrame(e) {
     var w = g.reed ? 12 : Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);   // Reed counts as his walk's end does
     if (g.p && g.p.from === seq.indexOf(e) && (g.pose || g.fire || g.assault || g.brief)) w *= 3;   // what happens in this scene before who stands by
     sx += g.cx * w; sy += g.cy * w; sw += w; must.push([g.cx, g.cy, g.label + '@' + g.place, !!(g.reed || (g.p && g.p.from === idx0))]);
+    // a body of the scene's own spread wide (a ring round a building) is in view to its edges, not just its middle
+    if (g.p && g.p.from === idx0 && g.members && g.members.length > 3 && extent(g) > 20) {
+      var ex = [g.members[0], g.members[0], g.members[0], g.members[0]];
+      g.members.forEach(function (m) { if (m.x < ex[0].x) ex[0] = m; if (m.x > ex[1].x) ex[1] = m; if (m.y < ex[2].y) ex[2] = m; if (m.y > ex[3].y) ex[3] = m; });
+      ex.forEach(function (m) { must.push([m.ax != null ? m.ax : m.x, m.ay != null ? m.ay : m.y, g.label + ' edge', true]); });
+    }
   });
   // the bodies that arrive in the scene count where they end up
   var ends = [];
@@ -3658,6 +3925,7 @@ function closeFrame(e) {
   // and what they stare at, if it is near ("staring at the brightly-lighted Winter Palace")
   GROUPS.forEach(function (g) { var f = g.cx != null && g.face && PL[g.face] && PL[g.face].p; if (f && Math.hypot(g.cx - tx, g.cy - ty) <= 260 && Math.hypot(f[0] - tx, f[1] - ty) < 320) ends.push([f[0], f[1]]); });
   farOnes.forEach(function (q) { ends.push(q); });
+  GROUPS.forEach(function (g) { if (g.eng) (g.members || []).forEach(function (m, i) { var q = m.ein || m.eout; if (q && i % 3 === 0) ends.push(m.ein ? [q.sx, q.sy] : [q.gx, q.gy]); }); });   // where they come from, or run to
   ends.forEach(function (q) { spread = Math.max(spread, Math.hypot(q[0] - tx, q[1] - ty) + 6 + (q[2] || 0)); });
   // and far enough that the marches setting out or arriving show beside the card
   var far = 0; ends.forEach(function (q) { far = Math.max(far, Math.hypot(q[0] - tx, q[1] - ty) + 6 + (q[2] || 0)); });
@@ -3740,8 +4008,8 @@ function closeFrame(e) {
   var FSc = Math.max(2, Math.min(7, dist / 85)), pts = [], wSum = 0;
   GROUPS.forEach(function (g) {
     if (g.cx == null || g.inside || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
-    var m = g.members || [], st = Math.max(1, Math.floor(m.length / 5)), q = [], own = (g.p && g.p.from === idx0) || rootOf(g.place) === rootOf(e.loc);
-    for (var i = 0; i < m.length; i += st) q.push([m[i].x, m[i].y, 1.3 * FSc]);
+    var m = g.members || [], st = Math.max(1, Math.floor(m.length / 5)), q = [], own = (g.p && g.p.from === idx0) || rootOf(g.place) === rootOf(e.loc) || !!g.sortie;
+    for (var i = 0; i < m.length; i += st) q.push(m[i].esort ? [m[i].esort.gx, m[i].esort.gy, 1.3 * FSc] : [m[i].x, m[i].y, 1.3 * FSc]);
     (g.props || []).forEach(function (pr) { if (!pr.ship) q.push([pr.x, pr.y, 1.0 * FSc]); });
     q.forEach(function (p) { p[3] = (own ? 2 : 1) / q.length; pts.push(p); });
   });
@@ -4029,7 +4297,8 @@ function select(id, opts) {
     closeAfter = follow && !GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); }) ? null : close;
   }
   scene0 = performance.now();
-  sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed);
+  battleCam(e, close);
+  sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed, ENG.dur ? (ENG.dur + 4.5) * 1000 / speed : 0, bcam ? (bcam.steps[bcam.steps.length - 1].at - ENG.t0 + 6) * 1000 / speed : 0);   // the fight plays out
   try { history.replaceState(null, '', '#' + e.id); } catch (err) { }
 }
 function step(dir) { var i = seq.indexOf(cur) + dir; if (i < 0 || i >= seq.length) return false; select(seq[i].id); return true; }
@@ -4216,7 +4485,7 @@ window.addEventListener('keydown', function (ev) {
   else if (ev.key === 'ArrowLeft') { stop(); step(-1); ev.preventDefault(); }
   else if (ev.key === ' ' && tag !== 'BUTTON') { playing ? stop() : play(); ev.preventDefault(); }
 });
-controls.addEventListener('start', function () { flight = null; closeAfter = null; follow = null; if (intro) intro.user = true; });
+controls.addEventListener('start', function () { flight = null; closeAfter = null; follow = null; bcam = null; if (intro) intro.user = true; });
 
 // ---------- introduction ----------
 var intro = null, INTRO_KEY = 'tendays-intro-seen';
@@ -4342,7 +4611,7 @@ function frame(now) {
   }
   if (playing) $('prog-i').style.width = (Math.min(1, (now - scene0) / sceneDur) * 100).toFixed(2) + '%';
   darkNow = !!(lightTarget && lightTarget.el < 1);
-  drawPeople(now, FS); battle(now / 1000, FS); drawFx(now / 1000, FS);
+  battleCamStep(now / 1000); engage(now / 1000); drawPeople(now, FS); battle(now / 1000, FS); drawFx(now / 1000, FS);
   var wantL = darkNow && cur && !intro ? 1.05 : 0;   // after dark the scene is lit, as by its street lamps
   stageLight.intensity += (wantL - stageLight.intensity) * Math.min(1, dt * 2.5);
   stageLight.visible = stageLight.intensity > 0.01;
@@ -4391,8 +4660,8 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing,
-  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
-  movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
+  finish: function () { if (walk) walk.t0 = -1e9; engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
+  movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
   // run the fighting for the last `secs` seconds at 60 frames a second, as a real browser would, so a slow test renderer shows its steady state

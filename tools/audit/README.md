@@ -37,11 +37,14 @@ or are hidden, or two or more stand in another body. It fails if any member stan
 body is drawn short, or more than 1% of all figures run together, 1% stand in a wall, or 8% are hidden.
 
 The scenes are taken in tour order from the first, because a frame depends a little on where the camera
-comes from: the numbers repeat only along the same path. After the review fixes (the commit after
-`7e8912d`), over 131 scenes and 6,010 figures standing in the open: 26 closer than 1.3 m, 14 run together
-(all in columns of fours), 22 in a wall, 279 hidden (4.6%, most in reported scenes framed from 500 m or
-more), none in another body, no body drawn short. `frames.js`: 69 of the 4,146 members of the scenes' own
-bodies are off the clear screen on a desktop (1.7%), 185 on a phone (4.5%).
+comes from: the numbers repeat only along the same path. With the fights acted out (the commit after
+`c41083f`; the scripts measure each scene at its end, after `finish()`), over 131 scenes and 6,015 figures
+standing in the open: 26 closer than 1.3 m, 14 run together (all in columns of fours), 22 in a wall, 307
+hidden (5.1%, most in reported scenes framed from 500 m or more), none in another body, no body drawn
+short. `frames.js`: 38 of the 4,146 members of the scenes' own bodies are off the clear screen on a
+desktop (0.9%), 116 on a phone (2.8%).
+
+`shot.js --film ID` takes a scene as it plays (at 2, 6, 10, 14 and 18 s): the way to look at a fight.
 
 These numbers say where to look, not that a scene is right: a body can pass every test and still stand
 where Reed does not put it. Look at the sheets as well.
