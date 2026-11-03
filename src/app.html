@@ -190,6 +190,8 @@ blockquote.doc::before, blockquote.doc::after { content: none; }
 .who-f > summary .sm { grid-column: 1 / -1; font-size: 14px; color: var(--ink-2, #4a443d); max-width: 70ch; }
 .who-f .ru { font: italic 13px var(--body); color: var(--ink-3, #6b645b); }
 .who-body { padding: 0 0 14px 18px; }
+.who-body figure.pic { max-width: 460px; margin: 10px 0 12px; }
+.who-body figure.pic img { width: 100%; height: auto; }
 .who-q { margin: 10px 0; padding-left: 12px; border-left: 2px solid var(--ink); font-style: italic; max-width: 66ch; }
 .who-bg { margin: 10px 0; font-size: 14px; max-width: 68ch; }
 .who-bg a, .who-see a { color: var(--red); }
@@ -406,6 +408,8 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <ul>
         <li>John Reed, <i>Ten Days That Shook the World</i> (1919), <a href="https://www.gutenberg.org/ebooks/3076" target="_blank" rel="noopener">Project Gutenberg #3076</a>. Every quotation is checked word for word against it. Page numbers refer to the <a href="https://www.marxists.org/ebooks/reed/ten-days-that-shook-the-world-reed.pdf" target="_blank" rel="noopener">Marxists Internet Archive PDF</a>.</li>
         <li>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL.</li>
+        <li>Pictures: Wikimedia Commons, and the scans of Reed’s 1919 edition at the Marxists Internet Archive; each is public domain and credited under it.</li>
+        <li id="src-more">The other sources the data cites:</li>
         <li>Rendering: three.js r147. The 3D engine is Raskolnikov Wandering’s, designed and developed by <a href="https://github.com/altf4m88" target="_blank" rel="noopener">@altf4m8</a>.</li>
       </ul>
     </div>
@@ -2818,7 +2822,10 @@ function renderPanel(e) {
 // pictures for the scene: Reed's facsimiles under his own captions, photographs under ours
 function renderPics(e) {
   var box = $('ev-pics'); box.innerHTML = '';
-  (e.pics || []).forEach(function (p) {
+  (e.pics || []).forEach(function (p) { box.appendChild(picFigure(p)); });
+}
+// one picture with its caption and credit; click to enlarge (the scene card's and the Faction Map's)
+function picFigure(p) {
     var fig = document.createElement('figure'), btn = document.createElement('button'), img = document.createElement('img'), cap = document.createElement('figcaption');
     fig.className = 'pic'; btn.className = 'pic-open'; btn.type = 'button'; btn.setAttribute('aria-label', 'Enlarge the picture: ' + p.t);
     img.loading = 'lazy'; img.decoding = 'async'; img.src = p.f; img.width = p.w; img.height = p.h; img.alt = p.t;
@@ -2832,9 +2839,9 @@ function renderPics(e) {
     cr.appendChild(document.createTextNode(p.sec ? 'Facsimile in Reed’s 1919 edition · ' : [p.by, p.date].filter(Boolean).join(', ') + ' · '));
     a.href = p.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = p.sec ? 'scan: Marxists Internet Archive' : 'Wikimedia Commons';
     cr.appendChild(a); cr.appendChild(document.createTextNode(' · public domain'));
-    cap.appendChild(cr); fig.appendChild(cap); box.appendChild(fig);
+    cap.appendChild(cr); fig.appendChild(cap);
     btn.onclick = function () { openPic(p, (p.sec ? '“' + typo(p.cap, true).replace(/^“|”$/g, '') + '” Reed, ' + secLabel(p.sec) + '.' : typo(p.cap)), cr.textContent); };
-  });
+    return fig;
 }
 function openPic(p, text, credit) {
   $('lb-img').src = p.f; $('lb-img').alt = p.t; $('lb-cap').textContent = text;
@@ -3434,6 +3441,16 @@ function showAbout(open) {
   if (open) { $('about-close').focus(); $('about').querySelector('.sheet').scrollTop = 0; } else $('t-about').focus({ preventScroll: true });
 }
 $('t-about').onclick = function () { showAbout(true); };
+// the About sheet's sources: every one the data cites (data/sources.json), with its link
+(function () {
+  var li = $('src-more'), ul = document.createElement('ul');
+  (S.sources || []).filter(function (x) { return x.id !== 'osm'; }).forEach(function (x) {
+    var it = document.createElement('li'), t = x.cite.replace(/,? read \d{4}-\d{2}-\d{2}\.?$/, '');
+    if (x.url) { var a = document.createElement('a'); a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = t; it.appendChild(a); } else it.textContent = t;
+    ul.appendChild(it);
+  });
+  li.appendChild(ul);
+})();
 // ---------- who's who ----------
 // The parties, soviets, committees and forces Reed names, and their people: Reed's words for each, where it
 // stood on the rising, and what Reed does not say, from the encyclopedia, marked so. The names on the scene
@@ -3482,6 +3499,7 @@ function factionCard(f) {
   sm.appendChild(el('span', 'sm', f.sum)); d.appendChild(sm);
   var b = el('div', 'who-body');
   if (f.ru) b.appendChild(el('div', 'ru', f.ru));
+  if (f.pic) b.appendChild(picFigure(f.pic));
   b.appendChild(reedQ(f.def));
   (f.also || []).forEach(function (r) { b.appendChild(reedQ(r)); });
   b.appendChild(notInReed(f.bg));

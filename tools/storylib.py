@@ -41,7 +41,7 @@ FIELDS = {
     'gone': ['who', 'place', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
     # the who's who: the parties, soviets, committees and forces Reed names, and their people
-    'faction': ['id', 'kind', 'group', 'order', 'side', 'part_of', 'actors', 'members', 'see', 'name', 'names', 'ru', 'sum', 'def', 'also', 'background', 'note'],
+    'faction': ['id', 'kind', 'group', 'order', 'side', 'part_of', 'actors', 'members', 'see', 'pic', 'name', 'names', 'ru', 'sum', 'def', 'also', 'background', 'note'],
     'person': ['id', 'born', 'died', 'factions', 'actor', 'pic', 'wp', 'name', 'names', 'ru', 'role', 'def', 'bio', 'note'],
     'bio': ['source', 'url', 'en'],
 }

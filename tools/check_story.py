@@ -908,6 +908,8 @@ class Checker:
                 continue
             for k in ('kind', 'group', 'side'):
                 enum(F, f, k, 'faction.' + k, w)
+            if 'pic' in f and f['pic'] not in PIC:
+                F.err('ref.unknown', w, f'pic: no picture {f["pic"]!r}')
             if 'part_of' in f and f['part_of'] not in FA:
                 F.err('ref.unknown', w, f'part_of: no faction {f["part_of"]!r}')
             for k, table, what in (('actors', self.A, 'actor'), ('members', PE, 'person'), ('see', FA, 'faction')):

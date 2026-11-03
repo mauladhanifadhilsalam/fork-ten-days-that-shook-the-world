@@ -759,9 +759,17 @@ PEOPLE = L.load_json(os.path.join(DATA, 'people.json')) if os.path.exists(os.pat
 PICBY = {p['id']: p for p in PICS}
 def _ref(r):
     return {'sec': r['sec'], 'q': r['q']}
+def _pic(q):   # a picture for an entry: Reed's facsimiles carry his caption; the rest, ours, with a credit
+    r = {'f': q['file'], 'w': q['w'], 'h': q['h'], 'k': q['kind'], 't': q.get('title', ''), 'lic': q['license'], 'url': q['url']}
+    if q.get('ref'):
+        r['cap'], r['sec'] = q['ref']['q'], q['ref']['sec']
+    else:
+        r['cap'], r['by'], r['date'] = q.get('caption', ''), q.get('author', ''), q.get('date', '')
+    return r
 story['factions'] = [{**{k: f[k] for k in ('id', 'kind', 'group', 'side', 'name', 'ru', 'sum') if k in f},
                       'names': f.get('names', []), 'members': f.get('members', []), 'see': f.get('see', []), 'part_of': f.get('part_of'),
-                      'def': _ref(f['def']), 'also': [_ref(r) for r in f.get('also', [])], 'bg': f['background']} for f in FACTIONS]
+                      'def': _ref(f['def']), 'also': [_ref(r) for r in f.get('also', [])], 'bg': f['background'],
+                      **({'pic': _pic(PICBY[f['pic']])} if f.get('pic') in PICBY else {})} for f in FACTIONS]
 story['people'] = []
 for p in PEOPLE:
     r = {k: p[k] for k in ('id', 'name', 'ru', 'role', 'born', 'died', 'factions') if k in p}
@@ -781,6 +789,8 @@ for p in PEOPLE:
     if p.get('actor'):
         who[p['actor']] = 'p:' + p['id']
 story['who'] = who
+# every source the data cites, for the About sheet's list
+story['sources'] = [{k: s[k] for k in ('id', 'kind', 'cite', 'url') if k in s} for s in T['sources']]
 story['whoSource'] = next(({'cite': s['cite'], 'url': s.get('url')} for s in T['sources'] if s['id'] == 'wikipedia'), None)
 
 os.makedirs(os.path.dirname(OUT) or '.', exist_ok=True)

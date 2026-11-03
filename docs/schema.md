@@ -182,7 +182,7 @@ A card shows its scene's pictures in this order: Reed's facsimiles, then photogr
 
 Reed warns that "the multiplicity of Russian organisations—political groups, Committees and Central Committees, Soviets, Dumas and Unions—will prove extremely confusing", and many of them called themselves socialist or a committee while standing on opposite sides. The Faction Map (the page's "Faction Map" sheet) sorts them out. It follows the rule of the rest of the data: Reed's own words are quoted and checked, and set apart as quotations; what he does not say comes from a named source, in our words, and each such paragraph ends with a link to its article.
 
-`factions.json`: `{id, kind, group, order, side, part_of?, actors[]?, members[]?, see[]?, name, names[], ru?, sum, def, also[]?, background, note?}`.
+`factions.json`: `{id, kind, group, order, side, part_of?, actors[]?, members[]?, see[]?, pic?, name, names[], ru?, sum, def, also[]?, background, note?}`.
 
 | field | meaning |
 |---|---|
@@ -196,6 +196,7 @@ Reed warns that "the multiplicity of Russian organisations—political groups, C
 | `sum` | what it does in Reed's ten days, in our words |
 | `def`, `also[]` | Reed's definition and more of his words, `{sec, q}`, quote-checked; most come from his Notes and Explanations |
 | `background` | `{source, url, en}`: what Reed does not say, in our words, from the article at `url` |
+| `pic` | a picture in `pictures.json` that shows the body itself or its paper: the Red Guard of the Vulkan works, a session of the Petrograd Soviet, Reed's pass from the Military Revolutionary Committee, the Decree on Peace the Congress passed. Public domain, like every picture |
 
 `people.json`: `{id, born?, died?, factions[], actor?, pic?, wp?, name, names[], ru?, role, def?, bio, note?}`. `names[]` are Reed's spellings ("Trotzky", "Kameniev"), each in his text; `def` is what Reed writes of the person, quote-checked; `bio` is `{source, url, en}`, the life, not in Reed; `actor` links the person the map draws; `pic` is a portrait in `pictures.json`. `tools/fetch_portraits.py` takes each `wp` article's lead image from Wikimedia Commons, keeps it only if Commons marks it public domain or CC0, and writes it to `media/portrait-<id>.jpg` and `pictures.json`; the others are left out and reported.
 
