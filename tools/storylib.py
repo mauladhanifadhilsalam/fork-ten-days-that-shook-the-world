@@ -34,7 +34,7 @@ FIELDS = {
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone', 'raised'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
-    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack', 'outside'],
+    'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack', 'outside', 'done'],
     'outside': ['source', 'q', 'en'],
     'ctl': ['place', 'state', 'holder', 'by'],
     'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'brief', 'ref', 'outside'],

@@ -59,7 +59,7 @@ TYPES = {
     'by': STR, 'as_of': STR, 't': STR, 'tq': STR, 'tr': LIST, 'tp': STR, 'cal': STR, 'dp': STR, 'sec': STR,
     'p': INT, 'loc': STR, 'witness': STR, 'tags': LIST, 'raised': LIST, 'why': STR, 'sum': STR, 'also': LIST, 'doc': DICT,
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
-    'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'ack': STR, 'place': STR,
+    'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
@@ -597,6 +597,11 @@ class Checker:
                 self.kit(m['kit'], mtext, mw)
             if 'say' in m and pos is not None:
                 self.say(m, e['sec'], pos, mw)
+            if m.get('done'):   # told as over before the scene: it cannot be one Reed watches, and it is not a skip
+                if e.get('witness') == 'seen' or m.get('who') == 'reed':
+                    F.err('move.done', mw, 'done: a move told as already over goes with an event Reed did not see, and not with his own')
+                if m.get('gap'):
+                    F.err('move.done', mw, 'done and gap: a move told as over is not a gap in the text')
             if m.get('stay'):
                 to = self.P.get(m.get('to'), {})
                 if to and not to.get('ll'):

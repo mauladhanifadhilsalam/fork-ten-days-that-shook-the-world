@@ -622,7 +622,7 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['doc'] = e['doc']
     mv = []
     for m in e.get('moves', []):
-        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say', 'run', 'outside') if k in m}
+        r = {k: m[k] for k in ('who', 'with', 'size', 'from', 'via', 'to', 'mode', 'rc', 'gap', 'stay', 'kit', 'say', 'run', 'outside', 'done') if k in m}
         if T_actors.get(m['who'], {}).get('kind') not in ('person', 'ship'):
             r['fig'], r['n'] = figures(m['who'], m.get('size'), m.get('n'))
         wf = [list(figures(w)) for w in m.get('with', []) if T_actors.get(w, {}).get('kind') not in ('person', 'ship')]

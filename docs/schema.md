@@ -101,7 +101,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 **Moves**
 
-`moves[]`: `{who, with?, size?, n?, from, via?, to, mode, rc, t0?, gap?, stay?, kit?, ack?}`.
+`moves[]`: `{who, with?, size?, n?, from, via?, to, mode, rc, t0?, gap?, done?, stay?, kit?, ack?}`.
 
 - `mode` is `foot | march | cavalry | cab | tram | car | truck | armoured | rail | ship | air | unknown`. `cab` is a horse cab (izvozchik).
 - `rc` is the route confidence:
@@ -111,6 +111,7 @@ Only sources actually read for this project go here: what locates a place, and w
 - `from` is always explicit. The Raskolnikov engine's implicit "from the previous place" is unsafe when events come from many chapters.
 - `t0` is a departure time, only when the text states one.
 - `gap` declares that the text skips: the actor turns up somewhere new.
+- `done` is a move told as already over when Reed hears of it ("So finally we marched them up to the Finland Station"). The map draws its route as a trail of short dashes and puts nobody on it; the camera does not follow it, and the card says it was over before Reed was told. It goes only with an event Reed did not see, and never with his own moves or with `gap`.
 - `ack` explains a speed the checker finds implausible but the text insists on.
 - `stay` means the body stays where it arrives (a presence, below, from the next scene on). Only bodies of people and ships stay; a person does not.
 - A body by a fire whose size says "squatting" squats round it. A crowd Reed has argue ("continuing the endless debate") faces in; one he has move "in tides up and down" the street drifts along it. Soldiers "in every doorway" stand in twos against the walls along the street. A gun nobody fires stands along the street, "slewed sideways" if Reed says so. A body that stares at a place near the scene is framed from behind it. A building that changes hands to a body marching on it changes colour when they get there.

@@ -717,7 +717,7 @@ var curMats = {};   // per colour and style, for the current scene
 function curMat(hex, style) {
   var k = hex + style;
   if (!curMats[k]) {
-    curMats[k] = mkLineMat(new THREE.Color(hex === 'reed' ? (labelsNight ? REED_NIGHT : REED_DAY) : hex), style === 'arc' ? 2.4 : 4.5, style !== 'solid', style === 'arc' ? 0.85 : 1, style === 'arc' ? [7, 7] : null);
+    curMats[k] = mkLineMat(new THREE.Color(hex === 'reed' ? (labelsNight ? REED_NIGHT : REED_DAY) : hex), style === 'arc' ? 2.4 : style === 'done' ? 3 : 4.5, style !== 'solid', style === 'arc' ? 0.85 : style === 'done' ? 0.7 : 1, style === 'arc' ? [7, 7] : style === 'done' ? [2, 7] : null);
     curMats[k].depthTest = false;
     if (hex === 'reed') inkMats.push(curMats[k]);
   }
@@ -725,14 +725,14 @@ function curMat(hex, style) {
 }
 function moverKey(m) { return m.who === 'reed' ? 'reed' : BLOC[blocOf(m.who)] || '#1a1714'; }
 function moverHex(m) { return m.who === 'reed' ? REED_DAY : BLOC[blocOf(m.who)] || '#1a1714'; }
-function styleOf(m) { return m.draw !== 'street' ? 'arc' : m.rc === 'stated' ? 'solid' : 'dash'; }
+function styleOf(m) { return m.done ? 'done' : m.draw !== 'street' ? 'arc' : m.rc === 'stated' ? 'solid' : 'dash'; }   // done: told as already over, a trail nobody walks
 function styleRoutes() {
   var g = groupOf(cur);
   MOVES.forEach(function (o) {
     var e = o.e, m = o.m, vis = false, mat = null;
     if (e === cur) { vis = true; mat = curMat(moverKey(m), styleOf(m)); }
     else if (m.who === 'reed' && groupOf(e) === g && e.t < cur.t) { vis = true; mat = styleOf(m) === 'arc' ? matArc : styleOf(m) === 'dash' ? matDayDash : matDay; }
-    else if (showAll) { vis = true; mat = styleOf(m) === 'arc' ? matArc : styleOf(m) === 'dash' ? matFaintDash : matFaint; }
+    else if (showAll) { vis = true; mat = styleOf(m) === 'arc' ? matArc : styleOf(m) !== 'solid' ? matFaintDash : matFaint; }
     o.line.visible = vis; if (mat) o.line.material = mat;
     o.line.renderOrder = e === cur ? 6 : 2;
     fullTrail(o);
@@ -1188,11 +1188,11 @@ function layoutPlace(id, groups, t, loc, scene) {
           var kq0 = cellAt(c0[0], c0[1]);
           if (kq0 >= 0 && G.ok[kq0]) { ax = c0[0]; ay = c0[1]; }
           var ux1 = -(c1[1] - c0[1]) / tl, uy1 = (c1[0] - c0[0]) / tl, p1 = Math.min(45, run(ux1, uy1)), q1 = Math.min(45, run(-ux1, -uy1));
-          if (!fxy && p1 + q1 >= 8) best = { w: p1 + q1, dx: ux1, dy: uy1, p: p1, q: q1 };
+          if (p1 + q1 >= 8) best = { w: p1 + q1, dx: ux1, dy: uy1, p: p1, q: q1 };   // square to the street even when it faces someone: the face picks the side
         }
       }
     }
-    if (fxy) {   // drawn across the way it looks, however the ground runs ("diagonally across the wide square")
+    if (fxy && !best) {   // drawn across the way it looks, however the ground runs ("diagonally across the wide square")
       var dx0 = fxy[0] - ax, dy0 = fxy[1] - ay, dl = Math.hypot(dx0, dy0) || 1, ux0 = -dy0 / dl, uy0 = dx0 / dl, p0 = Math.min(45, run(ux0, uy0)), q0 = Math.min(45, run(-ux0, -uy0));
       if (p0 + q0 >= 8) best = { w: p0 + q0, dx: ux0, dy: uy0, p: p0, q: q0 };
     }
@@ -2678,6 +2678,7 @@ function renderPanel(e) {
     e.moves.forEach(function (m) {
       var li = document.createElement('li'), sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = moverHex(m); li.appendChild(sw);
       var route = m.gap ? 'the text skips' : !m.line ? 'not on the map' : m.draw === 'street' ? (m.rc === 'stated' ? 'streets Reed gives, ' : 'route inferred, ') + fmtM(m.len) : 'no route known';
+      if (m.done) route = 'over before Reed is told of it, ' + route;
       li.appendChild(document.createTextNode(actorName(m.who) + (m.size ? ' (' + m.size + ')' : '') + ': ' + nameOf(m.from) + ' → ' + nameOf(m.to) + ', ' + MODE[m.mode] + ' · ' + route));
       ul.appendChild(li);
     });
@@ -3079,7 +3080,7 @@ function trailTo(o, f) {   // the route draws itself behind the body as it goes
 function hideMovers() { movers = []; reedGlow.visible = false; }
 function startWalk(e) {
   hideMovers();
-  var mine = MOVES.filter(function (o) { return o.e === e; });
+  var mine = MOVES.filter(function (o) { return o.e === e && !o.m.done; });   // a move told as over has no one on it
   movers = mine.map(moverOf);
   if (!mine.length) { walk = null; return; }
   var longest = Math.max.apply(null, mine.map(function (o) { return o.m.draw === 'street' ? o.total : Math.min(o.total, 3000); }));
@@ -3116,7 +3117,7 @@ function select(id, opts) {
   (e.moves || []).forEach(function (m) { endLocs[rootOf(m.from)] = 1; endLocs[rootOf(m.to)] = 1; (m.via || []).forEach(function (v) { if (typeof v === 'string') endLocs[rootOf(v)] = 1; }); });
   seq.forEach(function (x) { if (groupOf(x) === g) dayLocs[rootOf(x.loc)] = 1; });
   // a building taken by a body that marches on it in the scene changes hands when they get there
-  ctlWait = !REDUCED && (e.ctl || []).some(function (c) { return MOVES.some(function (o) { return o.e === e && o.m.who !== 'reed' && rootOf(o.m.to) === rootOf(c.place); }); });
+  ctlWait = !REDUCED && (e.ctl || []).some(function (c) { return MOVES.some(function (o) { return o.e === e && !o.m.done && o.m.who !== 'reed' && rootOf(o.m.to) === rootOf(c.place); }); });
   renderPanel(e); markTimeline(); styleRoutes(); applyControl(e.t, ctlWait ? e : null); setSnow(e.t >= SNOW_FROM);
   var hereId = rootOf(e.loc);
   Object.keys(pinMeshes).forEach(function (k) { pinMeshes[k].userData.ring.material.opacity = k === hereId ? 1 : 0.6; });
@@ -3128,11 +3129,11 @@ function select(id, opts) {
   startWalk(e); stageScene(e); showRaised(e); renderHere(e);
   // a long walk is followed from above, unless the scene has its own local action and the long move is
   // only an arc (whose body just turns up at the end)
-  var local = MOVES.some(function (o) { return o.e === e && o.m.who !== 'reed' && o.line.visible && o.total <= 650 && near(o.m.to, e.loc, 300); });
+  var local = MOVES.some(function (o) { return o.e === e && !o.m.done && o.m.who !== 'reed' && o.line.visible && o.total <= 650 && near(o.m.to, e.loc, 300); });
   var people = GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); });
   // a ride of Reed's with no route (an arc: he just turns up), or on a route of ours, is not the scene when
   // there are people at its place to look at
-  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || people)) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people); });
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && !o.m.done && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || people)) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people); });
   var act = REDUCED ? null : actionMover(e);
   closeAfter = null; follow = null;
   if (act) {

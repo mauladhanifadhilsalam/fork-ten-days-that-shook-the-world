@@ -577,7 +577,7 @@
  "sum": "A Commissar tells Reed the women soldiers were found huddled in a back room, marched to the Finland Station and sent to their camp at Levashovo.",
  "q": "So finally we marched them up to the Finland Station and put them on a train for Levashovo, where they have a camp.",
  "moves": [
-  {"who": "womens-battalion", "from": "winter-palace", "to": "finland-station", "mode": "march", "rc": "none"}],
+  {"who": "womens-battalion", "from": "winter-palace", "to": "finland-station", "mode": "march", "rc": "none", "done": true}],
  "gone": [
   {"who": "garrison", "place": "kazan-cathedral-front", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone"}},
   {"who": "garrison", "place": "police-bridge", "ref": {"sec": "IV", "q": "On the Nevsky all the street-lights were again shining, the cannon gone, and the only signs of war were Red Guards and soldiers squatting around fires"}},

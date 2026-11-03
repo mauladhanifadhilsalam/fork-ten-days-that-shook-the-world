@@ -526,3 +526,22 @@ class Outside(unittest.TestCase):
         self.assertFalse(errors(d), 'Reed backs the body; the source only says where it stood')
         r['outside']['source'] = 'nowhere'
         self.assertIn('ref.unknown', errors(d))
+
+
+class Done(unittest.TestCase):
+    """a move told as already over: allowed when Reed did not see it, and not as a skip"""
+    def move(self, d, eid='telegraph-occupied'):
+        m = ev(d, eid)['moves'][0]; m['done'] = True
+        return m
+
+    def test_told_move_may_be_done(self):
+        d = good(); self.move(d)
+        self.assertFalse(errors(d))
+
+    def test_not_in_a_scene_reed_sees(self):
+        d = good(); self.move(d, 'reed-walks')
+        self.assertIn('move.done', errors(d))
+
+    def test_not_with_gap(self):
+        d = good(); self.move(d)['gap'] = True
+        self.assertIn('move.done', errors(d))
