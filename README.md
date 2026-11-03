@@ -54,6 +54,7 @@ tools/geocode.py       finds OSM buildings around a hint (OSM API only), --accep
 tools/fetch_portraits.py  the Faction Map's portraits from Wikimedia Commons, public domain only (--fetch asks the APIs)
 tools/storylib.py      shared schema, layout, quote normalisation, date and time parsers, geometry, sun
 tests/test_check.py    one failing fixture per error code, plus mutation tests on the real data
+tests/test_page.py     the page's script: no top-level name declared twice (one silently replaces the other)
 tools/audit/           the page in a headless browser: every scene for errors, how its people stand, screenshots
 
 tools/mapconf.py       the 3D extent, the projection, and the bridges that did not stand in 1917

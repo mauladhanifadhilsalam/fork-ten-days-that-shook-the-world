@@ -385,7 +385,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. One body is ours too: who “bloodily recaptured” the Military Hotel and the Telegraph Agency Reed does not say, and the map draws sailors, who had held the hotel. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
-          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
+          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -2871,6 +2871,8 @@ function assault(g, t, dt) {
 //   men who "rushed" a stalled car close round it ("closing around the monster").
 // The motion is the map's; who is there, whom they fire at and what becomes of them are Reed's.
 var PARLEY_RE = /ultimatum|gave the \w+ \w+ minutes|minutes to lay down/i, SORTIE_RE = /driven back|beaten back|forced back/i,
+  ARRIVE_RE = /(field-pieces|field-guns?|guns?|cannon|armou?red (car|automobile)s?)[^.]{0,40}\b(arrived|appeared|came up|were brought up|rolled up)|\b(brought up|arrived with|appeared with)[^.]{0,30}(field-pieces|guns?|cannon|armou?red cars?)/i,
+  VEH_SPEED = { gun: 1.3, mg: 1.3, armoured: 3.0, truck: 3.4, car: 3.4 },   // how fast each comes up, m/s: guns hauled by their crews (not VEH: that is a move's vehicle)
   CARRUSH_RE = /closing (a)?round the|rushed into the|leaped up and rushed/i;
 var ENG = { t0: 0, dur: 0 };
 function engNow() { return performance.now() / 1000; }
@@ -2902,9 +2904,32 @@ function engDir(g, G, T, D) {
   return best && best.med >= 6 ? best.c : null;
 }
 // each member's way in: from its start, up the line to where the layout stands it
+// a gun, machine gun or car comes up the same way, its crew with it (an armoured car's is inside it)
+function propIn(g, G, pr, c, D, delay) {
+  var sp = VEH_SPEED[pr.k]; if (!sp || pr.ship) return 0;
+  var lx = -c[1], ly = c[0], w = pr.k === 'gun' || pr.k === 'mg' ? 0.8 : 1.6;   // room for its width
+  var d = Math.min(freeRun(G, pr.x, pr.y, c[0], c[1], D), freeRun(G, pr.x + lx * w, pr.y + ly * w, c[0], c[1], D), freeRun(G, pr.x - lx * w, pr.y - ly * w, c[0], c[1], D));
+  if (d < 6) return 0;
+  pr.ein = { sx: pr.x + c[0] * d, sy: pr.y + c[1] * d, L: d, delay: delay || 0, sp: sp, hx: pr.x, hy: pr.y, hyaw: pr.yaw };
+  return pr.ein.delay + d / sp;
+}
+function propsIn(g, G, dir, D, only) {
+  var T = engTarget(g), dur = 0;
+  if (!dir && !g.secs) {   // no men of its own to come up with (all crews): the way the open ground runs furthest from the guns
+    var pv = (g.props || []).filter(function (pr) { return VEH_SPEED[pr.k] && (!only || only.indexOf(pr) >= 0); });
+    if (pv.length) { var px = 0, py = 0; pv.forEach(function (pr) { px += pr.x; py += pr.y; }); dir = engDir({ members: pv, cx: px / pv.length, cy: py / pv.length }, G, T, D); }
+  }
+  (g.props || []).forEach(function (pr, i) {
+    if (!VEH_SPEED[pr.k] || (only && only.indexOf(pr) < 0)) return;
+    var c = dir;
+    if (!c || g.secs) { var vx = pr.x - T[0], vy = pr.y - T[1], vl = Math.hypot(vx, vy) || 1; c = [vx / vl, vy / vl]; }   // from behind it, away from the building
+    dur = Math.max(dur, propIn(g, G, pr, c, D, hash(g.seed + i * 4.9) * 1.5));
+  });
+  return dur;
+}
 function engIn(g, G, mode, D, delay) {
   var T = engTarget(g), dir = engDir(g, G, T, D), n = 0, dur = 0;
-  if (!dir && !g.secs) return 0;
+  if (!dir && !g.secs) return propsIn(g, G, null, D);
   g.members.forEach(function (m, i) {
     if (m.ox != null || m.dead) return;   // a gun's crew stays at its gun
     var c = dir;
@@ -2914,7 +2939,7 @@ function engIn(g, G, mode, D, delay) {
     var sp = mode === 'rush' ? 3.1 : mode === 'march' ? 2.4 : 1.3;   // a rush makes 10 m in 3.2 s
     dur = Math.max(dur, m.ein.delay + d / sp); n++;
   });
-  return n ? dur : 0;
+  return Math.max(n ? dur : 0, propsIn(g, G, dir, D));
 }
 function stageEngagements(e, idx) {
   var t0 = engNow() + 1.4, text = sceneText(e), ctlTo = {};
@@ -2923,7 +2948,11 @@ function stageEngagements(e, idx) {
   function newHere(g) { return g.p && g.p.from === idx && !(S.presence || []).some(function (q) { return q.who === g.who && q.place === g.place && q.from < idx && (q.to == null || q.to >= idx); }); }
   GROUPS.forEach(function (g) {
     if (!g.members || !g.members.length || g.ship || g.reed) return;
-    g.members.forEach(function (m) { m.ax = m.x; m.ay = m.y; m.ayaw = m.yaw; m.apose = m.pose || null; delete m.ein; delete m.eout; delete m.env; delete m.efall; });
+    g.members.forEach(function (m) { m.ax = m.x; m.ay = m.y; m.ayaw = m.yaw; m.apose = m.pose || null; delete m.ein; delete m.eout; delete m.env; delete m.efall; delete m.crew; });
+    (g.props || []).forEach(function (pr) {
+      delete pr.ein;
+      if (VEH_SPEED[pr.k]) g.members.forEach(function (m) { if (m.ox != null && m.x === pr.x && m.y === pr.y) { m.crew = pr; m.aox = m.ox; m.aoy = m.oy; } });
+    });
     g.eng = null;
   });
   var dur = 0;
@@ -2948,6 +2977,14 @@ function stageEngagements(e, idx) {
       d = engIn(g, G, 'rush', 30, 0);
     } else if (newHere(g) && ctlTo[here] && SIDE[ctlTo[here]] && SIDE[ctlTo[here]] === SIDE[g.bloc]) {
       d = engIn(g, G, 'march', 30, 0);
+    } else if (newHere(g) && ARRIVE_RE.test(text) && (g.props || []).some(function (pr) { return VEH_SPEED[pr.k]; })) {
+      d = engIn(g, G, 'walk', 30, 0);   // "three field-pieces arrived": hauled up by their crews
+    } else if (!newHere(g) && ARRIVE_RE.test(text)) {
+      // the body was there; what Reed has arrive in the scene comes up to it ("a Bolshevik armoured car appeared")
+      var prev = (S.presence || []).filter(function (q) { return q.who === g.who && q.place === g.place && q.from < idx && (q.to == null || q.to >= idx); })[0], had = {};
+      ((prev && prev.kit) || []).forEach(function (k) { var kk = k.split(':'); had[kk[0]] = (had[kk[0]] || 0) + (kk[1] ? +kk[1] : 1); });
+      var fresh = (g.props || []).filter(function (pr) { if (!VEH_SPEED[pr.k]) return false; if (had[pr.k] > 0) { had[pr.k]--; return false; } return true; });
+      if (fresh.length) d = propsIn(g, G, engDir(g, G, engTarget(g), 34), 34, fresh);
     }
     if (d) { g.eng = { t0: t0, dur: d }; dur = Math.max(dur, d); }
   });
@@ -3043,6 +3080,26 @@ function engage(t) {
         if (t - F.t >= F.after) { m.pose = 'fallen'; m.yaw = hash(m.ax * 3.1) * 6.283; delete m.efall; }
       }
     });
+    (g.props || []).forEach(function (pr) {   // a gun hauled up, a car driving up
+      var P = pr.ein; if (!P) return;
+      var tau = t - e0 - P.delay, f = Math.max(0, Math.min(1, tau * P.sp / P.L));
+      pr.x = P.sx + (P.hx - P.sx) * f; pr.y = P.sy + (P.hy - P.sy) * f;
+      pr.yaw = f < 1 ? facingYaw(P.sx, P.sy, P.hx, P.hy) + (pr.k === 'gun' ? Math.PI : 0) : P.hyaw;   // a field-gun comes trail first, its muzzle to the rear
+      if (f >= 1) {
+        delete pr.ein;
+        if (pr.path) {   // its patrol starts where it stops
+          var bi = 0, bd = 1e9; pr.path.p.forEach(function (q, qi) { var dq = Math.hypot(q[0] - pr.x, q[1] - pr.y); if (dq < bd) { bd = dq; bi = qi; } });
+          var L2 = 2 * pr.path.len; pr.ph = (((pr.path.cum[bi] - t * 2.8) % L2) + L2) % L2;
+        }
+      }
+      g.members.forEach(function (m) {
+        if (m.crew !== pr) return;
+        var dy = pr.yaw - P.hyaw, c = Math.cos(dy), sn = Math.sin(dy);
+        m.x = pr.x; m.y = pr.y; m.ox = m.aox * c - m.aoy * sn; m.oy = m.aox * sn + m.aoy * c;
+        m.walk = f < 1 && tau > 0 ? 1 : 0; m.yaw = f < 1 ? facingYaw(P.sx, P.sy, P.hx, P.hy) : m.ayaw;
+        if (f >= 1) { m.ox = m.aox; m.oy = m.aoy; m.x = P.hx; m.y = P.hy; }
+      });
+    });
     if (g.carRush) {   // up from the wood-piles and round the car
       var R = g.carRush; if (R.foe.arrival && R.foe.arrival.f < 1) return;
       R.t = R.t || t; var tau2 = t - R.t - 5; if (tau2 < 0) return;
@@ -3076,8 +3133,9 @@ function battleCam(e, close) {
   if (REDUCED || !ENG.dur || !close || walk || follow) return;
   var sites = [];
   GROUPS.forEach(function (g) {
-    if (!(g.eng || g.sortie || g.carRush) || !g.members || !g.members.length) return;
+    if (!(g.eng || g.sortie || g.carRush) || !g.members || (!g.members.length && !(g.props || []).some(function (pr) { return pr.ein; }))) return;
     var pts = []; g.members.forEach(function (m) { pts.push([m.ax != null ? m.ax : m.x, m.ay != null ? m.ay : m.y]); if (m.ein) pts.push([m.ein.sx, m.ein.sy]); if (m.esort) pts.push([m.esort.gx, m.esort.gy]); });
+    (g.props || []).forEach(function (pr) { if (pr.ein) pts.push([pr.ein.sx, pr.ein.sy], [pr.ein.hx, pr.ein.hy]); });
     var cx = 0, cy = 0; pts.forEach(function (q) { cx += q[0]; cy += q[1]; }); cx /= pts.length; cy /= pts.length;
     var s0 = sites.filter(function (st) { return Math.hypot(st.x - cx, st.y - cy) < 130; })[0];
     if (!s0) { s0 = { x: cx, y: cy, pts: [], dur: 0, own: false }; sites.push(s0); }
@@ -3199,7 +3257,7 @@ function battle(t, FS) {
   GROUPS.forEach(function (g) {
     if ((!g.fire && !g.assault && !g.patrol) || !g.members || !arrived(g) || (g.foe && !arrived(g.foe))) return;   // nothing before both sides are there
     assault(g, t, dt);
-    if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path) patrolStep(g, pr, t); }); return; }
+    if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path && !pr.ein) patrolStep(g, pr, t); }); return; }
     var held = g.foe && g.foe.eng && t < g.foe.eng.t0 + g.foe.eng.dur * 0.8;   // the relief walks into it ("met by a blast of rifle-fire")
     if (g.windows && !held) g.windows.forEach(function (w) {
       if ((w.tf -= dt) > 0) return; w.tf = 1.2 + Math.random() * 4;
@@ -3220,8 +3278,8 @@ function battle(t, FS) {
       if (aimers.length && g.hz <= 0) { g.hz = 0.5; haze(muzzle(aimers[Math.floor(Math.random() * aimers.length)], FS), t, FS); }
     }
     (g.props || []).forEach(function (pr) {
-      if (pr.path) patrolStep(g, pr, t);
-      if (pr.tf == null || !pr.T) return;
+      if (pr.path && !pr.ein) patrolStep(g, pr, t);
+      if (pr.tf == null || !pr.T || pr.ein) return;   // still coming up
       var T = pr.T;
       if (pr.k === 'gun') {
         if ((pr.tf -= dt) > 0) return; pr.tf = 6 + Math.random() * 6; pr.kick = t;
@@ -3925,7 +3983,7 @@ function closeFrame(e) {
   // and what they stare at, if it is near ("staring at the brightly-lighted Winter Palace")
   GROUPS.forEach(function (g) { var f = g.cx != null && g.face && PL[g.face] && PL[g.face].p; if (f && Math.hypot(g.cx - tx, g.cy - ty) <= 260 && Math.hypot(f[0] - tx, f[1] - ty) < 320) ends.push([f[0], f[1]]); });
   farOnes.forEach(function (q) { ends.push(q); });
-  GROUPS.forEach(function (g) { if (g.eng) (g.members || []).forEach(function (m, i) { var q = m.ein || m.eout; if (q && i % 3 === 0) ends.push(m.ein ? [q.sx, q.sy] : [q.gx, q.gy]); }); });   // where they come from, or run to
+  GROUPS.forEach(function (g) { if (g.eng) { (g.members || []).forEach(function (m, i) { var q = m.ein || m.eout; if (q && i % 3 === 0) ends.push(m.ein ? [q.sx, q.sy] : [q.gx, q.gy]); }); (g.props || []).forEach(function (pr) { if (pr.ein) ends.push([pr.ein.sx, pr.ein.sy]); }); } });   // where they come from, or run to
   ends.forEach(function (q) { spread = Math.max(spread, Math.hypot(q[0] - tx, q[1] - ty) + 6 + (q[2] || 0)); });
   // and far enough that the marches setting out or arriving show beside the card
   var far = 0; ends.forEach(function (q) { far = Math.max(far, Math.hypot(q[0] - tx, q[1] - ty) + 6 + (q[2] || 0)); });
