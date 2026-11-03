@@ -2635,6 +2635,17 @@ function secLabel(s) {
 var GSTART = DAYS.map(function (d) { return ms(d.d + 'T00:00'); });
 var GEND = DAYS.map(function (d, i) { return i + 1 < DAYS.length ? GSTART[i + 1] : ms(d.d + 'T00:00') + 5 * 86400000; });
 function groupOf(e) { var t = ms(e.t), g = 0; for (var i = 0; i < DAYS.length; i++) if (t >= GSTART[i]) g = i; return g; }
+// how many of the points (map x, y) a camera at pos looking at target would put outside the clear part of the
+// screen (on a phone, none: the sheet moves)
+var _fitCam = null;
+function offClear(pos, target, pts, offs) {
+  if (PHONE || !pts.length) return 0;
+  _fitCam = _fitCam || camera.clone(); _fitCam.copy(camera); _fitCam.position.copy(pos); _fitCam.lookAt(target); _fitCam.updateMatrixWorld(); _fitCam.updateProjectionMatrix();
+  var W = canvas.clientWidth, H = canvas.clientHeight, xr = W - ($('panel').offsetWidth || 0) - 24, v = new THREE.Vector3(), n = 0;
+  pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; if (v.z > 1 || x < 24 || x > xr || y < 112 || y > H - 108) { n++; if (offs) offs.push(q); } });
+  return n;
+}
+function partOf(id, root) { var p = PL[id], n = 0; while (p && n++ < 6) { if (id === root) return true; id = p.in; p = PL[id]; } return id === root; }   // a part of it, with a pin of its own or not (Smolny's gates)
 function rootOf(id) { var p = PL[id]; while (p && p.in && PL[p.in] && (p.kind === 'room' || p.kind === 'area') && !located(id)) { id = p.in; p = PL[id]; } return p && p.kind === 'room' && p.in ? p.in : id; }
 function typo(t, inner) { return typo0(t, inner).replace(/_([^_]+)_/g, '$1'); }
 // the same, into an element, with Reed's italics (_yunkers_, _Avrora_) as italics
@@ -2889,18 +2900,26 @@ function closeFrame(e) {
   // how far off a body still counts: the bodies the scene itself brings in, from further ("Down the
   // Voskressensky Prospect a great mass of sailors were drawn up"), the rest within 260 m
   var idx0 = seq.indexOf(e);
-  function reach(g) {   // and those at its building's gates; not a fight at another building
+  // a building the scene itself reports changing hands, with its own fight ("The Military Hotel and the
+  // Telegraph Agency ... bloodily recaptured"): its bodies are the scene's as much as those at its place
+  function taken(g) { return g.p && g.p.from === idx0 && (g.fire || g.assault) && (e.ctl || []).some(function (c) { return rootOf(c.place) === rootOf(g.place); }); }
+  function reach(g) {   // and those at its building's gates; not a fight at another building the scene does not report
     var k = (PL[g.place] || {}).kind, open = k === 'street' || k === 'area' || k === 'square';
-    return (g.p && g.p.from === idx0 && g.brief && open) || (g.place !== rootOf(e.loc) && rootOf(g.place) === rootOf(e.loc)) ? 420 : 260;
+    var own = g.p && g.p.from === idx0;   // brought in by this scene ("strong patrols of soldiers guarded the gates and the near-by street-corners")
+    return (own && open) || (g.place !== rootOf(e.loc) && rootOf(g.place) === rootOf(e.loc)) || (own && partOf(g.place, rootOf(e.loc))) || taken(g) ? 420 : 260;
   }
+  function onReedsWay(q) {   // within 60 m of the way Reed walks in the scene
+    return movers.some(function (mv) { return mv.m.who === 'reed' && (mv.o.pts || []).some(function (p, i, a) { return i && segDist(q[0], q[1], a[i - 1].x, -a[i - 1].z, p.x, -p.z) < 60; }); });
+  }
+  function extent(g) { var r = 0; (g.members || []).forEach(function (m) { r = Math.max(r, Math.hypot(m.x - g.cx, m.y - g.cy)); }); return r; }
   var id = rootOf(e.loc), l = PL[id]; if (!l || !l.p || l.far) return null;
-  var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0, farOnes = [];
+  var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0, farOnes = [], must = [];
   GROUPS.forEach(function (g) {
     if (g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > reach(g)) return;
-    if (Math.hypot(g.cx - tx, g.cy - ty) > 260) { farOnes.push([g.cx, g.cy]); return; }   // far ones widen the view, not move it
+    if (Math.hypot(g.cx - tx, g.cy - ty) > 260 && !taken(g)) { farOnes.push([g.cx, g.cy, extent(g), g.p && g.p.from === idx0]); must.push([g.cx, g.cy]); return; }   // far ones widen the view, not move it: all of them, not just their middle
     var w = g.reed ? 12 : Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);   // Reed counts as his walk's end does
     if (g.p && g.p.from === seq.indexOf(e) && (g.pose || g.fire || g.assault || g.brief)) w *= 3;   // what happens in this scene before who stands by
-    sx += g.cx * w; sy += g.cy * w; sw += w;
+    sx += g.cx * w; sy += g.cy * w; sw += w; must.push([g.cx, g.cy]);
   });
   // the bodies that arrive in the scene count where they end up
   var ends = [];
@@ -2925,11 +2944,13 @@ function closeFrame(e) {
   // and what they stare at, if it is near ("staring at the brightly-lighted Winter Palace")
   GROUPS.forEach(function (g) { var f = g.cx != null && g.face && PL[g.face] && PL[g.face].p; if (f && Math.hypot(g.cx - tx, g.cy - ty) <= 260 && Math.hypot(f[0] - tx, f[1] - ty) < 320) ends.push([f[0], f[1]]); });
   farOnes.forEach(function (q) { ends.push(q); });
-  ends.forEach(function (q) { spread = Math.max(spread, Math.hypot(q[0] - tx, q[1] - ty) + 6); });
+  ends.forEach(function (q) { spread = Math.max(spread, Math.hypot(q[0] - tx, q[1] - ty) + 6 + (q[2] || 0)); });
   // and far enough that the marches setting out or arriving show beside the card
-  var far = 0; ends.forEach(function (q) { far = Math.max(far, Math.hypot(q[0] - tx, q[1] - ty) + 6); });
+  var far = 0; ends.forEach(function (q) { far = Math.max(far, Math.hypot(q[0] - tx, q[1] - ty) + 6 + (q[2] || 0)); });
   var halfW = Math.tan(camera.fov * Math.PI / 360) * camera.aspect * (PHONE ? 0.8 : 0.5);
-  var target = new THREE.Vector3(tx, 0, -ty), dist = Math.max(PHONE ? 260 : 200, Math.min(PHONE ? 520 : 440, Math.max(spread * 1.8, far / halfW))), pol = 1.05;
+  // a fight at two buildings the scene reports retaken, a street or two apart: far enough back for both
+  var capD = GROUPS.some(function (g) { return g.cx != null && taken(g) && rootOf(g.place) !== rootOf(e.loc); }) ? (PHONE ? 760 : 640) : (PHONE ? 520 : 440);
+  var target = new THREE.Vector3(tx, 0, -ty), dist = Math.max(PHONE ? 260 : 200, Math.min(capD, Math.max(spread * 1.8, far / halfW))), pol = 1.05;
   var dir = camera.position.clone().sub(controls.target); dir.y = 0;
   if (dir.lengthSq() < 1) dir.set(0, 0, 1);
   dir.normalize();
@@ -2967,7 +2988,7 @@ function closeFrame(e) {
     target.set(mx, 0, -my);
     // far enough back that both ends of the line of fire show beside the card
     var half = Math.tan(camera.fov * Math.PI / 360) * camera.aspect * (PHONE ? 0.8 : 0.5);
-    dist = Math.max(PHONE ? 190 : 150, Math.min(PHONE ? 520 : 440, sp2 / half)); pol = 0.78;
+    dist = Math.max(PHONE ? 190 : 150, Math.min(capD, sp2 / half)); pol = 0.78;
     if (Math.hypot(c2, s2) / shots.length > 0.45) {
       var la = 0.5 * Math.atan2(s2, c2), across = new THREE.Vector3(-Math.sin(la), 0, -Math.cos(la));
       if (across.dot(dir) < 0) across.negate();
@@ -2981,6 +3002,13 @@ function closeFrame(e) {
     var sf = PL[starer.face].p;
     dir.set(starer.cx - sf[0], 0, -(starer.cy - sf[1])).normalize(); pol = 0.95;
     target.set(starer.cx * 0.6 + sf[0] * 0.4, 0, -(starer.cy * 0.6 + sf[1] * 0.4));
+  } else if (e.witness === 'seen' && farOnes.some(function (q) { return q[3] && !onReedsWay(q); })) {
+    // what Reed sees from the scene's place, further off ("Down the Voskressensky Prospect a great mass of
+    // sailors were drawn up"): from behind the place, looking that way, so they lie beyond it in the picture
+    var fcx = 0, fcy = 0, fq = farOnes.filter(function (q) { return q[3] && !onReedsWay(q); });   // not those he passed on the way ("Up the Nevsky the whole city seemed to be out")
+    fq.forEach(function (q) { fcx += q[0]; fcy += q[1]; }); fcx /= fq.length; fcy /= fq.length;
+    dir.set(tx - fcx, 0, -(ty - fcy)).normalize(); pol = 0.95;
+    target.set(tx * 0.68 + fcx * 0.32, 0, -(ty * 0.68 + fcy * 0.32));   // the place itself low in the picture, what is beyond it above
   } else if (lie && lie.open < 0.5 && lie.ratio > 2) {
     var along = new THREE.Vector3(Math.cos(lie.axis), 0, -Math.sin(lie.axis));
     if (along.dot(dir) < 0) along.negate();
@@ -3012,8 +3040,21 @@ function closeFrame(e) {
     }
     dir.set(Math.sin(best.th), 0, Math.cos(best.th)); pol = best.pp;
   }
-  var pos = target.clone().add(dir.multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
-  return { target: target, pos: pos };
+  var pos = target.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
+  // and every body it counts in the clear part of the screen, left of the card, between the title and the
+  // timeline: further back, a step at a time, until they are (as far as the limit allows)
+  var offs = [], out0 = offClear(pos, target, must, offs), fitSteps = 0, bestFit = { n: out0, t: target.clone(), p: pos.clone(), k: 0 };
+  while (out0 && fitSteps < 8) {
+    // a quarter of the way toward those left out, and a little further back; the best of the tries is kept
+    var ox = 0, oy = 0; offs.forEach(function (q) { ox += q[0]; oy += q[1]; }); ox /= offs.length; oy /= offs.length;
+    target.set(target.x + (ox - target.x) * 0.25, 0, target.z + (-oy - target.z) * 0.25);
+    dist = Math.min(capD * 1.15, dist * 1.08); fitSteps++;
+    pos = target.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
+    offs = []; out0 = offClear(pos, target, must, offs);
+    if (out0 < bestFit.n) bestFit = { n: out0, t: target.clone(), p: pos.clone(), k: fitSteps };
+  }
+  target = bestFit.t; pos = bestFit.p; out0 = bestFit.n; fitSteps = bestFit.k;
+  return { target: target, pos: pos, far: farOnes.length, fit: fitSteps, off: out0, look: farOnes.filter(function (q) { return q[3] && !onReedsWay(q); }).length };
 }
 // how much of the ground from (x, y) out along (dx, dy), 12 to r metres, is under buildings taller than 8 m
 function builtFrac(x, y, dx, dy, r) {
@@ -3399,7 +3440,7 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
-  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); },
+  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
