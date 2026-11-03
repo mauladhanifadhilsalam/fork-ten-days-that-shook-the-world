@@ -54,6 +54,7 @@ tools/geocode.py       finds OSM buildings around a hint (OSM API only), --accep
 tools/fetch_portraits.py  the Faction Map's portraits from Wikimedia Commons, public domain only (--fetch asks the APIs)
 tools/storylib.py      shared schema, layout, quote normalisation, date and time parsers, geometry, sun
 tests/test_check.py    one failing fixture per error code, plus mutation tests on the real data
+tools/audit/           the page in a headless browser: every scene for errors, how its people stand, screenshots
 
 tools/mapconf.py       the 3D extent, the projection, and the bridges that did not stand in 1917
 tools/fetch_osm.py     OSM API tiles over the city core, plus every water relation they touch -> cache/
@@ -151,6 +152,16 @@ After editing only `src/app.html`:
 
 ```bash
 tools/build.sh --bundle
+```
+
+Then check the page itself in a headless browser (Node and Playwright; see `tools/audit/README.md`): every scene for errors, then how the people stand in each, from its own camera:
+
+```bash
+node tools/audit/smoke.js
+```
+
+```bash
+node tools/audit/crowds.js
 ```
 
 To deploy on Cloud Run, from the repo root:
