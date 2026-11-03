@@ -2646,12 +2646,30 @@ function groupOf(e) { var t = ms(e.t), g = 0; for (var i = 0; i < DAYS.length; i
 // how many of the points (map x, y) a camera at pos looking at target would put outside the clear part of the
 // screen (on a phone, none: the sheet moves)
 var _fitCam = null;
-function offClear(pos, target, pts, offs) {
-  if (PHONE || !pts.length) return 0;
+function offClear(pos, target, pts, offs, inset) {
+  if (PHONE) return 0;   // the score: ten for each of the scene's own left out, one for each other
   _fitCam = _fitCam || camera.clone(); _fitCam.copy(camera); _fitCam.position.copy(pos); _fitCam.lookAt(target); _fitCam.updateMatrixWorld(); _fitCam.updateProjectionMatrix();
-  var W = canvas.clientWidth, H = canvas.clientHeight, xr = W - ($('panel').offsetWidth || 0) - 24, v = new THREE.Vector3(), n = 0;
-  pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; if (v.z > 1 || x < 24 || x > xr || y < 112 || y > H - 108) { n++; if (offs) offs.push(q); } });
+  if (!pts.length) return 0;
+  var W = canvas.clientWidth, H = canvas.clientHeight, xr = W - ($('panel').offsetWidth || 0) - 40, v = new THREE.Vector3(), n = 0;
+  pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; var k = inset || 0; if (v.z > 1 || x < 40 + k || x > xr - k || y < 130 + k || y > H - 140 - k) { n += q[3] ? 10 : 1; if (offs) offs.push(q); } });
   return n;
+}
+// the ground shift that brings the middle of the points' box on screen to the middle of the clear part
+function groundAt(cam, sx, sy, W, H) {
+  var v = new THREE.Vector3((sx / W) * 2 - 1, 1 - (sy / H) * 2, 0.5).unproject(cam), d = v.sub(cam.position).normalize();
+  if (d.y > -1e-3) return null;
+  return cam.position.clone().add(d.multiplyScalar(-cam.position.y / d.y));
+}
+function centreShift(pos, target, pts) {
+  if (!pts.length) return null;
+  offClear(pos, target, []);   // sets the fitting camera
+  var W = canvas.clientWidth, H = canvas.clientHeight, xr = W - ($('panel').offsetWidth || 0) - 40, v = new THREE.Vector3(), x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+  pts.forEach(function (q) { v.set(q[0], 0, -q[1]).project(_fitCam); if (v.z > 1) return; var x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * H; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); });
+  if (x0 > x1) return null;
+  var a = groundAt(_fitCam, (x0 + x1) / 2, (y0 + y1) / 2, W, H), b = groundAt(_fitCam, (40 + xr) / 2, (130 + H - 140) / 2, W, H);
+  if (!a || !b) return null;
+  var sh = a.sub(b); sh.y = 0;
+  return sh.length() > 2 ? sh : null;
 }
 function partOf(id, root) { var p = PL[id], n = 0; while (p && n++ < 6) { if (id === root) return true; id = p.in; p = PL[id]; } return id === root; }   // a part of it, with a pin of its own or not (Smolny's gates)
 function rootOf(id) { var p = PL[id]; while (p && p.in && PL[p.in] && (p.kind === 'room' || p.kind === 'area') && !located(id)) { id = p.in; p = PL[id]; } return p && p.kind === 'room' && p.in ? p.in : id; }
@@ -2921,13 +2939,13 @@ function closeFrame(e) {
   }
   function extent(g) { var r = 0; (g.members || []).forEach(function (m) { r = Math.max(r, Math.hypot(m.x - g.cx, m.y - g.cy)); }); return r; }
   var id = rootOf(e.loc), l = PL[id]; if (!l || !l.p || l.far) return null;
-  var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0, farOnes = [], must = [];
+  var G = openGround(id, false), tx = G ? G.sx : l.p[0], ty = G ? G.sy : l.p[1], sx = 0, sy = 0, sw = 0, farOnes = [], must = [[tx, ty, 'the place', true]];
   GROUPS.forEach(function (g) {
     if (g.cx == null || Math.hypot(g.cx - tx, g.cy - ty) > reach(g)) return;
-    if (Math.hypot(g.cx - tx, g.cy - ty) > 260 && !taken(g)) { farOnes.push([g.cx, g.cy, extent(g), g.p && g.p.from === idx0]); must.push([g.cx, g.cy]); return; }   // far ones widen the view, not move it: all of them, not just their middle
+    if (Math.hypot(g.cx - tx, g.cy - ty) > 260 && !taken(g)) { farOnes.push([g.cx, g.cy, extent(g), g.p && g.p.from === idx0]); must.push([g.cx, g.cy, g.label + '@' + g.place, !!(g.p && g.p.from === idx0)]); return; }   // far ones widen the view, not move it: all of them, not just their middle
     var w = g.reed ? 12 : Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);   // Reed counts as his walk's end does
     if (g.p && g.p.from === seq.indexOf(e) && (g.pose || g.fire || g.assault || g.brief)) w *= 3;   // what happens in this scene before who stands by
-    sx += g.cx * w; sy += g.cy * w; sw += w; must.push([g.cx, g.cy]);
+    sx += g.cx * w; sy += g.cy * w; sw += w; must.push([g.cx, g.cy, g.label + '@' + g.place, !!(g.reed || (g.p && g.p.from === idx0))]);
   });
   // the bodies that arrive in the scene count where they end up
   var ends = [];
@@ -2935,17 +2953,17 @@ function closeFrame(e) {
     if (!mv.o.pts || !mv.o.pts.length) return;
     if (mv.m.who === 'reed') {   // where Reed watches from, when he saw it
       var qr = mv.o.pts[mv.o.pts.length - 1];
-      if (e.witness === 'seen' && Math.hypot(qr.x - tx, -qr.z - ty) <= 260) { sx += qr.x * 12; sy += -qr.z * 12; sw += 12; ends.push([qr.x, -qr.z]); }
+      if (e.witness === 'seen' && Math.hypot(qr.x - tx, -qr.z - ty) <= 260) { sx += qr.x * 12; sy += -qr.z * 12; sw += 12; ends.push([qr.x, -qr.z]); must.push([qr.x, -qr.z, 'Reed arrives', true]); }
       return;
     }
     var q = mv.o.pts[mv.o.pts.length - 1], mx = q.x, my = -q.z, q0 = mv.o.pts[0], w = Math.min(60, mv.list.length + 1);
     var w0 = rootOf(mv.m.from) === rootOf(e.loc) ? 60 : w / 2;   // most where the scene's own move leaves from ("Kerensky left for the Front")
-    if (Math.hypot(q0.x - tx, -q0.z - ty) <= 260) { sx += q0.x * w0; sy += -q0.z * w0; sw += w0; ends.push([q0.x, -q0.z]); }   // seen setting out
+    if (Math.hypot(q0.x - tx, -q0.z - ty) <= 260) { sx += q0.x * w0; sy += -q0.z * w0; sw += w0; ends.push([q0.x, -q0.z]); must.push([q0.x, -q0.z, mv.label + ' sets out', true]); }   // seen setting out
     if (Math.hypot(mx - tx, my - ty) > 260) return;
-    sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]);
+    sx += mx * w; sy += my * w; sw += w; ends.push([mx, my]); must.push([mx, my, mv.label + ' arrives', true]);
   });
   // the trains pulling out ("hurled trainload after trainload"): the first stretch of the line they leave by
-  trains.forEach(function (T) { [150, 450].forEach(function (d) { var q = railAt(T.r, d); ends.push([q[0], q[1]]); must.push([q[0], q[1]]); sx += q[0] * 20; sy += q[1] * 20; sw += 20; }); });
+  trains.forEach(function (T) { [120, 330].forEach(function (d) { var q = railAt(T.r, d); ends.push([q[0], q[1]]); must.push([q[0], q[1], 'train', true]); sx += q[0] * 20; sy += q[1] * 20; sw += 20; }); });
   if (!sw && e.witness !== 'seen') return null;
   if (sw) { tx = tx * 0.2 + sx / sw * 0.8; ty = ty * 0.2 + sy / sw * 0.8; }   // mostly on the people, a little on the place
   // far enough back to take in every body of the scene's place
@@ -3012,6 +3030,11 @@ function closeFrame(e) {
     var sf = PL[starer.face].p;
     dir.set(starer.cx - sf[0], 0, -(starer.cy - sf[1])).normalize(); pol = 0.95;
     target.set(starer.cx * 0.6 + sf[0] * 0.4, 0, -(starer.cy * 0.6 + sf[1] * 0.4));
+  } else if (trains.length) {
+    // trains pulling out: from behind the station, looking down the line they leave by
+    var r0 = railAt(trains[0].r, 0), r1 = railAt(trains[0].r, 330);
+    dir.set(r0[0] - r1[0], 0, -(r0[1] - r1[1])).normalize(); pol = 0.95;
+    target.set((r0[0] + r1[0]) / 2, 0, -(r0[1] + r1[1]) / 2);
   } else if (e.witness === 'seen' && farOnes.some(function (q) { return q[3] && !onReedsWay(q); })) {
     // what Reed sees from the scene's place, further off ("Down the Voskressensky Prospect a great mass of
     // sailors were drawn up"): from behind the place, looking that way, so they lie beyond it in the picture
@@ -3053,18 +3076,42 @@ function closeFrame(e) {
   var pos = target.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
   // and every body it counts in the clear part of the screen, left of the card, between the title and the
   // timeline: further back, a step at a time, until they are (as far as the limit allows)
-  var offs = [], out0 = offClear(pos, target, must, offs), fitSteps = 0, bestFit = { n: out0, t: target.clone(), p: pos.clone(), k: 0 };
-  while (out0 && fitSteps < 8) {
-    // a quarter of the way toward those left out, and a little further back; the best of the tries is kept
+  // Three passes, so the scene's own (its place, the bodies it brings in, Reed, where its moves set out and
+  // arrive) are in view and in the middle, and the bodies still standing from before come in as far as the
+  // limit allows, round them:
+  var fitCap = Math.max(capD * 1.15, PHONE ? 700 : 620), fitSteps = 0, own = must.filter(function (q) { return q[3]; });
+  function camAt(t, d) { var p = t.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * d)); p.y = Math.cos(pol) * d; return p; }
+  // 1. its own in view: a fifth of the way toward those left out, and further back; the best try is kept
+  var offs = [], out0 = offClear(pos, target, own, offs), best1 = { n: out0, t: target.clone(), d: dist };
+  while (out0 && fitSteps < 14) {
     var ox = 0, oy = 0; offs.forEach(function (q) { ox += q[0]; oy += q[1]; }); ox /= offs.length; oy /= offs.length;
-    target.set(target.x + (ox - target.x) * 0.25, 0, target.z + (-oy - target.z) * 0.25);
-    dist = Math.min(capD * 1.15, dist * 1.08); fitSteps++;
-    pos = target.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
-    offs = []; out0 = offClear(pos, target, must, offs);
-    if (out0 < bestFit.n) bestFit = { n: out0, t: target.clone(), p: pos.clone(), k: fitSteps };
+    target.set(target.x + (ox - target.x) * 0.2, 0, target.z + (-oy - target.z) * 0.2);
+    dist = Math.min(fitCap, dist * 1.1); fitSteps++;
+    offs = []; out0 = offClear(camAt(target, dist), target, own, offs);
+    if (out0 < best1.n) best1 = { n: out0, t: target.clone(), d: dist };
   }
-  target = bestFit.t; pos = bestFit.p; out0 = bestFit.n; fitSteps = bestFit.k;
-  return { target: target, pos: pos, far: farOnes.length, fit: fitSteps, off: out0, look: farOnes.filter(function (q) { return q[3] && !onReedsWay(q); }).length };
+  target = best1.t; dist = best1.d; pos = camAt(target, dist);
+  // 2. its own in the middle of the clear part of the screen, not hugging its edges
+  for (var ci = 0; ci < 3 && !PHONE; ci++) {
+    var sh = centreShift(pos, target, own); if (!sh) break;
+    var t2 = target.clone().add(sh); if (offClear(camAt(t2, dist), t2, own) > best1.n) break;
+    target = t2; pos = camAt(target, dist);
+  }
+  // 3. back from that middle, a step at a time, and a little toward the rest, until they are in too (or the
+  // limit is reached); never so far toward them that one of its own leaves the picture
+  var ownOff = offClear(pos, target, own, null, 90), offs3 = [], n3 = offClear(pos, target, must, offs3), t3 = target.clone(), d3 = dist, best3 = { n: n3, t: t3.clone(), d: d3 };
+  for (var s3 = 0; n3 && s3 < 16; s3++) {
+    var dN = Math.min(fitCap, d3 * 1.07), tN = t3.clone();
+    if (offs3.length) { var qx = 0, qy = 0; offs3.forEach(function (q) { qx += q[0]; qy += q[1]; }); qx /= offs3.length; qy /= offs3.length; tN.set(t3.x + (qx - t3.x) * 0.1, 0, t3.z + (-qy - t3.z) * 0.1); }
+    if (offClear(camAt(tN, dN), tN, own, null, 90) > ownOff) tN = t3.clone();   // that far toward them takes one of its own near the edge: only back
+    if (dN === d3 && tN.equals(t3)) break;
+    t3 = tN; d3 = dN; fitSteps++;
+    offs3 = []; n3 = offClear(camAt(t3, d3), t3, must, offs3);
+    if (n3 < best3.n) best3 = { n: n3, t: t3.clone(), d: d3 };
+  }
+  target = best3.t; dist = best3.d; pos = camAt(target, dist); out0 = offClear(pos, target, must);
+  var offNow = []; offClear(pos, target, must, offNow);
+  return { target: target, pos: pos, far: farOnes.length, fit: fitSteps, off: out0, offWho: offNow.map(function (q) { return q[2] || 'point'; }), mustN: must.length, dist: Math.round(target.distanceTo(pos)), pol: +pol.toFixed(2), look: farOnes.filter(function (q) { return q[3] && !onReedsWay(q); }).length };
 }
 // how much of the ground from (x, y) out along (dx, dy), 12 to r metres, is under buildings taller than 8 m
 function builtFrac(x, y, dx, dy, r) {
@@ -3521,7 +3568,7 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
-  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, x: c.target.x, y: -c.target.z }; },
+  finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
