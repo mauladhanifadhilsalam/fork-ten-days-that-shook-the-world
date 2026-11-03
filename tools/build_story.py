@@ -232,9 +232,49 @@ _obst = [g for g in _obst if not g.is_empty and g.is_valid]
 _tree = STRtree(_obst)
 
 
+SMALL, BODY_W = 400.0, 3.0   # a pedestal or a kiosk; half the width of a column marching four abreast
+
+
+def _small_in_way(ln, a, b):
+    """small obstacles a column on this line would brush: within half its width of the line, but not the
+    one it is making for or leaving ("jammed up suddenly behind the pedestal of the Alexander Column")"""
+    from shapely.geometry import Point as _Pt
+    pa, pb = _Pt(a), _Pt(b)
+    return [i for i in _tree.query(ln.buffer(BODY_W)) if _obst[i].area < SMALL and _obst[i].distance(ln) < BODY_W
+            and _obst[i].distance(pa) > BODY_W and _obst[i].distance(pb) > BODY_W]
+
+
 def clear(a, b):
+    """open ground from a to b: nothing on the line, and room for a column's width past anything small"""
     ln = _Line([a, b])
-    return not any(_obst[i].intersects(ln) for i in _tree.query(ln))
+    return not any(_obst[i].intersects(ln) for i in _tree.query(ln)) and not _small_in_way(ln, a, b)
+
+
+def around_small(a, b):
+    """a straight way across open ground that steps round the small things in it (the pedestal of the
+    Alexander Column in the middle of Palace Square), or None when anything bigger is in the way"""
+    ln = _Line([a, b])
+    if any(_obst[i].intersects(ln) and _obst[i].area >= SMALL for i in _tree.query(ln)):
+        return None
+    hits = _small_in_way(ln, a, b) + [i for i in _tree.query(ln) if _obst[i].area < SMALL and _obst[i].intersects(ln)]
+    if not hits:
+        return None
+    dx, dy = b[0] - a[0], b[1] - a[1]
+    L = math.hypot(dx, dy) or 1.0
+    ux, uy = dx / L, dy / L
+    vs = []
+    for i in sorted(set(hits)):
+        o = _obst[i]
+        c = o.centroid.coords[0]
+        r = max(math.dist(c, q) for q in o.exterior.coords)
+        t = (c[0] - a[0]) * ux + (c[1] - a[1]) * uy
+        fx, fy = a[0] + ux * t, a[1] + uy * t
+        nx, ny = fx - c[0], fy - c[1]
+        nl = math.hypot(nx, ny)
+        nx, ny = (nx / nl, ny / nl) if nl > 0.1 else (-uy, ux)
+        vs.append((t, (c[0] + nx * (r + BODY_W), c[1] + ny * (r + BODY_W))))
+    path = [a] + [v for _, v in sorted(vs)] + [b]
+    return path if all(clear(p, q) for p, q in zip(path, path[1:])) else None
 
 
 def through_own(pin, b):
@@ -317,6 +357,31 @@ def pull(p):
         out.append(p[nxt])
         i = nxt
     return out
+
+
+def cut_jogs(p):
+    """a short sideways step between two legs that run the same way (a waypoint's pin a metre or two off
+    the line, as the Red Arch's is): its two corners, of opposite hands, become one at their middle"""
+    def hand(o, u, v):
+        return (u[0] - o[0]) * (v[1] - u[1]) - (u[1] - o[1]) * (v[0] - u[0])
+    changed = True
+    while changed and len(p) > 3:
+        changed = False
+        for i in range(1, len(p) - 2):
+            a, b, c, d = p[i - 1], p[i], p[i + 1], p[i + 2]
+            if math.dist(b, c) > 12 or hand(a, b, c) * hand(b, c, d) >= 0:
+                continue
+            if turn(a, b, c)[0] < 12 or turn(b, c, d)[0] < 12:
+                continue
+            h1, h2 = math.atan2(b[1] - a[1], b[0] - a[0]), math.atan2(d[1] - c[1], d[0] - c[0])
+            if abs((h1 - h2 + math.pi) % (2 * math.pi) - math.pi) > math.radians(30):
+                continue
+            m = ((b[0] + c[0]) / 2, (b[1] + c[1]) / 2)
+            if clear(a, m) and clear(m, d):
+                p = p[:i] + [m] + p[i + 2:]
+                changed = True
+                break
+    return p
 
 
 def round_corners(p, rmax=9.0, steps=5):
@@ -428,8 +493,9 @@ def shape(m):
             return [[round(a, 1), round(b, 1)] for a, b in xy], 'straight'
         # across open ground (a square) straight, when the streets would go the long way round its edge
         d = math.dist(a, b)
-        if d < 450 and plen(leg) > 1.3 * d + 15 and clear(a, b):
-            leg = [a, b]
+        stepped = around_small(a, b) if d < 450 and plen(leg) > 1.3 * d + 15 and not clear(a, b) else None
+        if d < 450 and plen(leg) > 1.3 * d + 15 and (clear(a, b) or stepped):
+            leg = stepped or [a, b]
             stats['across'] = stats.get('across', 0) + 1
         # out through the building it leaves, to its far side, when the streets go the long way round it
         elif a is xy[0] and a != pin0 and math.dist(pin0, b) < 450 and plen(leg) > 1.3 * math.dist(pin0, b) + 15 and through_own(pin0, b):
@@ -446,6 +512,8 @@ def shape(m):
         full = shortcuts(full)
         full = pull(full)
     full = cut_uturns(full, keep=set(range(1, len(full) - 1)) if roundtrip else set())
+    if not roundtrip:
+        full = cut_jogs(full)
     full = round_corners(full)
     stats['routed'] += 1
     stats['routed_m'] += plen(full)

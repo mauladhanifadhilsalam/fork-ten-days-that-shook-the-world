@@ -1699,6 +1699,21 @@ function moverOf(o) {
   var guns = 0; (m.kit || []).forEach(function (k) { var p = k.split(':'); if (p[0] === 'gun') guns = p[1] ? +p[1] : 1; });
   return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, mass: !!((m.run || MASS_RE.test(sceneText(o.e))) && mm.length > 12), ragged: RAGGED_RE.test((m.size || '') + ' ' + sceneText(o.e)), trucks: m.mode !== 'truck' && kitHas(m.kit, 'truck') ? Math.max(1, kitNum(m.kit, 'truck')) : 0, redcross: kitHas(m.kit, 'redcross'), cols: m.run && mm.length > 12 ? 6 : mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
 }
+// inside a building's walls (not in a courtyard of it): the ground a marching figure cannot stand on
+function wallAt(x, y) {
+  var cell = BGRID[Math.floor(x / 100) + ',' + Math.floor(y / 100)]; if (!cell) return false;
+  for (var j = 0; j < cell.length; j++) {
+    var rec = cell[j], b = rec.b;
+    if (x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3] && inRing(rec.r, x, y) && !rec.holes.some(function (q) { return inRing(q, x, y); })) return true;
+  }
+  return false;
+}
+// a figure `side` metres right of the route at d would stand in a wall, or reach into one (figures are drawn
+// larger as the camera draws back, FS times life size)
+function blocked(o, d, side, FS) {
+  var p = alongPath(o, d, side), q = alongPath(o, d, side + (side >= 0 ? 1 : -1) * 0.6 * FS);
+  return wallAt(p[0], p[1]) || wallAt(q[0], q[1]);
+}
 // where a body member is: d metres along the route, `side` metres to its right; returns [x, y, yaw]
 var _pa = new THREE.Vector3();
 function alongPath(o, d, side) {
@@ -1757,7 +1772,10 @@ function drawMover(mv, FS, t) {
     var side = (col - (cols - 1) / 2) * gap * 0.9;
     if (mv.mass) { side += (hash(i * 1.7 + 0.3) - 0.5) * gap * 0.9; d += (hash(i * 3.1 + 0.7) - 0.5) * gap * 1.4; }   // bunched, not in ranks
     else if (mv.ragged) { side += (hash(i * 1.7 + 0.3) - 0.5) * gap * 0.35; d += (hash(i * 3.1 + 0.7) - 0.5) * gap * 0.5; }   // "a little out of step"
-    var p = alongPath(o, Math.max(0, Math.min(o.total, d)), side), key = mv.cav && !mv.guns ? 'cavalry' : mm.k;
+    var dd = Math.max(0, Math.min(o.total, d)), p = alongPath(o, dd, side), key = mv.cav && !mv.guns ? 'cavalry' : mm.k;
+    if (side && blocked(o, dd, side, FS)) {   // the way narrows (a pedestal, an arch, a corner): the files close in toward the middle
+      if (!blocked(o, dd, side * 0.45, FS)) p = alongPath(o, dd, side * 0.45); else if (!blocked(o, dd, 0, FS)) p = alongPath(o, dd, 0);
+    }
     if (i === 0) { mv.lx = p[0]; mv.ly = p[1]; }
     if (mv.fileOn && d > o.total) return;
     if (mv.cav && mv.guns) key = 'cavalry';
@@ -3382,7 +3400,7 @@ function boot(state) {
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo,
   finish: function () { if (walk) walk.t0 = -1e9; }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); },
-  movers: function () { return movers; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
+  movers: function () { return movers; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
   // run the fighting for the last `secs` seconds at 60 frames a second, as a real browser would, so a slow test renderer shows its steady state
