@@ -83,12 +83,19 @@ var PEOPLE = (function (THREE) {
   function person(o) {
     var pose = o.pose || 'stand';
     if (pose === 'fallen' || pose === 'prone') return lieDown(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), pose === 'fallen', o.rifle);
+    if (pose === 'limp') return lean(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), 0.2, 0.14);   // wounded, held up between two ("supported by two comrades")
     var m = new Model(), coat = o.coat, legs = o.legs || coat, boots = o.boots || C.boots, skin = o.skin || C.skin;
-    var squat = pose === 'squat' && !o.skirt;   // down on one knee by a fire, the arms at rest ("squatting around fires")
-    var kneel = (pose === 'kneel' && !o.skirt && o.rifle) || squat, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
-    var dy = kneel ? -0.38 : 0;   // kneeling, everything above the hips comes down
+    var squat = pose === 'squat' && !o.skirt;   // on the heels by a fire, the forearms on the knees ("squatting around fires")
+    var kneel = pose === 'kneel' && !o.skirt && o.rifle, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
+    var dy = squat ? -0.41 : kneel ? -0.38 : 0;   // down, everything above the hips comes down
     // legs swing about the hip at y = 0.86 (parts 1, 2)
-    if (kneel) {   // the left knee up, the right knee on the ground
+    if (squat) {   // both knees bent up in front, the thighs level, the shins upright, heels down
+      [-1, 1].forEach(function (sx) {
+        m.box(legs, 0.12 * sx, 0.47, 0.19, 0.15, 0.16, 0.44, 0, 0.08 * sx, 0, 0);
+        m.box(legs, 0.14 * sx, 0.27, 0.39, 0.15, 0.42, 0.16, 0, 0, 0, 0);
+        m.box(boots, 0.14 * sx, 0.07, 0.44, 0.165, 0.14, 0.26, 0, 0, 0, 0);
+      });
+    } else if (kneel) {   // the left knee up, the right knee on the ground
       m.box(legs, -0.1, 0.49, 0.21, 0.15, 0.16, 0.46, 0, 0, 0, 1); m.box(legs, -0.1, 0.27, 0.44, 0.15, 0.44, 0.16, 0, 0, 0, 1);
       m.box(boots, -0.1, 0.07, 0.5, 0.165, 0.14, 0.26, 0, 0, 0, 1);
       m.box(legs, 0.1, 0.275, -0.02, 0.15, 0.44, 0.16, 0, 0, 0, 2); m.box(legs, 0.1, 0.09, -0.26, 0.15, 0.15, 0.42, 0, 0, 0, 2);
@@ -126,6 +133,9 @@ var PEOPLE = (function (THREE) {
       m.box(coat, -0.085, 1.34, 0.275, 0.12, 0.13, 0.66, 0, 0.59, 0); m.box(skin, 0.1, 1.3, 0.55, 0.09, 0.1, 0.1);
       if (o.armband) m.box(o.armband, -0.2, 1.36, 0.1, 0.155, 0.155, 0.08, 0, 0.59, 0);
       m.box(C.wood, 0.15, 1.2, 0.4, 0.045, 0.07, 1.22, -0.43, 0, 0); m.box(C.steel, 0.085, 1.54, 1.14, 0.012, 0.012, 0.42, -0.43, 0, 0);
+    } else if (squat) {   // the left forearm on the left knee
+      m.box(coat, -0.25, 0.86, 0.2, 0.12, 0.5, 0.14, -0.95, 0, 0, 0); m.box(skin, -0.24, 0.6, 0.42, 0.09, 0.1, 0.1);
+      if (o.armband) m.box(o.armband, -0.26, 0.96, 0.1, 0.135, 0.08, 0.155, -0.95, 0, 0, 0);
     } else {
       m.box(coat, -0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, -0.07, 3);
       m.box(skin, -0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, 3);
@@ -135,6 +145,8 @@ var PEOPLE = (function (THREE) {
       m.box(coat, 0.27, 1.13 + dy, 0.07, 0.12, 0.5, 0.14, -0.35, 0, 0.05, 0);
       m.box(skin, 0.3, 0.92 + dy, 0.17, 0.09, 0.1, 0.1);
       m.box(C.wood, 0.31, 1.2 + dy, 0.18, 0.04, 1.28, 0.06); m.box(C.steel, 0.31, 2.02 + dy, 0.18, 0.012, 0.42, 0.012);
+    } else if (squat) {   // the right forearm on the right knee
+      m.box(coat, 0.25, 0.86, 0.2, 0.12, 0.5, 0.14, -0.95, 0, 0, 0); m.box(skin, 0.24, 0.6, 0.42, 0.09, 0.1, 0.1);
     } else {
       m.box(coat, 0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, 0.07, armR);
       m.box(skin, 0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, armR);
@@ -180,6 +192,12 @@ var PEOPLE = (function (THREE) {
   }
   // a standing figure laid on the ground: on its back (up) or on its face, feet at the origin, and
   // a rifle, if it had one, dropped beside it. Nothing of it swings.
+  function lean(m, roll, pitch) {   // tilted over the feet: sideways by roll, forward by pitch
+    var cr = Math.cos(roll), sr = Math.sin(roll), cp = Math.cos(pitch), sp = Math.sin(pitch);
+    function rot(a, i) { var x = a[i], y = a[i + 1], z = a[i + 2], x1 = x * cr - y * sr, y1 = x * sr + y * cr; a[i] = x1; a[i + 1] = y1 * cp - z * sp; a[i + 2] = y1 * sp + z * cp; }
+    for (var i = 0; i < m.p.length; i += 3) { rot(m.p, i); rot(m.n, i); }
+    return m;
+  }
   function lieDown(m, up, rifle) {
     for (var i = 0; i < m.p.length; i += 3) {
       var y = m.p[i + 1], z = m.p[i + 2], ny = m.n[i + 1], nz = m.n[i + 2];
@@ -319,6 +337,25 @@ var PEOPLE = (function (THREE) {
     wheel(m, '#1c1b1a', -0.8, 0.35, -2.2, 0.7, 0.12); wheel(m, '#1c1b1a', 0.8, 0.35, -2.2, 0.7, 0.12);
     return m;
   }
+  // a train of the Nicolai Railroad: a locomotive and the brown boxcars (teplushki) troops rode in
+  function loco() {
+    var m = new Model();
+    m.box('#7a2a22', 0, 0.85, 0, 2.6, 0.35, 9.6);                                   // red frame
+    m.cyl('#1f1e1c', 0, 2.05, 1.3, 1.6, 6.2, 12, Math.PI / 2);                       // boiler
+    m.box('#1f1e1c', 0, 2.35, -2.9, 2.7, 2.6, 2.8); m.box('#2c2b29', 0, 3.75, -2.9, 3.0, 0.16, 3.1);   // cab and its roof
+    m.cyl('#141312', 0, 3.25, 3.7, 0.55, 1.3, 8); m.cyl('#141312', 0, 3.05, 1.2, 0.7, 0.6, 8);         // chimney, dome
+    m.box('#5b221b', 0, 0.55, 4.95, 2.9, 0.45, 0.3);                                  // buffer beam
+    [3.2, 1.4, -0.4].forEach(function (z) { wheel(m, '#1c1b1a', -1.05, 0.7, z, 1.4, 0.14); wheel(m, '#1c1b1a', 1.05, 0.7, z, 1.4, 0.14); });
+    return m;
+  }
+  function wagon() {
+    var m = new Model();
+    m.box('#6e3b26', 0, 2.15, 0, 2.7, 2.5, 9.0); m.box('#4a4642', 0, 3.5, 0, 2.95, 0.2, 9.3);
+    m.box('#3e2216', 1.36, 2.0, 0, 0.03, 1.9, 2.0); m.box('#3e2216', -1.36, 2.0, 0, 0.03, 1.9, 2.0);   // the sliding doors
+    m.box('#1c1b1a', 0, 0.78, 0, 2.4, 0.3, 9.0);
+    [2.8, -2.8].forEach(function (z) { wheel(m, '#1c1b1a', -1.05, 0.5, z, 1.0, 0.12); wheel(m, '#1c1b1a', 1.05, 0.5, z, 1.0, 0.12); });
+    return m;
+  }
   function bicycle() {
     var m = new Model();
     wheel(m, '#1c1b1a', 0, 0.34, 0.55, 0.68, 0.04); wheel(m, '#1c1b1a', 0, 0.34, -0.55, 0.68, 0.04);
@@ -418,7 +455,7 @@ var PEOPLE = (function (THREE) {
     Object.keys(FIG).forEach(function (k) { out.fig[k] = FIG[k].geometry(FIG_SCALE[k] || 1); });
     out.kit = {
       armoured: armoured('#77746a').geometry(), truck: truck('#5d5b47').geometry(), car: car('#1d1d1f').geometry(),
-      gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(),
+      gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(), loco: loco().geometry(), wagon: wagon().geometry(),
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
       logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), horn: horn().geometry(), trench: trench().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(), horse2: horse('#3a2c22').geometry(),
