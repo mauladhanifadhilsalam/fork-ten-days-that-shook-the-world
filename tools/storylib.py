@@ -91,7 +91,7 @@ ENUM = {
     'pose': {'fallen', 'prone'},
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
-    'picture.from': {'reed-1919', 'commons'},
+    'picture.from': {'reed-1919', 'commons', 'awm'},
     'faction.kind': {'party', 'wing', 'soviet', 'committee', 'government', 'council', 'union', 'force'},
     'faction.group': {'parties', 'soviets', 'government', 'forces'},
     'faction.side': {'for', 'against', 'between', 'none'},

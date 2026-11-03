@@ -70,7 +70,7 @@ def main():
     # a portrait a scene card already shows, chosen and dated by hand, comes first ("Lenin, clean-shaven, as
     # Reed saw him"); a fetched one only where there is none
     curated = {q['id']: q for q in pics if q['kind'] == 'portrait'}
-    alias = {'lenin': 'lenin-1917', 'trotzky': 'trotsky'}
+    alias = {'lenin': 'lenin-1917', 'trotzky': 'trotsky', 'dybenko': 'dybenko-1920', 'avksentiev': 'avksentiev-reed', 'schreider': 'schreider-reed'}
     kept, left, reused = [], [], []
     for person in people:
         pid, title = person['id'], person.get('wp')

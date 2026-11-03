@@ -408,7 +408,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
       <ul>
         <li>John Reed, <i>Ten Days That Shook the World</i> (1919), <a href="https://www.gutenberg.org/ebooks/3076" target="_blank" rel="noopener">Project Gutenberg #3076</a>. Every quotation is checked word for word against it. Page numbers refer to the <a href="https://www.marxists.org/ebooks/reed/ten-days-that-shook-the-world-reed.pdf" target="_blank" rel="noopener">Marxists Internet Archive PDF</a>.</li>
         <li>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>, ODbL.</li>
-        <li>Pictures: Wikimedia Commons, and the scans of Reed’s 1919 edition at the Marxists Internet Archive; each is public domain and credited under it.</li>
+        <li>Pictures: <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>, the <a href="https://www.awm.gov.au/" target="_blank" rel="noopener">Australian War Memorial</a>, and the scans of Reed’s 1919 edition at the Marxists Internet Archive; each is public domain and credited under it.</li>
         <li id="src-more">The other sources the data cites:</li>
         <li>Rendering: three.js r147. The 3D engine is Raskolnikov Wandering’s, designed and developed by <a href="https://github.com/altf4m88" target="_blank" rel="noopener">@altf4m8</a>.</li>
       </ul>
@@ -2837,7 +2837,7 @@ function picFigure(p) {
     var cr = document.createElement('span'), a = document.createElement('a');
     cr.className = 'cr';
     cr.appendChild(document.createTextNode(p.sec ? 'Facsimile in Reed’s 1919 edition · ' : [p.by, p.date].filter(Boolean).join(', ') + ' · '));
-    a.href = p.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = p.sec ? 'scan: Marxists Internet Archive' : 'Wikimedia Commons';
+    a.href = p.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = p.sec ? 'scan: Marxists Internet Archive' : /awm\.gov\.au/.test(p.url) ? 'Australian War Memorial' : 'Wikimedia Commons';
     cr.appendChild(a); cr.appendChild(document.createTextNode(' · public domain'));
     cap.appendChild(cr); fig.appendChild(cap);
     btn.onclick = function () { openPic(p, (p.sec ? '“' + typo(p.cap, true).replace(/^“|”$/g, '') + '” Reed, ' + secLabel(p.sec) + '.' : typo(p.cap)), cr.textContent); };
