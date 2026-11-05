@@ -385,7 +385,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. One body is ours too: who “bloodily recaptured” the Military Hotel and the Telegraph Agency Reed does not say, and the map draws sailors, who had held the hotel. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
-          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Cars, trucks, cabs, trams and armoured cars stop for the people in their way: those standing about step aside and back, marchers are waited for, and a crowd that throws itself flat as a car comes lies in the gutters, as Reed has it. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
+          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Cars, trucks, cabs, trams and armoured cars stop for the people in their way: those standing about step aside and back, marchers are waited for, and a crowd that throws itself flat as a car comes lies in the gutters, as Reed has it. They steer round guns, barricades and other vehicles; where there is no way round, a machine gun is wheeled aside and a barricade pulled open for them, and put back after. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -2428,20 +2428,31 @@ function drawMover(mv, FS, t) {
   if (mv.fileOn) head = mv.f * (o.total + (Math.ceil(mv.list.length / cols) + gunRows) * gap * (mv.cav ? 2.2 : 1));   // on through its end, and gone
   if (mv.veh) {
     var vk = mv.veh, dtv = Math.min(0.25, Math.max(0, t - (mv.vt || t))); mv.vt = t;
-    if (mv.vd == null || head < mv.vd) mv.vd = head;
-    else if (head > mv.vd) {   // where the walk has it; it goes there unless someone is in its way, and makes up the time after
+    if (mv.vd == null) { mv.vd = clearStart(o, head, vk); mv.side = 0; mv.vyaw = null; }   // where it waits: past the guns at the door, if it sets out among them
+    else if (head > mv.vd) {   // where the walk has it; it goes there unless someone or something is in its way, and makes up the time after
       var rate = mv.wPrev != null && dtv > 0 ? (head - mv.wPrev) / dtv : 0, next = Math.min(head, mv.vd + Math.max(9, rate * 1.4) * dtv);
-      var here = alongPath(o, mv.vd, 0), ux = Math.sin(here[2]), uy = -Math.cos(here[2]), stop = ((HALF_LEN[vk] || 2.4) + 0.8) * clearScale(FS);
+      var c0 = alongPath(o, mv.vd, 0), ux = Math.sin(c0[2]), uy = -Math.cos(c0[2]), stop = ((HALF_LEN[vk] || 2.4) + 0.8) * clearScale(FS);
+      var steer = steerRound(c0[0], c0[1], ux, uy, mv.side || 0, 25, vk, FS, null, function (sd) {
+        return [0, 6, 12, 20].every(function (a) { var q = alongPath(o, Math.min(o.total, mv.vd + a), sd); return !wallAt(q[0], q[1]); });
+      });
+      var dsd = steer.side - (mv.side || 0); mv.side = (mv.side || 0) + Math.sign(dsd) * Math.min(Math.abs(dsd), dtv * 2.5);   // over, 2.5 m a second
+      mv.st = steer;
+      next = Math.min(next, Math.max(mv.vd, mv.vd + steer.stopAt));
+      if (steer.slow) next = Math.min(next, mv.vd + 1.4 * dtv);   // through the barricade's gap, or while it is pulled open
+      if (steer.guns.length && (steer.stopAt < 1 || steer.slow)) wheelAside(steer.guns, ux, uy, t);
+      var here = alongPath(o, mv.vd, mv.side);
       makeWay(here[0], here[1], ux, uy, stop, FS, t, mv);
+      if (Math.abs(steer.side - mv.side) > 0.5) { var tg = alongPath(o, mv.vd, steer.side); makeWay(tg[0] - ux * stop, tg[1] - uy * stop, ux, uy, stop * 2, FS, t, mv); }   // and the line it is moving over to
       var way = inTheWay(here[0], here[1], ux, uy, next - mv.vd + stop + 0.5, FS, mv);
-      if (way.along < Infinity) {
-        next = Math.min(next, Math.max(mv.vd, mv.vd + way.along - stop));
-        if (next - mv.vd < 0.05) { mv.held = (mv.held || 0) + dtv; mv.why = way.list; if (mv.held > 1) askAside(way.list, ux, uy, FS, t); } else mv.held = 0;
-      } else mv.held = 0;
+      if (way.along < Infinity) next = Math.min(next, Math.max(mv.vd, mv.vd + way.along - stop));
+      if (next - mv.vd < 0.05 && head - mv.vd > 0.5) { mv.held = (mv.held || 0) + dtv; mv.why = way.list; if (mv.held > 1 && way.list.length) askAside(way.list, ux, uy, FS, t); } else mv.held = 0;
       mv.vd = next;
     }
     mv.wPrev = head; mv.lag = head - mv.vd; head = mv.vd;
-    var v = alongPath(o, head, 0); mv.lx = v[0]; mv.ly = v[1];
+    var v = alongPath(o, head, mv.side || 0); mv.lx = v[0]; mv.ly = v[1];
+    if (mv.px != null && Math.hypot(v[0] - mv.px, v[1] - mv.py) > 0.05) mv.vyaw = Math.atan2(v[0] - mv.px, -(v[1] - mv.py));   // headed the way it moves, round what it passes
+    mv.px = v[0]; mv.py = v[1]; if (mv.vyaw != null && mv.side) v[2] = mv.vyaw;
+    mv.yawNow = v[2];
     if (mv.f > 0 && (mv.f < 1 || mv.lag > 0.5)) clearAround(v[0], v[1], Math.sin(v[2]), -Math.cos(v[2]), vk, FS, t);
     patch(v[0], v[1], 3.2 * FS, mv.bloc);
     put(vk, v[0], 0, -v[1], v[2], FS, 0, 0, 0);
@@ -2845,11 +2856,18 @@ function patrolStep(g, pr, t, dt, FS) {
   var P = pr.path, L = P.len;
   if (pr.u == null || pr.ph !== pr.ph0) { pr.u = (((t * 2.8 + pr.ph) % (2 * L)) + 2 * L) % (2 * L); pr.ph0 = pr.ph; }   // 10 km/h, up and down
   var s0 = pr.u < L ? pr.u : 2 * L - pr.u, q0 = spineAt(P, s0), dir = pr.u < L ? 1 : -1, stop = ((HALF_LEN[pr.k] || 2.7) + 0.8) * clearScale(FS);
-  makeWay(q0[0], q0[1], q0[2] * dir, q0[3] * dir, stop, FS || 2, t, null);
-  var way = inTheWay(q0[0], q0[1], q0[2] * dir, q0[3] * dir, stop + (dt || 0) * 2.8 + 0.5, FS || 2, null);
-  if (way.along < stop + (dt || 0) * 2.8) { pr.held = (pr.held || 0) + (dt || 0); if (pr.held > 1) askAside(way.list, q0[2] * dir, q0[3] * dir, FS || 2, t); }
-  else { pr.held = 0; pr.u = (pr.u + (dt || 0) * 2.8) % (2 * L); }
-  var u = pr.u, s = u < L ? u : 2 * L - u, q = spineAt(P, s);
+  var tux = q0[2] * dir, tuy = q0[3] * dir, side = (pr.side || 0) * dir;   // its offset, across the way it is going
+  var steer = steerRound(q0[0], q0[1], tux, tuy, side, 20, pr.k, FS || 2, pr, function (sd) { return [0, 6, 12].every(function (a) { var q = spineAt(P, Math.max(0, Math.min(L, s0 + a * dir))); return !wallAt(q[0] - tuy * sd, q[1] + tux * sd); }); });
+  var dsd = steer.side - side; side += Math.sign(dsd) * Math.min(Math.abs(dsd), (dt || 0) * 2.5); pr.side = side * dir;
+  var px0 = q0[0] - tuy * side, py0 = q0[1] + tux * side;
+  makeWay(px0, py0, tux, tuy, stop, FS || 2, t, null);
+  if (Math.abs(steer.side - side) > 0.5) makeWay(q0[0] - tuy * steer.side - tux * stop, q0[1] + tux * steer.side - tuy * stop, tux, tuy, stop * 2, FS || 2, t, null);
+  var way = inTheWay(px0, py0, tux, tuy, stop + (dt || 0) * 2.8 + 0.5, FS || 2, null);
+  if (steer.guns.length && (steer.stopAt < 1 || steer.slow)) wheelAside(steer.guns, tux, tuy, t);
+  if (way.along < stop + (dt || 0) * 2.8 || steer.stopAt < (dt || 0) * 2.8) { pr.held = (pr.held || 0) + (dt || 0); if (pr.held > 1 && way.list.length) askAside(way.list, tux, tuy, FS || 2, t); }
+  else { pr.held = 0; pr.u = (pr.u + (dt || 0) * (steer.slow ? 1.4 : 2.8)) % (2 * L); }
+  var u = pr.u, s = u < L ? u : 2 * L - u, q = spineAt(P, s), sd2 = pr.side || 0;
+  q = [q[0] - q[3] * sd2, q[1] + q[2] * sd2, q[2], q[3]];
   clearAround(q[0], q[1], q[2], q[3], pr.k, FS || 2, t);
   pr.x = q[0]; pr.y = q[1]; pr.yaw = Math.atan2(q[2], -q[3]);
   if (!pr.Tt || Math.hypot(pr.Tt[0] - pr.x, pr.Tt[1] - pr.y) > 6) { pr.Tt = [pr.x, pr.y]; pr.T = aimFrom(g, foeOf(g), pr.x, pr.y) || pr.T; }
@@ -2946,7 +2964,7 @@ function propIn(g, G, pr, c, D, delay) {
   var lx = -c[1], ly = c[0], w = pr.k === 'gun' || pr.k === 'mg' ? 0.8 : 1.6;   // room for its width
   var d = Math.min(freeRun(G, pr.x, pr.y, c[0], c[1], D), freeRun(G, pr.x + lx * w, pr.y + ly * w, c[0], c[1], D), freeRun(G, pr.x - lx * w, pr.y - ly * w, c[0], c[1], D));
   if (VEH_SPEED[pr.k] && HALF_LEN[pr.k]) {   // a car starts where nobody stands
-    var near = function (x, y) { return GROUPS.some(function (h) { return (h.members || []).some(function (m) { return Math.hypot(m.x - x, m.y - y) < 4 || (m.ein && Math.hypot(m.ein.sx - x, m.ein.sy - y) < 4); }); }); };
+    var near = function (x, y) { return GROUPS.some(function (h) { return (h.members || []).some(function (m) { return Math.hypot(m.x - x, m.y - y) < 4 || (m.ein && Math.hypot(m.ein.sx - x, m.ein.sy - y) < 4); }) || (h.props || []).some(function (q) { return q !== pr && OBST[q.k] && Math.hypot(q.x - x, q.y - y) < 8; }); }); };
     while (d >= 6 && near(pr.x + c[0] * d, pr.y + c[1] * d)) d -= 2;
   }
   if (d < 6) return 0;
@@ -3127,15 +3145,23 @@ function engage(t, FS) {
         var dte = Math.min(0.25, Math.max(0, t - (P.lt || t))); P.lt = t; P.d = P.d || 0;
         var want = f * P.L, ux = (P.hx - P.sx) / P.L, uy = (P.hy - P.sy) / P.L, stop = (HALF_LEN[pr.k] + 0.8) * clearScale(FS);
         if (want > P.d) {
-          makeWay(P.sx + ux * P.d, P.sy + uy * P.d, ux, uy, stop, FS || 2, t, null);
-          var way = inTheWay(P.sx + ux * P.d, P.sy + uy * P.d, ux, uy, want - P.d + stop + 0.5, FS || 2, null), nx = want;
-          if (way.along < Infinity) { nx = Math.min(want, Math.max(P.d, P.d + way.along - stop)); if (nx - P.d < 0.05) { P.held = (P.held || 0) + dte; if (P.held > 1) askAside(way.list, ux, uy, FS || 2, t); } else P.held = 0; }
+          var cx0 = P.sx + ux * P.d, cy0 = P.sy + uy * P.d, nx0 = -uy, ny0 = ux;
+          var steer = P.L - P.d < 8 ? { side: 0, stopAt: Infinity } : steerRound(cx0, cy0, ux, uy, P.side || 0, Math.min(20, P.L - P.d), pr.k, FS || 2, pr, function (sd) { return [0, 6, 12].every(function (a) { return !wallAt(cx0 + ux * a + nx0 * sd, cy0 + uy * a + ny0 * sd); }); });
+          var dsd = steer.side - (P.side || 0); P.side = (P.side || 0) + Math.sign(dsd) * Math.min(Math.abs(dsd), dte * 2.5);   // over, and back to its line for the last stretch
+          var hx0 = cx0 + nx0 * P.side, hy0 = cy0 + ny0 * P.side;
+          makeWay(hx0, hy0, ux, uy, stop, FS || 2, t, null);
+          if (Math.abs(steer.side - P.side) > 0.5) makeWay(cx0 + nx0 * steer.side - ux * stop, cy0 + ny0 * steer.side - uy * stop, ux, uy, stop * 2, FS || 2, t, null);
+          var way = inTheWay(hx0, hy0, ux, uy, want - P.d + stop + 0.5, FS || 2, null), nx = Math.min(want, P.d + Math.max(0, steer.stopAt));
+          if (steer.slow) nx = Math.min(nx, P.d + 1.4 * dte);
+          if (steer.guns && steer.guns.length && (steer.stopAt < 1 || steer.slow)) wheelAside(steer.guns, ux, uy, t);
+          if (way.along < Infinity) nx = Math.min(nx, Math.max(P.d, P.d + way.along - stop));
+          if (nx - P.d < 0.05) { P.held = (P.held || 0) + dte; if (P.held > 1 && way.list.length) askAside(way.list, ux, uy, FS || 2, t); } else P.held = 0;
           P.d = nx;
         }
         f = P.d / P.L;
-        if (f < 1) clearAround(P.sx + ux * P.d, P.sy + uy * P.d, ux, uy, pr.k, FS || 2, t);
+        if (f < 1) clearAround(P.sx + ux * P.d - uy * (P.side || 0), P.sy + uy * P.d + ux * (P.side || 0), ux, uy, pr.k, FS || 2, t);
       }
-      pr.x = P.sx + (P.hx - P.sx) * f; pr.y = P.sy + (P.hy - P.sy) * f;
+      pr.x = P.sx + (P.hx - P.sx) * f - (P.hy - P.sy) / P.L * (f < 1 ? P.side || 0 : 0); pr.y = P.sy + (P.hy - P.sy) * f + (P.hx - P.sx) / P.L * (f < 1 ? P.side || 0 : 0);
       pr.yaw = f < 1 ? facingYaw(P.sx, P.sy, P.hx, P.hy) + (pr.k === 'gun' ? Math.PI : 0) : P.hyaw;   // a field-gun comes trail first, its muzzle to the rear
       if (f >= 1) {
         delete pr.ein;
@@ -3486,6 +3512,94 @@ function clearAround(x, y, ux, uy, k, FS, t) {
   });
   if (list.length) askAside(list, ux, uy, FS, t);
 }
+// a machine gun in a vehicle's way that it cannot get round is wheeled out of its lane by the crew (a
+// Maxim on its little wheeled carriage), and a barricade of barrels and boxes pulled open, and both put
+// back when the vehicle has gone by; a barricade with no room to be pulled aside has a gap it goes through
+function wheelAside(guns, ux, uy, t) {
+  guns.forEach(function (q) {
+    var pr = q.pr, A = pr.aside || (pr.aside = { cx: 0, cy: 0, tx: 0, ty: 0, t: t });
+    A.t = t;
+    if (Math.hypot(A.tx - A.cx, A.ty - A.cy) > 0.3) return;
+    var nx = -uy, ny = ux, need = q.hw + q.half - Math.abs(q.lat) + 0.3, sd = q.lat >= 0 ? 1 : -1;
+    for (var k = 0; k < 2; k++, sd = -sd, need = q.hw + q.half + Math.abs(q.lat) + 0.3) {
+      var ox = nx * sd * need, oy = ny * sd * need;
+      if (!wallAt(pr.x + A.cx + ox, pr.y + A.cy + oy)) { A.tx = A.cx + ox; A.ty = A.cy + oy; return; }
+    }
+  });
+}
+// the first place, from d on along its route, where a vehicle stands clear of everything in the road, and
+// of people too if there is such a place within 40 m (else clear of things alone)
+function clearStart(o, d, k) {
+  var C = 2, hl = (HALF_LEN[k] || 2.5) * C, hw = (HALF_W[k] || 1) * C, things = null;
+  for (var a = d; a <= Math.min(o.total, d + 40); a += 1) {
+    var q = alongPath(o, a, 0), ux = Math.sin(q[2]), uy = -Math.cos(q[2]), hit = false, folk = false;
+    GROUPS.forEach(function (g) { (g.props || []).forEach(function (pr) {
+      var e = OBST[pr.k]; if (hit || !e || pr.ship) return;
+      var dx = pr.x - q[0], dy = pr.y - q[1], r = Math.hypot(e[0], e[1]) * C;
+      if (Math.abs(dx * ux + dy * uy) < hl + r && Math.abs(-dx * uy + dy * ux) < hw + r) hit = true;
+    }); });
+    if (hit) continue;
+    if (things == null) things = a;
+    FOLK.forEach(function (f) { if (!folk) { var dx = f.x - q[0], dy = f.y - q[1]; if (Math.abs(dx * ux + dy * uy) < hl + 1 && Math.abs(-dx * uy + dy * ux) < hw + 1) folk = true; } });
+    if (!folk) return a;
+  }
+  return things != null ? things : d;
+}
+// What stands in the road (guns, machine guns, barricades, trenches, the heaps of rifles, fires, other
+// vehicles) a vehicle steers round: it moves over to the nearest line that clears everything ahead of it
+// and is not in a wall, and back to the middle once past; where there is no way round (a barricade across
+// the street) it stops in front. Each thing is the box it is drawn as: half its width and half its length
+// at life size, across and along its own heading.
+var OBST = { barricade: [2.9, 0.65], barricade2: [2.9, 0.65], gun: [0.9, 1.9], mg: [0.45, 0.7], armoured: [1.05, 2.7], truck: [1.05, 2.9], car: [0.95, 2.3], cab: [0.8, 2.4], trench: [3.0, 1.0], logs: [0.8, 0.8], rifles: [0.9, 0.9] };
+var HALF_W = { car: 0.95, truck: 1.05, armoured: 1.05, cab: 0.8, tram: 1.2 };
+function steerRound(x0, y0, ux, uy, cur, reach, k, FS, self, sideOk) {
+  // things and vehicles at the size they are drawn close up (twice life size), whatever the zoom: from far
+  // off a barricade drawn seven times life size would close every street
+  var C = 2, hl = (HALF_LEN[k] || 2.5) * C, hw = ((HALF_W[k] || 1.0) + 0.4) * C, nx = -uy, ny = ux, iv = [], R = reach + hl + 12 * C;
+  GROUPS.forEach(function (g) {
+    (g.props || []).forEach(function (pr) {
+      var e = OBST[pr.k]; if (!e || pr === self || pr.ship) return;
+      var dx = pr.x + (pr.aside ? pr.aside.cx : 0) - x0, dy = pr.y + (pr.aside ? pr.aside.cy : 0) - y0; if (Math.abs(dx) > R || Math.abs(dy) > R) return;
+      var ax = Math.cos(pr.yaw), ay = Math.sin(pr.yaw), bx = Math.sin(pr.yaw), by = -Math.cos(pr.yaw), a0 = 1e9, a1 = -1e9, l0 = 1e9, l1 = -1e9;
+      [[1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (c) {   // its corners, onto the road ahead
+        var px = dx + (ax * e[0] * c[0] + bx * e[1] * c[1]) * C, py = dy + (ay * e[0] * c[0] + by * e[1] * c[1]) * C;
+        var al = px * ux + py * uy, lt = px * nx + py * ny;
+        a0 = Math.min(a0, al); a1 = Math.max(a1, al); l0 = Math.min(l0, lt); l1 = Math.max(l1, lt);
+      });
+      if (a1 < 0 || a0 > reach) return;   // behind it already
+      iv.push([l0 - hw, l1 + hw, a0, /^barricade/.test(pr.k), pr, (l0 + l1) / 2, (l1 - l0) / 2]);
+    });
+  });
+  if (!iv.length) return { side: Math.abs(cur) < 0.05 || sideOk(0) ? 0 : cur, stopAt: Infinity, slow: false, guns: [] };
+  function free(sd) { return iv.every(function (q) { return sd <= q[0] || sd >= q[1]; }); }
+  // the people on each line ahead count against it: a car does not swing out round a gun into a crowd
+  var folk = [];
+  FOLK.forEach(function (f) { var dx = f.x - x0, dy = f.y - y0; if (Math.abs(dx) > R || Math.abs(dy) > R) return; var al = dx * ux + dy * uy; if (al > -hl && al < reach) folk.push(dx * nx + dy * ny); });
+  function crowd(sd) { var n = 0; folk.forEach(function (lt) { if (Math.abs(lt - sd) < hw) n++; }); return n; }
+  var cands = [0, cur]; iv.forEach(function (q) { cands.push(q[0] - 0.05, q[1] + 0.05); });
+  var best = null;
+  cands.forEach(function (sd) {
+    if (Math.abs(sd) > 14 || !free(sd) || !sideOk(sd)) return;
+    var cost = Math.abs(sd - cur) + 0.3 * Math.abs(sd) + 1.5 * crowd(sd);
+    if (!best || cost < best.cost) best = { side: sd, cost: cost };
+  });
+  // nothing in its line but machine guns and barricades, which can be moved, and the way round long or
+  // crowded: it waits for them to be moved and goes straight on
+  var inLine = iv.filter(function (q) { return cur > q[0] && cur < q[1] && q[2] > hl * 0.5; });
+  if (best && best.cost > 6 && inLine.length && inLine.every(function (q) { return q[3] || q[4].k === 'mg'; })) best = null;
+  // until it has moved over, it goes no further than the first thing in its present line (not what is
+  // alongside it already, a gun it sets out beside). A barricade it cannot get round has a gap it goes
+  // through at a walk ("Occasionally an automobile passed in and out, flying the Red Cross flag"); a gun,
+  // a trench or another vehicle it waits at
+  var stopAt = Infinity, gap = false, guns = [];
+  iv.forEach(function (q) {
+    if (!(cur > q[0] && cur < q[1] && q[2] > hl * 0.5)) return;
+    if (q[3] && !best) { gap = true; guns.push({ pr: q[4], lat: q[5] - cur, half: q[6], hw: hw }); return; }   // pulled open if it can be
+    stopAt = Math.min(stopAt, Math.max(0, q[2] - hl - 0.4 * C));
+    if (!best && q[4].k === 'mg') guns.push({ pr: q[4], lat: q[5] - cur, half: q[6], hw: hw });
+  });
+  return { side: best ? best.side : cur, stopAt: stopAt, slow: gap, guns: guns };
+}
 function drawPeople(now, FS) {
   var t = now / 1000, dtp = Math.min(0.25, Math.max(0, t - (folkT || t))); folkT = t;
   figUni.uTime.value = t;
@@ -3505,7 +3619,14 @@ function drawPeople(now, FS) {
     (g.props || []).forEach(function (pr) {
       if (pr === g.ride) patch(pr.x, pr.y, 3.2 * FS, g.bloc);
       var kick = pr.kick ? Math.max(0, 1 - (t - pr.kick) / 0.45) * 0.7 * FS : 0;   // a gun's recoil
-      put(pr.k, pr.x - Math.sin(pr.yaw) * kick, pr.ship ? SHIP_Y : pr.hy || 0, -pr.y - Math.cos(pr.yaw) * kick, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
+      var wx = 0, wy = 0;
+      if (pr.aside) {   // wheeled out of a vehicle's way, and back
+        var PA = pr.aside, pw = t - PA.t < 4, gx2 = pw ? PA.tx : 0, gy2 = pw ? PA.ty : 0, dx2 = gx2 - PA.cx, dy2 = gy2 - PA.cy, dl2 = Math.hypot(dx2, dy2);
+        if (dl2 > 0.02) { var mv2 = Math.min(dl2, dtp * (pw ? 1.6 : 1.0)); PA.cx += dx2 / dl2 * mv2; PA.cy += dy2 / dl2 * mv2; }
+        if (!pw && dl2 <= 0.02 && Math.hypot(PA.cx, PA.cy) < 0.05) delete pr.aside;
+        else { wx = PA.cx; wy = PA.cy; }
+      }
+      put(pr.k, pr.x + wx - Math.sin(pr.yaw) * kick, pr.ship ? SHIP_Y : pr.hy || 0, -(pr.y + wy) - Math.cos(pr.yaw) * kick, pr.yaw, pr.ship ? 1 : FS, 0, 0, 0);
       // flying from the car: one at the back, or two from the turrets ("two red flags flying from the turret")
       for (var fl = 0; fl < (pr.flags || 0); fl++) {
         var lx = pr.flags > 1 ? (fl ? 0.52 : -0.52) : 0, lz = pr.flags > 1 ? -1.05 : -1.9, cs = Math.cos(pr.yaw), sn = Math.sin(pr.yaw);
@@ -3515,6 +3636,7 @@ function drawPeople(now, FS) {
     if (!g.inside) (g.members || []).forEach(function (mm, i) {
       if (mm.gone || mm.away) return;   // into the building, or marched off
       var x = mm.x + (mm.ox || 0) * FS, y = mm.y + (mm.oy || 0) * FS, wk = mm.walk ? 1 : mm.s0 != null && !mm.pose ? walking : 0;
+      if (mm.crew && mm.crew.aside) { x += mm.crew.aside.cx; y += mm.crew.aside.cy; }   // with its gun, wheeled aside
       if (g.drift && !mm.pose) {   // "moving in tides up and down the Nevsky": a wave along the street, neighbours moving together
         var sAx = mm.x * g.drift[0] + mm.y * g.drift[1], ph = t * 0.26 - sAx * 0.045 + hash(i * 0.37) * 0.5;
         var sn = Math.sin(ph), dof = sn * (sn > 0 ? (mm.dhi != null ? mm.dhi : 9) : (mm.dlo != null ? mm.dlo : 9)), dv = Math.cos(ph); x += g.drift[0] * dof; y += g.drift[1] * dof; wk = Math.abs(dv) > 0.2 ? 1 : 0; mm.yaw = Math.atan2(g.drift[0] * dv, -g.drift[1] * dv);
