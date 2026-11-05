@@ -40,7 +40,7 @@ FIELDS = {
     'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack', 'outside', 'done'],
     'outside': ['source', 'q', 'en'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'brief', 'ref', 'outside'],
+    'presence': ['who', 'place', 'size', 'n', 'prop', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'brief', 'ref', 'outside'],
     'gone': ['who', 'place', 'all', 'ref'],
     # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words
     'house': ['pose', 'ref'],
@@ -95,7 +95,7 @@ ENUM = {
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
     'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer'},
-    'bench': {'left', 'centre', 'right', 'platform', 'press', 'aisles'},
+    'bench': {'left', 'centre', 'right', 'platform', 'aisles'},
     'hall.plan': {'rows'},
     'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits'},
     'assault': {'repulsed', 'carried'},
@@ -127,15 +127,17 @@ MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|swing down|filing
 POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen|to death|shooting down|shot down',
               'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters',
               # in a meeting-hall: the house on its feet, a vote by show of cards, cheering, hooting
-              'stand': r'stood up|on (their|its|our) feet|\brose\b|rising|got up|standing up',
+              'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
               'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|exultation|pandemonium|embracing',
               'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|threatening'}
 HALL_POSES = ('stand', 'vote', 'cheer', 'jeer')   # drawn in a meeting-hall only
 # where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
 # left, centre and right are the map's arrangement unless he says whose the benches were
-BENCH_WORDS = {'platform': r'platform|presidium|tribune', 'press': r'press', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
+BENCH_WORDS = {'platform': r'platform|tribune', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
                'left': r'', 'centre': r'', 'right': r''}
+# only some of a body walking out ("only part of the Mensheviki Internationalists left the Congress")
+PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b'
 # a body leaving the hall, or coming into it, in the scene that says so
 WALKOUT_WORDS = r'left the (hall|Congress|room|platform)|leave the (hall|Congress|room)|walk(ed|s)? out|pushed their way out|got up and (left|went)|withdr[ae]w'
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession'
@@ -590,7 +592,7 @@ def presence_spans(events, actors, places):
 
     def merge(sp, rec):
         """a later word on the same body adds to what is known: its kit joins the kit already there"""
-        for k in ('size', 'n', 'say', 'inside', 'outside', 'bench'):
+        for k in ('size', 'n', 'prop', 'say', 'inside', 'outside', 'bench'):
             if k in rec:
                 sp[k] = rec[k]
         if rec.get('kit'):
@@ -621,11 +623,15 @@ def presence_spans(events, actors, places):
                 old = live.get(key)
                 if old is not None:
                     end(key, i, 'walkout', eid)
-                    if r.get('part'):   # the rest, fewer by the leavers
-                        rest = {k: old[k] for k in ('size', 'n', 'kit', 'inside', 'outside', 'bench') if k in old}
-                        if isinstance(old.get('n'), int) and isinstance(r.get('n'), int):
-                            rest['n'] = max(1, old['n'] - r['n'])
-                        live[key] = begin(key, i, rest, eid, 'present')
+                    if r.get('part'):   # the rest, fewer by the leavers (half of them if Reed gives no number)
+                        rest = {k: old[k] for k in ('size', 'n', 'prop', 'kit', 'inside', 'outside', 'bench') if k in old}
+                        left = r['n'] if isinstance(r.get('n'), int) else max(1, old.get('n', 2) // 2) if isinstance(old.get('n'), int) else None
+                        if isinstance(old.get('n'), int) and left is not None:
+                            rest['n'] = old['n'] - left
+                        if rest.get('n', 1) >= 1:
+                            live[key] = begin(key, i, rest, eid, 'present')
+                        if left is not None and 'n' not in r:
+                            r = dict(r, n=left)
                 sp = begin(key, i, r, eid, 'present', old=old)
                 sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'walkout', eid
             elif r.get('brief'):   # the sum with the body already there; a passing column is a body of its own

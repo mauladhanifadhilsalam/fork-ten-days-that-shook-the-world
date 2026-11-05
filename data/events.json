@@ -175,7 +175,8 @@
  "sum": "When the old Tsay-ee-kah moves to take on the Congress’s functions, the Bolsheviki leave the hall and the resolution passes.",
  "q": "Whereupon all the Bolsheviki left the hall and the resolution was passed",
  "present": [
-  {"who": "tsay-ee-kah-old", "place": "smolny-hall", "bench": "right", "ref": {"sec": "III", "q": "the Tsay-ee-kah, on the eve of the Congress, had no right to assume the functions of the Congress"}},
+  {"who": "workers", "place": "smolny-hall", "size": "soldiers and workmen, a monstrous dun mass", "n": 40, "brief": true, "ref": {"sec": "III", "q": "As night fell the great hall filled with soldiers and workmen, a monstrous dun mass, deep-humming in a blue haze of smoke."}},
+  {"who": "tsay-ee-kah-old", "place": "smolny-hall", "bench": "right", "ref": {"sec": "III", "q": "At this meeting, however, only members of the Tsay-ee-kah could vote"}},
   {"who": "bolsheviki", "place": "smolny-hall", "size": "all the Bolsheviki", "n": 12, "bench": "left", "walkout": true, "ref": {"sec": "III", "q": "Whereupon all the Bolsheviki left the hall and the resolution was passed"}}]},
 {"id": "dien-reports", "t": "1917-11-07T03:00", "tq": "inferred", "tr": ["1917-11-07T00:00", "1917-11-07T08:00"], "cal": "none", "sec": "IV", "p": 98, "loc": "baltic-station", "witness": "reported", "actors": ["bolsheviki"],
  "title": "What the papers said",
@@ -462,11 +463,11 @@
   {"who": "garrison", "place": "smolny", "kit": ["armoured:4"], "ref": {"sec": "IV", "q": "A dun herd of armoured cars stood under the trees in the court-yard, engines going."}},
   {"who": "garrison", "place": "smolny-inner-gate", "size": "the sentries", "n": 4, "kit": ["fire:1"], "ref": {"sec": "IV", "q": "At the inner gate, too, there was a blaze, by the light of which the sentries slowly spelled out our passes and looked us up and down."}},
   {"who": "tsay-ee-kah-old", "place": "smolny-hall", "size": "Gotz sat there, Dan, Lieber, Bogdanov, Broido, Fillipovsky", "n": 6, "bench": "platform", "ref": {"sec": "IV", "q": "On the platform sat the leaders of the old Tsay-ee-kah"}},
-  {"who": "bolsheviki", "place": "smolny-hall", "size": "14 Bolsheviki", "n": 56, "bench": "left", "ref": {"sec": "IV", "q": "Result--14 Bolsheviki, 7 Socialist Revolutionaries, 3 Mensheviki and 1 Internationalist (Gorky's group)."}},
-  {"who": "left-srs", "place": "smolny-hall", "size": "7 Socialist Revolutionaries", "n": 16, "bench": "centre", "ref": {"sec": "IV", "q": "Avanessov announced that by agreement of the Bolsheviki, Left Socialist Revolutionaries and Mensheviki Internationalists, it was decided to base the presidium upon proportionality."}},
+  {"who": "bolsheviki", "place": "smolny-hall", "size": "14 Bolsheviki", "n": 56, "prop": "the presidium", "bench": "left", "ref": {"sec": "IV", "q": "Result--14 Bolsheviki, 7 Socialist Revolutionaries, 3 Mensheviki and 1 Internationalist (Gorky's group)."}},
+  {"who": "left-srs", "place": "smolny-hall", "size": "7 Socialist Revolutionaries", "n": 16, "prop": "the presidium", "bench": "centre", "ref": {"sec": "IV", "q": "Result--14 Bolsheviki, 7 Socialist Revolutionaries, 3 Mensheviki and 1 Internationalist (Gorky's group)."}},
   {"who": "menshevik-internationalists", "place": "smolny-hall", "size": "the Mensheviki Internationalists", "n": 6, "bench": "centre", "ref": {"sec": "IV", "q": "and from the Mensheviki Internationalists, that until the verification of certain circumstances, they too could not enter the presidium"}},
   {"who": "srs", "place": "smolny-hall", "size": "the right and centre Socialist Revolutionaries", "n": 12, "bench": "right", "ref": {"sec": "IV", "q": "Hendelmann, for the right and centre Socialist Revolutionaries, said that they refused to take part in the presidium"}},
-  {"who": "mensheviki", "place": "smolny-hall", "size": "3 Mensheviki", "n": 12, "bench": "right", "ref": {"sec": "IV", "q": "Result--14 Bolsheviki, 7 Socialist Revolutionaries, 3 Mensheviki and 1 Internationalist (Gorky's group)."}},
+  {"who": "mensheviki", "place": "smolny-hall", "size": "3 Mensheviki", "n": 12, "prop": "the presidium", "bench": "right", "ref": {"sec": "IV", "q": "Result--14 Bolsheviki, 7 Socialist Revolutionaries, 3 Mensheviki and 1 Internationalist (Gorky's group)."}},
   {"who": "bund", "place": "smolny-hall", "size": "The Bund group", "n": 4, "bench": "right", "ref": {"sec": "IV", "q": "The Bund group joins with the declaration of the Mensheviki and Socialist Revolutionaries and will leave the Congress!"}},
   {"who": "congress", "place": "smolny-hall", "size": "the representatives of the workers and soldiers of all Russia", "n": 24, "bench": "aisles", "ref": {"sec": "IV", "q": "In the rows of seats, under the white chandeliers, packed immovably in the aisles and on the sides, perched on every window-sill, and even the edge of the platform, the representatives of the workers and soldiers of all Russia waited in anxious silence or wild exultation the ringing of the chairman's bell."}}],
  "gone": [
@@ -478,7 +479,8 @@
  "sum": "Abramovitch: the Bund joins the Mensheviki and SRs in leaving the Congress, to “perish with the Provisional Government”.",
  "q": "The Bund group joins with the declaration of the Mensheviki and Socialist Revolutionaries and will leave the Congress!",
  "present": [
-  {"who": "congress-presidium", "place": "smolny-hall", "size": "Trotzky, Kameniev, Lunatcharsky, Madame Kollentai, Nogin", "n": 5, "bench": "platform", "ref": {"sec": "IV", "q": "The election of the presidium took place amid stir and moving about."}},
+  {"who": "congress-presidium", "place": "smolny-hall", "size": "Trotzky, Kameniev, Lunatcharsky, Madame Kollentai, Nogin", "n": 5, "ref": {"sec": "IV", "q": "Then the old Tsay-ee-kah stepped down, and in their places appeared Trotzky, Kameniev, Lunatcharsky, Madame Kollentai, Nogin"}},
+  {"who": "congress-presidium", "place": "smolny-hall", "bench": "platform", "ref": {"sec": "IV", "q": "A big peasant, his bearded face convulsed with rage, mounted the platform and pounded with his fist on the presidium table."}},
   {"who": "mensheviki", "place": "smolny-hall", "walkout": true, "ref": {"sec": "IV", "q": "we find it impossible to remain in the Congress, and therefore withdraw, inviting the other groups to follow us and to meet for discussion of the situation!"}},
   {"who": "srs", "place": "smolny-hall", "walkout": true, "ref": {"sec": "IV", "q": "The Bund group joins with the declaration of the Mensheviki and Socialist Revolutionaries and will leave the Congress!"}},
   {"who": "bund", "place": "smolny-hall", "walkout": true, "ref": {"sec": "IV", "q": "The rest was lost in a storm of hoots, menaces and curses which rose to a hellish pitch as fifty delegates got up and pushed their way out"}}]},
@@ -615,7 +617,7 @@
   {"who": "reed", "from": "palace-embankment", "via": ["nevsky"], "to": "city-duma", "mode": "foot", "rc": "inferred"}],
  "present": [
   {"who": "committee-for-salvation", "place": "city-duma", "inside": true, "brief": true}]},
-{"id": "internationalists-leave", "t": "1917-11-08T04:50", "tq": "inferred", "tr": ["1917-11-08T04:00", "1917-11-08T05:15"], "cal": "none", "sec": "IV", "p": 121, "loc": "smolny-hall", "witness": "seen", "speaker": "kamenev", "actors": ["menshevik-internationalists", "congress"],
+{"id": "internationalists-leave", "t": "1917-11-08T04:50", "tq": "inferred", "tr": ["1917-11-08T04:00", "1917-11-08T05:15"], "cal": "none", "sec": "IV", "p": 121, "loc": "smolny-hall", "witness": "seen", "actors": ["menshevik-internationalists", "congress"],
  "house": {"pose": "jeer", "ref": {"sec": "IV", "q": "The vote was overwhelmingly against, and the Mensheviki Internationalists left the Congress in a Whirlwind of Jocular insults."}},
  "title": "The Internationalists leave",
  "why": "After Reed’s cab from the Duma, where he saw the Committee for Salvation formed after three, and the speeches that greet his arrival; before the appeal is read and Krylenko’s telegram at 5:17.",
@@ -674,7 +676,7 @@
  "moves": [
   {"who": "reed", "from": "liteiny-nevsky", "to": "smolny", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "congress-presidium", "place": "smolny-hall", "bench": "platform", "walkin": true, "ref": {"sec": "V", "q": "It was just 8.40 when a thundering wave of cheers announced the entrance of the presidium, with Lenin--great Lenin--among them."}}]},
+  {"who": "congress-presidium", "place": "smolny-hall", "walkin": true, "ref": {"sec": "V", "q": "It was just 8.40 when a thundering wave of cheers announced the entrance of the presidium, with Lenin--great Lenin--among them."}}]},
 {"id": "peace-carried", "t": "1917-11-08T22:35", "tq": "stated", "tp": "It was exactly 10:35", "cal": "none", "sec": "V", "p": 141, "loc": "smolny-hall", "witness": "seen", "speaker": "kamenev", "actors": ["congress"],
  "house": {"pose": "vote", "ref": {"sec": "V", "q": "It was exactly 10:35 when Kameniev asked all in favour of the proclamation to hold up their cards."}},
  "title": "The proclamation on peace",

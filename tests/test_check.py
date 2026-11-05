@@ -32,7 +32,8 @@ SECTIONS = {
           'pushed their way out, in a storm of hoots. Only part of the Sailors left the Congress; the rest were going to stay. '
           'Kameniev asked all in favour to hold up their cards. And thereupon the Congress was dissolved.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
-           "It was almost three o'clock in the morning when Holtzman came running."],
+           "It was almost three o'clock in the morning when Holtzman came running.",
+           'The hall rose, thundering.'],
 }
 
 
@@ -692,3 +693,66 @@ class Hall(unittest.TestCase):
         self.assertEqual(at('sailors', i2), [(7, None, 'gone')])
         self.assertEqual(at('red-guards', i2), [(20, None, 'gone')])
         self.assertEqual(at('red-guards', i2 + 1) + at('sailors', i2 + 1), [])
+
+    # the review's cases: each word, each combination the checker must refuse
+    def test_a_walkin_needs_its_words(self):
+        d = good(); s, *_ = self.add(d); s['present'][1]['walkin'] = True
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_a_walkout_is_not_brief_nor_a_walkin(self):
+        d = good(); _, l, *_ = self.add(d); l['present'][0]['brief'] = True
+        self.assertIn('field.range', errors(d))
+        d = good(); _, l, *_ = self.add(d); l['present'][0]['walkin'] = True
+        self.assertIn('field.range', errors(d))
+
+    def test_the_house_only_in_a_hall_and_its_own_scene(self):
+        d = good(); self.add(d); ev(d, 'dan-bell')['house'] = {'pose': 'vote', 'ref': {'sec': 'V', 'q': 'Kameniev asked all in favour to hold up their cards.'}}
+        self.assertIn('hall.none', errors(d))
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'stand', 'ref': {'sec': 'IX', 'q': 'The hall rose, thundering.'}}
+        self.assertIn('phrase.not-near', errors(d))
+
+    def test_the_speaker_is_named_as_a_whole_word(self):
+        d = good(); s, *_ = self.add(d); s['speaker'] = 'holtzman-p'
+        self.assertIn('presence.unnamed', errors(d))
+        d = good(); s, *_ = self.add(d)
+        d['people'].append({'id': 'kamen-p', 'factions': ['mrc-f'], 'name': 'Kamen', 'names': ['Kamen'], 'role': 'Nobody',
+                            'bio': {'source': 'ref1917', 'url': 'https://example.org/x', 'en': 'Not here.'}}); d['factions'][0]['members'].append('kamen-p')
+        s['speaker'] = 'kamen-p'
+        self.assertIn('presence.unnamed', errors(d))
+
+    def test_a_bad_bench(self):
+        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'gallery'
+        self.assertIn('field.enum', errors(d))
+        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = ['left']
+        self.assertIn('field.type', errors(d))
+
+    def test_part_needs_its_words_and_a_number(self):
+        d = good(); _, l, *_ = self.add(d); l['present'][0]['ref']['q'] = 'Fifty delegates got up and pushed their way out'; l['present'][0]['size'] = 'Fifty delegates'
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); _, l, *_ = self.add(d); del l['present'][0]['n']
+        self.assertIn('field.missing', errors(d))
+
+    def test_prop_needs_a_count(self):
+        d = good(); s, *_ = self.add(d); s['present'][0]['prop'] = 'the presidium'
+        self.assertIn('field.missing', errors(d))
+
+    def test_part_spans_without_a_number_and_with_all_of_them(self):
+        acts = [{'id': 'g', 'kind': 'party', 'bloc': 'opposition'}]
+        pls = [{'id': 'hall', 'kind': 'room'}]
+        evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 10}]},
+               {'id': 'b', 'loc': 'hall', 'present': [{'who': 'g', 'walkout': True, 'part': True}]},
+               {'id': 'c', 'loc': 'hall'}]
+        sp = L.presence_spans(evs, acts, pls)[0]
+        at = lambda i: sorted((s.get('n'), s['end_by'] or '') for s in sp if s['start'] <= i and (s['end'] is None or i < s['end']))
+        self.assertEqual(at(1), [(5, ''), (5, 'walkout')])   # half of them leave when Reed gives no number
+        self.assertEqual(at(2), [(5, '')])
+        evs[1]['present'][0]['n'] = 10                           # all of them: nobody is left behind
+        sp = L.presence_spans(evs, acts, pls)[0]
+        self.assertEqual(at(2), [])
+
+    def test_all_ends_the_others_without_its_own(self):
+        d = good(); s, *_ = self.add(d); s['present'] = s['present'][1:]   # the Red Guards never sat there
+        self.assertEqual(errors(d), [])
+        evs = L.sort_table('events', d['events']); ids = [e['id'] for e in evs]
+        sp = L.presence_spans(evs, d['actors'], d['places'])[0]
+        self.assertFalse([x for x in sp if x['place'] == 'hall' and (x['end'] is None or x['end'] > ids.index('over') + 1)])   # shown in its scene, gone after it

@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'house': DICT, 'all': BOOL,
+    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'house': DICT, 'all': BOOL, 'prop': STR,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
     'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
@@ -665,7 +665,7 @@ class Checker:
                     if 'say' in r:
                         self.say(r, near, where_, rw)
                     # the word checks read only fields of the right type (a wrong type is reported above)
-                    if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol')):
+                    if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'prop')):
                         continue
                     here = r.get('place', e.get('loc'))
                     if 'form' in r or 'march' in r:
@@ -676,8 +676,8 @@ class Checker:
                         self.facing(r, sup[2], rw, here)
                     if r.get('inside'):
                         self.indoors(r, sup[2], rw, here)
-                    if any(k in r for k in ('bench', 'walkout', 'walkin', 'part')) or r.get('pose') in L.HALL_POSES:
-                        self.in_hall(r, e, sup[2], rw)
+                    if any(k in r for k in ('bench', 'walkout', 'walkin', 'part', 'prop')) or r.get('pose') in L.HALL_POSES:
+                        self.in_hall(r, e, sup, rw)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -712,25 +712,30 @@ class Checker:
             F.err('field.range', hw, 'dims is [length, width] in metres, each 4 to 120')
         if 'axis' in h and not (isinstance(h['axis'], int) and 0 <= h['axis'] < 360):
             F.err('field.range', hw, 'axis is the bearing from the back of the hall to its platform, 0 to 359 degrees')
-        if 'plan' in h and h['plan'] not in L.ENUM['hall.plan']:
+        if 'plan' in h and (not isinstance(h['plan'], str) or h['plan'] not in L.ENUM['hall.plan']):
             F.err('field.enum', hw, f'plan {h["plan"]!r} is not one of {sorted(L.ENUM["hall.plan"])}')
         for i, f in enumerate(h.get('features', [])):
             fw = f'{hw}.features[{i}]'
             if not isinstance(f, dict) or not fields(F, f, 'feature', fw):
                 continue
-            if f.get('k') not in L.ENUM['hall.feature']:
+            if not isinstance(f.get('k'), str) or f['k'] not in L.ENUM['hall.feature']:
                 F.err('field.enum', fw, f'feature {f.get("k")!r} is not one of {sorted(L.ENUM["hall.feature"])}')
                 continue
             ref = f.get('ref')
             if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
                 F.err('field.missing', fw, 'ref: Reed\'s words for it')
                 continue
-            if self.quote_ok(ref.get('sec'), ref['q'], fw + '.ref') is not None and not re.search(L.FEATURE_WORDS[f['k']], ref['q'], re.I):
+            at = self.quote_ok(ref.get('sec'), ref['q'], fw + '.ref')
+            if at is None:
+                continue
+            if not re.search(L.FEATURE_WORDS[f['k']], ref['q'], re.I):
                 F.err('phrase.not-in-text', fw, f'{f["k"]}: the quote has no word for it ({L.FEATURE_WORDS[f["k"]]})')
+            elif not any(self.book.near(ref['sec'], at, n) for n in p.get('reed', []) if isinstance(n, str)):
+                F.err('presence.unnamed', fw, f'{f["k"]}: Reed does not name this hall ({", ".join(p.get("reed", []))}) within 1,500 characters of the quote')
 
-    def in_hall(self, r, e, text, where):
+    def in_hall(self, r, e, sup, where):
         """a body in a meeting-hall: where it sits, whether it walks out or in, each with Reed's words"""
-        F, here = self.F, r.get('place', e.get('loc'))
+        F, here, text = self.F, r.get('place', e.get('loc')), sup[2]
         hall = (self.P.get(here) or {}).get('hall')
         if not hall:
             F.err('hall.none', where, f'bench, walkout and walkin are for a body in a meeting-hall; {here!r} has no hall')
@@ -747,8 +752,15 @@ class Checker:
             F.err('field.range', where, 'a body walks out or walks in, not both')
         if r.get('walkout') and r.get('brief'):
             F.err('field.range', where, 'walkout already ends the body after its scene; drop brief')
-        if 'part' in r and not (r.get('walkout') and re.search(r'\bpart\b|some of|a few of|several of|half', text, re.I)):
-            F.err('phrase.not-in-text', where, 'part: only some of a body walking out, in Reed\'s words ("only part of")')
+        if 'part' in r and not (r.get('walkout') and re.search(L.PART_WORDS, text, re.I)):
+            F.err('phrase.not-in-text', where, f'part: only some of a body walking out, in Reed\'s words ({L.PART_WORDS})')
+        if r.get('part') and 'n' not in r:
+            F.err('field.missing', where, 'part: how many of them walk out (n, with size), so the rest can be drawn fewer by them')
+        if 'prop' in r:
+            if not re.search(r'\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred)\b', r.get('size') or '', re.I):
+                F.err('field.missing', where, 'prop: the size phrase is a count that sets the proportion ("14 Bolsheviki")')
+            elif not (re.search(re.escape(r['prop'].split()[-1]), text, re.I) or (sup[0] and sup[1] is not None and self.book.near(sup[0], sup[1], r['prop'].split()[-1]))):
+                F.err('phrase.not-near', where, f'prop {r["prop"]!r}: Reed does not name it within 1,500 characters of the passage')
 
     def house(self, e, w):
         """the whole hall's response in a scene: a hall pose, with Reed's words for it"""
@@ -763,8 +775,22 @@ class Checker:
         ref = h.get('ref')
         if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
             F.err('field.missing', hw, "ref: Reed's words for it")
-        elif self.quote_ok(ref.get('sec'), ref['q'], hw + '.ref') is not None and not re.search(L.POSE_WORDS[h['pose']], ref['q'], re.I):
+            return
+        at = self.quote_ok(ref.get('sec'), ref['q'], hw + '.ref')
+        if at is None:
+            return
+        if not re.search(L.POSE_WORDS[h['pose']], ref['q'], re.I):
             F.err('phrase.not-in-text', hw, f'pose {h["pose"]!r}: the quote has no word for it ({L.POSE_WORDS[h["pose"]]})')
+        # the scene's own moment: within 1,500 characters of the scene's quote, or of one of its other passages
+        here = []
+        for q in L.segments(e.get('q', '')):
+            if isinstance(q, str):
+                here += [(e.get('sec'), x) for x in self.book.find(e.get('sec'), q)[:1]]
+        for a in e.get('also', []):
+            if isinstance(a, dict) and isinstance(a.get('q'), str):
+                here += [(a.get('sec'), x) for x in self.book.find(a.get('sec'), a['q'])[:1]]
+        if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in here):
+            F.err('phrase.not-near', hw, "house: Reed's words for it are not within 1,500 characters of the scene's own passages")
 
     def speaker(self, e, pos, w):
         """the one at the tribune: a person in the Faction Map, named near the scene's passage, in a hall"""
@@ -778,7 +804,7 @@ class Checker:
         names = [L.norm(n).lower() for n in [per.get('name')] + list(per.get('names') or []) if isinstance(n, str)]
         names += [n.split()[-1] for n in names if ' ' in n]   # "Leon Trotzky": "Trotzky"
         t = self.book.secs.get(e.get('sec'), '').lower()
-        if pos is None or not any(n in t[max(0, pos - 1500): pos + 1500] for n in names):
+        if pos is None or not any(re.search(r'\b' + re.escape(n) + r'\b', t[max(0, pos - 1500): pos + 1500]) for n in names if n):
             F.err('presence.unnamed', w, f'speaker {pid}: Reed does not name them near this passage')
 
     def scene_text(self, e):

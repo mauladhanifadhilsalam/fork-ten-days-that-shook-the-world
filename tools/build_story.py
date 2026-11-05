@@ -682,7 +682,7 @@ for sp in spans:
         rec['ship'] = True
     else:
         rec['fig'], rec['n'] = figures(sp['who'], sp.get('size'), sp.get('n'))
-    for k in ('size', 'kit', 'say', 'inside', 'outside', 'bench'):
+    for k in ('size', 'prop', 'kit', 'say', 'inside', 'outside', 'bench'):
         if k in sp:
             rec[k] = sp[k]
     if sp.get('walkout') and sp['end_by'] == 'walkout':

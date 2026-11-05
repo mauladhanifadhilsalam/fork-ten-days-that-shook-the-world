@@ -7,14 +7,17 @@
 //   speaker   the scene's speaker not at the reading stand
 //   bench     a sample of someone walking across a bench, not along a row or an aisle
 //   wall      a sample of someone walking through the hall's walls (anywhere but the door)
-//   through   a sample of someone walking within 0.7 m of a person standing (who should have made way)
+//   through   a sample of someone walking within 0.7 m of a person of another body standing (who should have
+//             made way), not counting those still waiting to walk or done walking
+//   crowd     a sample of two people walking within 0.5 m of each other
+//   react     at the end, one of a body against the rising cheering or hooting, or one walking out or in doing so
 //   squeeze   a sample of someone passing within 0.7 m of one who stays seated in the same row: squeezing
 //             past their knees to the aisle (counted, not a failure: the row's other end had more in the way)
 //   exit      one walking out still in the hall at the end, or one walking in not in its seat
 //   frame     the camera's hall shots leaving out the hall (overview), the walkers' way (walk), or the
 //             speaker (front), in the part of the screen beside the card
-// Exits 1 on any seat, stand, platform, speaker, exit or frame finding, or more than 1% bench or wall samples,
-// or 3% through.
+// Exits 1 on any seat, stand, platform, speaker, exit, react or frame finding, or more than 1% bench or wall
+// samples, 3% through or 5% crowd.
 'use strict';
 const { open, sceneIds, ROOT } = require('./page');
 const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : d; }, phone = args.includes('--phone');
@@ -23,7 +26,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
   // the scenes set in a hall, from the built story
   const S = JSON.parse(require('fs').readFileSync(require('path').join(ROOT, 'build', 'story.json')));
   const ids = opt('--only') ? opt('--only').split(',') : S.events.filter(e => (S.places[e.loc] || {}).hall).map(e => e.id);
-  const T = { samples: 0, bench: 0, wall: 0, through: 0, squeeze: 0 }, hard = { seat: 0, stand: 0, platform: 0, speaker: 0, exit: 0, frame: 0 }, rows = [];
+  const T = { samples: 0, bench: 0, wall: 0, through: 0, squeeze: 0, crowd: 0 }, hard = { seat: 0, stand: 0, platform: 0, speaker: 0, exit: 0, react: 0, frame: 0 }, rows = [];
   for (const id of ids) {
     await page.evaluate((id) => { const td = window.__td; td.select(id, { instant: true }); td.finish(); td.still(); }, id);
     await page.waitForTimeout(300);
@@ -43,6 +46,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
         if (m.seat) {
           const ur = H.uf - m.seat.row * H.rp;
           if (Math.abs(u - ur) > 0.05 || Math.abs(v - H.blocks[m.seat.block]) > H.bw / 2) out.seat.push(g.label + ' off its bench');
+          if (u > H.L / 2 - H.Dp - 0.9 || u < -H.L / 2 + 1 || Math.abs(v) > H.W / 2 - 1.8) out.seat.push(g.label + ' seated off the floor of the benches');
         } else if (m.home.hy < 1 && (onBench(u, v) || Math.abs(u) > H.L / 2 || Math.abs(v) > H.W / 2)) out.stand.push(g.label);
       }));
       for (let i = 0; i < still.length; i++) for (let j = i + 1; j < still.length; j++) if (Math.hypot(still[i][0] - still[j][0], still[i][1] - still[j][1]) < 0.9) out.seat.push(still[i][2] + ' on ' + still[j][2]);
@@ -71,7 +75,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       return bad;
     });
     // the walks, sampled as the hall's clock runs from the start
-    await page.evaluate(() => { window.__td.hallGo(0); window.__hv = { samples: 0, bench: 0, wall: 0, through: 0, squeeze: 0, who: {} }; });
+    await page.evaluate(() => { window.__td.hallGo(0); window.__hv = { samples: 0, bench: 0, wall: 0, through: 0, squeeze: 0, crowd: 0, who: {} }; });
     const secs = Math.min(60, st.walkEnd + 2);
     for (let k = 0; k < secs * 10; k++) {
       await page.waitForTimeout(100);
@@ -87,7 +91,8 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
           const inHall = Math.abs(u) < H.L / 2 && Math.abs(v) < H.W / 2, atDoor = Math.abs(v) < 1.3 && u < -H.L / 2 + 0.6;
           if (!inHall && !atDoor) { V.wall++; V.who[w.g.label + ' wall'] = (V.who[w.g.label + ' wall'] || 0) + 1; }
           let near = null;
-          others.forEach(o => { if (!near && Math.hypot(o.p[0] - u, o.p[1] - v) < 0.7 && Math.abs((o.m.hy || 0) - (w.m.hy || 0)) < 1) near = o; });
+          others.forEach(o => { if (!near && o.g !== w.g && !o.m.walkPath && Math.hypot(o.p[0] - u, o.p[1] - v) < 0.7 && Math.abs((o.m.hy || 0) - (w.m.hy || 0)) < 1) near = o; });
+          if (walkers.some(x => x !== w && Math.hypot(x.p[0] - u, x.p[1] - v) < 0.5)) { V.crowd++; V.who[w.g.label + ' crowd'] = (V.who[w.g.label + ' crowd'] || 0) + 1; }
           if (near) {
             const sq = near.m.seat && w.m.home && w.m.home.u != null && Math.abs(near.m.seat.u + 0.7 - u) < 0.6;
             if (sq) V.squeeze++; else { V.through++; const k = w.g.label + ' through ' + near.g.label; V.who[k] = (V.who[k] || 0) + 1; }
@@ -96,25 +101,27 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       });
     }
     const v = await page.evaluate(() => {
-      const td = window.__td, H = td.hall(), out = window.__hv; out.exit = [];
+      const td = window.__td, H = td.hall(), out = window.__hv; out.exit = []; out.react = [];
       td.groups().filter(g => g.hall).forEach(g => g.members.forEach(m => {
         if (m.leave && !m.gone) out.exit.push(g.label + ' still in the hall');
+        if ((m.pose === 'cheer' || m.pose === 'jeer') && (g.bloc !== 'soviet' || m.walkPath)) out.react.push(g.label + ' ' + m.pose + 's');
         if (m.enter && (m.gone || m.walk || Math.hypot(m.x - (H.c[0] + H.f[0] * m.home.u + H.lf[0] * m.home.v), m.y - (H.c[1] + H.f[1] * m.home.u + H.lf[1] * m.home.v)) > 0.1)) out.exit.push(g.label + ' not in its seat');
       }));
       return out;
     });
-    ['samples', 'bench', 'wall', 'through', 'squeeze'].forEach(k => { T[k] += v[k]; });
+    ['samples', 'bench', 'wall', 'through', 'squeeze', 'crowd'].forEach(k => { T[k] += v[k]; });
+    hard.react += v.react.length;
     hard.seat += st.seat.length; hard.stand += st.stand.length; hard.platform += st.platform.length; hard.speaker += st.speaker.length; hard.exit += v.exit.length; hard.frame += fr.length;
-    rows.push(`${id}: ${st.n} in the hall; walking samples ${v.samples}: bench ${v.bench}, wall ${v.wall}, through ${v.through}, squeeze ${v.squeeze}`
-      + [].concat(st.seat.slice(0, 3), st.stand.slice(0, 3), st.platform.slice(0, 3), st.speaker, v.exit.slice(0, 3), fr).map(x => '\n    ' + x).join('')
+    rows.push(`${id}: ${st.n} in the hall; walking samples ${v.samples}: bench ${v.bench}, wall ${v.wall}, through ${v.through}, squeeze ${v.squeeze}, crowd ${v.crowd}`
+      + [].concat(st.seat.slice(0, 3), st.stand.slice(0, 3), st.platform.slice(0, 3), st.speaker, v.exit.slice(0, 3), v.react.slice(0, 3), fr).map(x => '\n    ' + x).join('')
       + Object.keys(v.who).sort((a, b) => v.who[b] - v.who[a]).slice(0, 4).map(k => `\n    ${k}: ${v.who[k]}`).join(''));
   }
   rows.forEach(r => console.log(r));
   const pc = k => T.samples ? T[k] / T.samples : 0;
-  console.log(`\n${ids.length} hall scenes${phone ? ' (phone)' : ''}; walking samples ${T.samples}: bench ${(100 * pc('bench')).toFixed(1)}%, wall ${(100 * pc('wall')).toFixed(1)}%, through ${(100 * pc('through')).toFixed(1)}%, squeeze ${(100 * pc('squeeze')).toFixed(1)}%`);
-  console.log(`seat ${hard.seat}, stand ${hard.stand}, platform ${hard.platform}, speaker ${hard.speaker}, exit ${hard.exit}, frame ${hard.frame}`);
+  console.log(`\n${ids.length} hall scenes${phone ? ' (phone)' : ''}; walking samples ${T.samples}: bench ${(100 * pc('bench')).toFixed(1)}%, wall ${(100 * pc('wall')).toFixed(1)}%, through ${(100 * pc('through')).toFixed(1)}%, crowd ${(100 * pc('crowd')).toFixed(1)}%, squeeze ${(100 * pc('squeeze')).toFixed(1)}%`);
+  console.log(`seat ${hard.seat}, stand ${hard.stand}, platform ${hard.platform}, speaker ${hard.speaker}, exit ${hard.exit}, react ${hard.react}, frame ${hard.frame}`);
   console.log('page errors:', errors.length ? errors.slice(0, 5).join(' | ') : 'none');
   await close();
-  const fail = errors.length || Object.values(hard).some(n => n) || pc('bench') > 0.01 || pc('wall') > 0.01 || pc('through') > 0.03;
+  const fail = errors.length || Object.values(hard).some(n => n) || pc('bench') > 0.01 || pc('wall') > 0.01 || pc('through') > 0.03 || pc('crowd') > 0.05;
   process.exit(fail ? 1 : 0);
 })();
