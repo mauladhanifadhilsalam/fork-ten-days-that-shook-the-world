@@ -14,7 +14,7 @@ const args = process.argv.slice(2), phone = args.includes('--phone'), oi = args.
   for (const id of ids) {
     await stage(page, id, 700);
     const r = await page.evaluate(() => {
-      const td = window.__td, cam = td.camera, cur = td.cur(), W = innerWidth, H = innerHeight, v = new cam.position.constructor();
+      const td = window.__td, _cm = td.camera.updateMatrixWorld(), cam = td.camera, cur = td.cur(), W = innerWidth, H = innerHeight, v = new cam.position.constructor();
       const pr = document.getElementById('panel').getBoundingClientRect(), narrow = W <= 760;
       const box = narrow ? [0, W, 0, pr.height ? pr.top : H] : [0, W - pr.width, 0, H];
       return td.groups().filter(g => g.members && g.members.length && !g.inside && !g.ship && (g.reed || (g.p && g.p.ev === cur.id))).map(g => {

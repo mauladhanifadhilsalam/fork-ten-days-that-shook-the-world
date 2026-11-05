@@ -25,7 +25,7 @@ const args = process.argv.slice(2), opt = (k) => { const i = args.indexOf(k); re
   for (const id of ids) {
     await stage(page, id, 500);
     res[id] = await page.evaluate(() => {
-      const td = window.__td, cam = td.camera.position, tg = td.controls.target, camD = cam.distanceTo(tg), FS = Math.max(2, Math.min(7, camD / 85));
+      const td = window.__td, _cm = td.camera.updateMatrixWorld(), cam = td.camera.position, tg = td.controls.target, camD = cam.distanceTo(tg), FS = Math.max(2, Math.min(7, camD / 85));
       const B = td.bgrid(), inRing = td.inRing, fr = td.frame() || { x: tg.x, y: -tg.z };
       const scaleOf = td.figScale || ((m, F) => (m.room && m.ox == null ? Math.min(F, Math.max(2, m.room / 0.8)) : F));
       function heightAt(x, y) {

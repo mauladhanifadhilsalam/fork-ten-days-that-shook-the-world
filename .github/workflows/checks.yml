@@ -1,0 +1,76 @@
+# The data checks and the page checks, on every push and pull request.
+# data: Reed's text (Gutenberg #3076, pinned by hash), the checker, the formatter and the unit tests.
+# page: the committed index.html must be what src/app.html builds; then each audit in tools/audit plays
+# the page in headless Chromium, offline, with three.js served from copies pinned by hash
+# (tools/audit/vendor.json). Each audit is its own job, so they run side by side; the longest takes
+# under an hour.
+name: checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  data:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: cache/sections.json
+          key: reed-text-${{ hashFiles('tools/text.py') }}
+      - name: Reed's text
+        run: test -f cache/sections.json || python3 -I tools/text.py cache
+      - name: Checker
+        run: python3 -I tools/check_story.py --strict
+      - name: Formatter
+        run: python3 -I tools/fmt_story.py --check data
+      - name: Unit tests
+        run: python3 -I -m unittest discover -s tests
+
+  page:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        audit:
+          - smoke.js
+          - crowds.js
+          - frames.js
+          - frames.js --phone
+          - vehicles.js
+          - motion.js
+          - camera.js
+          - camera.js --phone --step 2
+    name: page (${{ matrix.audit }})
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: index.html is built from src/
+        run: |
+          python3 -I tools/bundle.py build/map.json build/story.json src/app.html /tmp/out
+          cmp /tmp/out/index.html index.html || { echo "index.html is not what src/app.html builds: run tools/build.sh --bundle"; exit 1; }
+      - uses: actions/cache@v4
+        with:
+          path: cache/vendor
+          key: vendor-${{ hashFiles('tools/audit/vendor.json') }}
+      - name: Pinned copies of the page's scripts
+        run: python3 -I tools/audit/vendor.py
+      - name: Playwright and Chromium
+        run: |
+          npm install --no-save --no-package-lock playwright@1.63.0
+          npx playwright install --with-deps chromium
+      - name: Audit
+        env:
+          TENDAYS_OFFLINE: '1'
+        run: node tools/audit/${{ matrix.audit }}

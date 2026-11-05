@@ -1,0 +1,12 @@
+{
+ "note": "The files the page loads from jsDelivr, pinned by SHA-256. tools/audit/vendor.py fetches them into cache/vendor/; the audit browser serves them from there, so the checks run offline and always on the same three.js.",
+ "files": [
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js", "sha256": "f34446bf875b5fb0dcd93819ffe1d9e182d46634ee855f5d904c6c4ac7cdbc95"},
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js", "sha256": "b4c6e53f98538535b11fd6655627d47fb5877b3ad972568bff0a7026c4b6d5c4"},
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/lines/LineSegmentsGeometry.js", "sha256": "3d26374757e175cae78efc863294b132bbfeff39214b8c03424f70d3a4d454f3"},
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/lines/LineGeometry.js", "sha256": "b8597c1a3a00e746c0928e0d4e945a932e6fb0bd876c837bd73f78e4ec01c0c8"},
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/lines/LineMaterial.js", "sha256": "d8c893e2083e632fd3c50c85ee6d75adef3f12a113c6b5b571a1cd4f6a5d4b7f"},
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/lines/LineSegments2.js", "sha256": "281c6bc39497492714b91eb9f23b4eb2d7f066f92463e5ed898fabb94fc73d2b"},
+  {"url": "https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/lines/Line2.js", "sha256": "69ea3dedbb6d7282006e00741ae41f85672b05aa130a6d6da4f176d9535c44cd"}
+ ]
+}

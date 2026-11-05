@@ -4,14 +4,29 @@
 the page. These scripts do: they serve the built page (`index.html` and `media/` at the repo root) on a
 free local port, open it in headless Chromium with `?debug`, and drive it through `window.__td`. Run them
 after `tools/build.sh --bundle`, from the repo root. They need Node and Playwright with Chromium
-(`npm install playwright && npx playwright install chromium`); `sheet.py` needs Pillow. The page loads
-three.js and its fonts from the network, as it does for a reader.
+(`npm install playwright && npx playwright install chromium`); `sheet.py` needs Pillow.
+
+The page loads three.js from jsDelivr and its fonts from Google. `python3 -I tools/audit/vendor.py` fetches
+the scripts once into `cache/vendor/`, each checked against the SHA-256 pinned in `vendor.json` (and checks
+that `vendor.json` pins every script `src/app.html` loads); the audit browser then serves them from there.
+With `TENDAYS_OFFLINE=1` nothing leaves the machine: any outside request is refused and counted as an
+error, fonts aside (they change only the look).
+
+Headless Chromium draws this page at about four frames a second, which stretches every walk, fight and
+camera move (the page caps a frame's step at a quarter of a second). `vehicles.js`, `motion.js` and
+`camera.js` therefore open the page with `norender`: its clock runs at full speed and nothing is drawn.
+They play each scene from the one before, as a reader comes to it, and never call `finish()`, which puts
+everybody at their end and so hides whatever goes wrong on the way. `.github/workflows/checks.yml` runs the data checks and
+every audit below this way on each push, the audits side by side.
 
 | Script | What it checks or makes | Exit |
 |---|---|---|
 | `node tools/audit/smoke.js` | every scene, chosen from the timeline as a reader would: page errors, failed requests, figures or a camera with a coordinate that is not a number | 1 on any |
 | `node tools/audit/crowds.js` | how the people stand in every scene, seen from its own close frame (below) | 1 past the limits |
 | `node tools/audit/frames.js [--phone]` | each scene's own bodies (those it brings in, and Reed) on screen in its close frame: left of the card on a desktop, above the sheet on a phone | 1 if more than 2% are off (5% on a phone) |
+| `node tools/audit/vehicles.js` | every scene with a vehicle moving, played at its own pace: someone inside a moving vehicle's outline, the vehicle overlapping a gun, barricade or other vehicle, the vehicle held up, a vehicle still short of its end after its walk | 1 past 2.5%, 1%, 15% of samples, or any vehicle left behind |
+| `node tools/audit/motion.js` | every scene where a fight is acted out, played: people on the move (coming up, running off, a sortie, stepping out of a car's way) standing in a building or walking through another body | 1 past 1%, 3% of samples |
+| `node tools/audit/camera.js [--phone] [--step N]` | every scene played: how close the camera ends and how much of the time it is close; in each close shot, the share of its people on screen; close shots the scene's time would cut short in Play | 1 if under 90% end close, over 5% of close-shot samples leave people off, or any scene cuts its shots |
 | `node tools/audit/shot.js OUTDIR [--phone] ID...` | screenshots: each scene in its own close frame; `--close 110 ID[:WHO[:PLACE]]` close up over a body; `--play ID` the scene played at its own pace, the camera following | 1 on page errors |
 | `python3 -I tools/audit/sheet.py SHOTDIR OUTDIR` | contact sheets, six scenes to a sheet, for looking through the whole tour | |
 
@@ -37,12 +52,16 @@ or are hidden, or two or more stand in another body. It fails if any member stan
 body is drawn short, or more than 1% of all figures run together, 1% stand in a wall, or 8% are hidden.
 
 The scenes are taken in tour order from the first, because a frame depends a little on where the camera
-comes from: the numbers repeat only along the same path. With the fights acted out (the commit after
-`c41083f`; the scripts measure each scene at its end, after `finish()`), over 131 scenes and 6,015 figures
-standing in the open: 26 closer than 1.3 m, 14 run together (all in columns of fours), 22 in a wall, 307
-hidden (5.1%, most in reported scenes framed from 500 m or more), none in another body, no body drawn
-short. `frames.js`: 38 of the 4,146 members of the scenes' own bodies are off the clear screen on a
-desktop (0.9%), 116 on a phone (2.8%).
+comes from: the numbers repeat only along the same path. On the build after the second review's fixes,
+over 131 scenes and 6,015 figures standing in the open: 26 closer than 1.3 m, 14 run together (all in
+columns of fours), 22 in a wall, 289 hidden (4.8%), none in another body, no body drawn short.
+`frames.js`: 38 of the 4,146 members of the scenes' own bodies off the clear screen on a desktop (0.9%), 88 on
+a phone (2.1%). `vehicles.js`: 14 scenes, someone inside a moving vehicle in 0.4% of 994 samples, a vehicle
+overlapping something in 0.2%, held in 8.8%, none left behind its walk. `motion.js`: 19 scenes, 0.4% of the
+samples of people moving in a wall, 0.3% through another body. `camera.js`: the camera ends a median 136 m
+off (128 of 130 scenes within 250 m; the other two are rides that leave the drawn city), every close shot
+with at least 70% of its people on screen in all but 4 of 1,128 samples; on a phone (every other scene) a
+median 215 m, 12 of 534 samples under 70%, the wide bodies seen in part.
 
 `shot.js --film ID` takes a scene as it plays (at 2, 6, 10, 14 and 18 s): the way to look at a fight.
 

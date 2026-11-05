@@ -55,7 +55,9 @@ tools/fetch_portraits.py  the Faction Map's portraits from Wikimedia Commons, pu
 tools/storylib.py      shared schema, layout, quote normalisation, date and time parsers, geometry, sun
 tests/test_check.py    one failing fixture per error code, plus mutation tests on the real data
 tests/test_page.py     the page's script: no top-level name declared twice (one silently replaces the other)
-tools/audit/           the page in a headless browser: every scene for errors, how its people stand, screenshots
+tools/audit/           the page in a headless browser: every scene for errors, how its people stand and move, the
+                       vehicles, the camera, screenshots; offline with pinned copies of three.js (vendor.py)
+.github/workflows/     the data checks and every page audit on each push
 
 tools/mapconf.py       the 3D extent, the projection, and the bridges that did not stand in 1917
 tools/fetch_osm.py     OSM API tiles over the city core, plus every water relation they touch -> cache/
@@ -156,6 +158,10 @@ tools/build.sh --bundle
 ```
 
 Then check the page itself in a headless browser (Node and Playwright; see `tools/audit/README.md`): every scene for errors, then how the people stand in each, from its own camera:
+
+```bash
+python3 -I tools/audit/vendor.py
+```
 
 ```bash
 node tools/audit/smoke.js
