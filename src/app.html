@@ -1929,9 +1929,10 @@ function drawMover(mv, FS, t) {
   if (mv.fileOn) head = mv.f * (o.total + (Math.ceil(mv.list.length / cols) + gunRows) * gap * (mv.cav ? 2.2 : 1));   // on through its end, and gone
   if (mv.veh) {
     var vk = mv.veh, dtv = Math.min(0.25, Math.max(0, t - (mv.vt || t))); mv.vt = t;
-    if (mv.vd == null) { mv.vd = clearStart(o, head, vk); mv.side = 0; mv.vyaw = null; }   // where it waits: past the guns at the door, if it sets out among them
+    if (mv.vd == null) { mv.vd = mv.atEnd ? head : clearStart(o, head, vk); mv.side = 0; mv.vyaw = null; }   // where it waits: past the guns at the door, if it sets out among them; at the journey's end once the walk is over
     else if (head > mv.vd) {   // where the walk has it; it goes there unless someone or something is in its way, and makes up the time after
-      var rate = mv.wPrev != null && dtv > 0 ? (head - mv.wPrev) / dtv : 0, next = Math.min(head, mv.vd + Math.max(9, rate * 1.4) * dtv);
+      // where the walk has stopped (its end) and it is still short of it: on at 50 km/h, not at the walk's pace
+      var rate = mv.wPrev != null && dtv > 0 ? (head - mv.wPrev) / dtv : 0, next = Math.min(head, mv.vd + Math.max(rate > 0.5 ? 9 : 14, rate * 1.4) * dtv);
       var c0 = alongPath(o, mv.vd, 0), ux = Math.sin(c0[2]), uy = -Math.cos(c0[2]), stop = ((HALF_LEN[vk] || 2.4) + 0.8) * clearScale(FS);
       var steer = steerRound(c0[0], c0[1], ux, uy, mv.side || 0, 25, vk, FS, null, function (sd) {
         return [0, 6, 12, 20].every(function (a) { var q = alongPath(o, Math.min(o.total, mv.vd + a), sd); return !wallAt(q[0], q[1]); });
@@ -1946,6 +1947,7 @@ function drawMover(mv, FS, t) {
       if (Math.abs(steer.side - mv.side) > 0.5) { var tg = alongPath(o, mv.vd, steer.side); makeWay(tg[0] - ux * stop, tg[1] - uy * stop, ux, uy, stop * 2, FS, t, mv); }   // and the line it is moving over to
       var way = inTheWay(here[0], here[1], ux, uy, next - mv.vd + stop + 0.5, FS, mv);
       if (way.along < Infinity) next = Math.min(next, Math.max(mv.vd, mv.vd + way.along - stop));
+      if (next > mv.vd) { var cand = alongPath(o, next, mv.side), inn = inOutline(cand[0], cand[1], Math.sin(cand[2]), -Math.cos(cand[2]), vk, FS); if (inn.length) { next = mv.vd; askAside(inn, ux, uy, FS, t); way.list = way.list.concat(inn); } }
       if (next - mv.vd < 0.05 && head - mv.vd > 0.5) { mv.held = (mv.held || 0) + dtv; mv.why = way.list; if (mv.held > 1 && way.list.length) askAside(way.list, ux, uy, FS, t); } else mv.held = 0;
       mv.vd = next;
     }
@@ -2274,6 +2276,7 @@ function armFights() {
     if (!g.members) { g.fire = null; g.assault = null; g.patrol = false; return; }   // a ship: nothing to fire with
     if (g.fire === true && !g.assault && cur && (besiegedIn(g, cur.t) || (g.inside && !kitHas(g.kit, 'barricade')))) g.fire = 'windows';   // a body storming it is outside
     if (g.fire === 'windows' && !windowsOf(g, foeOf(g))) g.fire = null;
+    if (g.fire === 'windows') g.foe = foeOf(g);   // whom the windows fire at (the relief they wait for)
   });
   GROUPS.forEach(hoist);   // once it is known who is inside: the white flag at a window
   // besiegers keep their barricades between them and the walls when they are not firing too ("who lay
@@ -2366,7 +2369,10 @@ function patrolStep(g, pr, t, dt, FS) {
   var way = inTheWay(px0, py0, tux, tuy, stop + (dt || 0) * 2.8 + 0.5, FS || 2, null);
   if (steer.guns.length && (steer.stopAt < 1 || steer.slow)) wheelAside(steer.guns, tux, tuy, t);
   if (way.along < stop + (dt || 0) * 2.8 || steer.stopAt < (dt || 0) * 2.8) { pr.held = (pr.held || 0) + (dt || 0); if (pr.held > 1 && way.list.length) askAside(way.list, tux, tuy, FS || 2, t); }
-  else { pr.held = 0; pr.u = (pr.u + (dt || 0) * (steer.slow ? 1.4 : 2.8)) % (2 * L); }
+  else {
+    var u1 = (pr.u + (dt || 0) * (steer.slow ? 1.4 : 2.8)) % (2 * L), s1 = u1 < L ? u1 : 2 * L - u1, q1 = spineAt(P, s1), inn = inOutline(q1[0] - q1[3] * (pr.side || 0), q1[1] + q1[2] * (pr.side || 0), q1[2] * dir, q1[3] * dir, pr.k, FS || 2);
+    if (inn.length) { pr.held = (pr.held || 0) + (dt || 0); askAside(inn, tux, tuy, FS || 2, t); } else { pr.held = 0; pr.u = u1; }
+  }
   var u = pr.u, s = u < L ? u : 2 * L - u, q = spineAt(P, s), sd2 = pr.side || 0;
   q = [q[0] - q[3] * sd2, q[1] + q[2] * sd2, q[2], q[3]];
   clearAround(q[0], q[1], q[2], q[3], pr.k, FS || 2, t);
@@ -2383,7 +2389,9 @@ function assault(g, t, dt) {
   if (t >= A.next && free.length) {
     var k = carried ? Math.min(free.length, 5 + Math.floor(Math.random() * 6)) : Math.min(free.length, Math.max(4, Math.round(free.length * 0.3)));   // carried: a stream of them at once ("the eager wave of men")
     free.sort(function () { return Math.random() - 0.5; }).slice(0, k).forEach(function (m) {
-      var T = m.T, gx = T.x + (Math.random() - 0.5) * T.r, gy = T.y + (Math.random() - 0.5) * T.r, L = Math.hypot(gx - m.hx, gy - m.hy) || 1, stop = Math.min(T.wall ? 0.6 : 3, L * 0.5);
+      var T = m.T, gx = T.x + (Math.random() - 0.5) * T.r, gy = T.y + (Math.random() - 0.5) * T.r;
+      if (!carried) for (var bk = 0; bk < 20 && wallAt(gx, gy); bk++) { gx += (m.hx - gx) * 0.1; gy += (m.hy - gy) * 0.1; }   // a wave that is thrown back runs at the wall, not into it
+      var L = Math.hypot(gx - m.hx, gy - m.hy) || 1, stop = Math.min(T.wall ? 0.6 : 3, L * 0.5);
       if (L - stop < 1) return;   // already there
       m.run = { t0: t + Math.random() * 0.8, gx: m.hx + (gx - m.hx) * (L - stop) / L, gy: m.hy + (gy - m.hy) * (L - stop) / L, L: L - stop, out: 1,
         fall: !carried && A.dead < g.members.length * 0.35 && Math.random() < 0.45 ? 0.3 + Math.random() * 0.55 : 0, back: 0.5 + Math.random() * 0.35 };
@@ -2427,9 +2435,18 @@ function assault(g, t, dt) {
 // The motion is the map's; who is there, whom they fire at and what becomes of them are Reed's.
 var PARLEY_RE = /ultimatum|gave the \w+ \w+ minutes|minutes to lay down/i, SORTIE_RE = /driven back|beaten back|forced back/i,
   ARRIVE_RE = /(field-pieces|field-guns?|guns?|cannon|armou?red (car|automobile)s?)[^.]{0,40}\b(arrived|appeared|came up|were brought up|rolled up)|\b(brought up|arrived with|appeared with)[^.]{0,30}(field-pieces|guns?|cannon|armou?red cars?)/i,
-  VEH_SPEED = { gun: 1.3, mg: 1.3, armoured: 3.0, truck: 3.4, car: 3.4 },   // how fast each comes up, m/s: guns hauled by their crews (not VEH: that is a move's vehicle)
+  VEH_SPEED = { gun: 1.5, mg: 1.5, armoured: 3.0, truck: 3.4, car: 3.4 },   // how fast each comes up, m/s: guns hauled by their crews (not VEH: that is a move's vehicle)
   CARRUSH_RE = /closing (a)?round the|rushed into the|leaped up and rushed/i;
-var ENG = { t0: 0, dur: 0 };
+var ENG = { t0: 0, dur: 0 }, ENG_GRID = {};
+// is (x, y) within a metre of someone of another body standing still (those who run off are not counted)?
+function engBlocked(x, y, g) {
+  var gx = Math.floor(x / 4), gy = Math.floor(y / 4);
+  for (var oy = -1; oy <= 1; oy++) for (var ox = -1; ox <= 1; ox++) {
+    var L = ENG_GRID[(gx + ox) + ',' + (gy + oy)]; if (!L) continue;
+    for (var i = 0; i < L.length; i++) if (L[i][2] !== g && Math.abs(L[i][0] - x) < 1.2 && Math.abs(L[i][1] - y) < 1.2) return true;
+  }
+  return false;
+}
 function engNow() { return performance.now() / 1000; }
 function engOn(g, t) { return !!(g.eng && t < g.eng.t0 + g.eng.dur); }
 // where the body is going: what it fires at or storms, or the building it takes, or its place
@@ -2462,6 +2479,10 @@ function engDir(g, G, T, D) {
 // a gun, machine gun or car comes up the same way, its crew with it (an armoured car's is inside it)
 function propIn(g, G, pr, c, D, delay) {
   var sp = VEH_SPEED[pr.k]; if (!sp || pr.ship) return 0;
+  if (pr.path) {   // it patrols after: it drives up onto its patrol line, not to a spot beside it
+    var bq = null, bd = 1e9; pr.path.p.forEach(function (q) { var dq = Math.hypot(q[0] - pr.x, q[1] - pr.y); if (dq < bd) { bd = dq; bq = q; } });
+    if (bq) { pr.x = bq[0]; pr.y = bq[1]; }
+  }
   var lx = -c[1], ly = c[0], w = pr.k === 'gun' || pr.k === 'mg' ? 0.8 : 1.6;   // room for its width
   var d = Math.min(freeRun(G, pr.x, pr.y, c[0], c[1], D), freeRun(G, pr.x + lx * w, pr.y + ly * w, c[0], c[1], D), freeRun(G, pr.x - lx * w, pr.y - ly * w, c[0], c[1], D));
   if (VEH_SPEED[pr.k] && HALF_LEN[pr.k]) {   // a car starts where nobody stands
@@ -2489,16 +2510,21 @@ function propsIn(g, G, dir, D, only) {
 function engIn(g, G, mode, D, delay) {
   var T = engTarget(g), dir = engDir(g, G, T, D), n = 0, dur = 0;
   if (!dir && !g.secs) return propsIn(g, G, null, D);
+  // its cars first: the men keep out of the lanes the cars come up by (they come from this side of them)
+  var pdur = propsIn(g, G, dir, D), lanes = (g.props || []).filter(function (pr) { return pr.ein && HALF_LEN[pr.k]; }).map(function (pr) { return [pr.ein.sx, pr.ein.sy, pr.ein.hx, pr.ein.hy, ((HALF_W[pr.k] || 1) + 0.6) * 2]; });
+  function inLane(x, y) { return lanes.some(function (l) { return segDist(x, y, l[0], l[1], l[2], l[3]) < l[4]; }); }
   g.members.forEach(function (m, i) {
     if (m.ox != null || m.dead) return;   // a gun's crew stays at its gun
     var c = dir;
     if (m.sec) { var vx = m.x - m.sec.wx, vy = m.y - m.sec.wy, vl = Math.hypot(vx, vy) || 1; c = [vx / vl, vy / vl]; }   // a ring closes in on the building
-    var d = freeRun(G, m.x, m.y, c[0], c[1], D) * (0.8 + 0.2 * hash(g.seed + i * 1.7)); if (d < 3) return;
+    var d = freeRun(G, m.x, m.y, c[0], c[1], D) * (0.8 + 0.2 * hash(g.seed + i * 1.7));
+    for (var dd = 1; dd <= d; dd += 1) if (engBlocked(m.x + c[0] * dd, m.y + c[1] * dd, g) || inLane(m.x + c[0] * dd, m.y + c[1] * dd)) { d = dd - 1.5; break; }   // not through another body, nor a car's lane: it comes from this side of them
+    if (d < 3) return;
     m.ein = { sx: m.x + c[0] * d, sy: m.y + c[1] * d, L: d, mode: mode, delay: (delay || 0) + hash(g.seed + i * 2.3) * (mode === 'rush' ? 2.5 : 1.4) };
     var sp = mode === 'rush' ? 3.1 : mode === 'march' ? 2.4 : 1.3;   // a rush makes 10 m in 3.2 s
     dur = Math.max(dur, m.ein.delay + d / sp); n++;
   });
-  return Math.max(n ? dur : 0, propsIn(g, G, dir, D));
+  return Math.max(n ? dur : 0, pdur);
 }
 function stageEngagements(e, idx) {
   var t0 = engNow() + 1.4, text = sceneText(e), ctlTo = {};
@@ -2514,6 +2540,12 @@ function stageEngagements(e, idx) {
     });
     g.eng = null;
   });
+  ENG_GRID = {};
+  GROUPS.forEach(function (g) {
+    if (!g.members || g.ship || g.inside || g.flee) return;
+    g.members.forEach(function (m) { if (m.gone) return; var k = Math.floor(m.x / 4) + ',' + Math.floor(m.y / 4); (ENG_GRID[k] = ENG_GRID[k] || []).push([m.x, m.y, g]); });
+    (g.props || []).forEach(function (pr) { if (!pr.ship && OBST[pr.k]) { var k = Math.floor(pr.x / 4) + ',' + Math.floor(pr.y / 4); (ENG_GRID[k] = ENG_GRID[k] || []).push([pr.x, pr.y, g]); } });
+  });
   var dur = 0;
   GROUPS.forEach(function (g) {
     if (!g.members || !g.members.length || g.ship || g.reed || g.inside || g.ride) return;
@@ -2523,21 +2555,25 @@ function stageEngagements(e, idx) {
     if (g.pose === 'fallen' && newHere(g)) {
       var shotAt = GROUPS.some(function (h) { return h !== g && h.fire && (h.at === g.who || h.at === g.place) && opposed(h.bloc, g.bloc); });
       var carIn = GROUPS.filter(function (h) { return h !== g && h.arrival && rootOf(h.place) === here; })[0];
-      if (shotAt) { d = engIn(g, G, 'walk', 26, 0); g.members.forEach(function (m) { if (m.ein) { m.apose = 'fallen'; m.pose = null; } }); }
+      if (shotAt) {
+        d = engIn(g, G, 'walk', 26, 0); var first = Infinity;
+        g.members.forEach(function (m) { if (m.ein) { m.apose = 'fallen'; m.pose = null; first = Math.min(first, m.ein.delay + m.ein.L / 1.3); } });
+        if (d) g.engFirst = first;
+      }
       else if (carIn) g.members.forEach(function (m, i) { m.efall = { by: carIn, after: 2.5 + hash(g.seed + i) * 1.5 }; m.pose = null; m.yaw = facingYaw(m.x, m.y, carIn.cx, carIn.cy); });
     } else if (newHere(g) && g.brief && PARLEY_RE.test(text) && holderBloc(here, e.t) && opposed(holderBloc(here, e.t), g.bloc)) {
-      d = engIn(g, G, 'walk', 28, 0);
+      d = engIn(g, G, 'walk', 18, 0);
       var bl = outlinesOf(here), door = bl.length ? nearestOn(bl, g.cx, g.cy) : null;
       if (door && door.d < 120) g.members.filter(function (m) { return m.ox == null; }).sort(function (a, b) { return Math.hypot(a.ax - door.x, a.ay - door.y) - Math.hypot(b.ax - door.x, b.ay - door.y); }).slice(0, 3).forEach(function (m, k) {
-        var L = Math.hypot(door.x - m.ax, door.y - m.ay) - 2.5; if (L > 3) m.env = { gx: m.ax + (door.x - m.ax) * L / (L + 2.5) + (k - 1) * 1.1, gy: m.ay + (door.y - m.ay) * L / (L + 2.5), L: L, at: d + 1 + k * 0.4 };
+        var L = Math.hypot(door.x - m.ax, door.y - m.ay) - 2.5; if (L > 3) m.env = { gx: m.ax + (door.x - m.ax) * L / (L + 2.5) + (k - 1) * 1.1, gy: m.ay + (door.y - m.ay) * L / (L + 2.5), L: L, at: d * 0.7 + k * 0.4 };   // they set out as the patrol comes to a halt
       });
-      g.members.forEach(function (m) { if (m.env) d = Math.max(d, m.env.at + 2 * m.env.L / 1.3 + 5); });
+      g.members.forEach(function (m) { if (m.env) d = Math.max(d, m.env.at + 2 * m.env.L / 1.6 + 3); });
     } else if (newHere(g) && (g.fire && g.fire !== 'windows' || g.assault || g.secs)) {
       d = engIn(g, G, 'rush', 30, 0);
     } else if (newHere(g) && ctlTo[here] && SIDE[ctlTo[here]] && SIDE[ctlTo[here]] === SIDE[g.bloc]) {
       d = engIn(g, G, 'march', 30, 0);
     } else if (newHere(g) && ARRIVE_RE.test(text) && (g.props || []).some(function (pr) { return VEH_SPEED[pr.k]; })) {
-      d = engIn(g, G, 'walk', 30, 0);   // "three field-pieces arrived": hauled up by their crews
+      d = engIn(g, G, 'walk', 22, 0);   // "three field-pieces arrived": hauled up by their crews
     } else if (!newHere(g) && ARRIVE_RE.test(text)) {
       // the body was there; what Reed has arrive in the scene comes up to it ("a Bolshevik armoured car appeared")
       var prev = (S.presence || []).filter(function (q) { return q.who === g.who && q.place === g.place && q.from < idx && (q.to == null || q.to >= idx); })[0], had = {};
@@ -2545,7 +2581,8 @@ function stageEngagements(e, idx) {
       var fresh = (g.props || []).filter(function (pr) { if (!VEH_SPEED[pr.k]) return false; if (had[pr.k] > 0) { had[pr.k]--; return false; } return true; });
       if (fresh.length) d = propsIn(g, G, engDir(g, G, engTarget(g), 34), 34, fresh);
     }
-    if (d) { g.eng = { t0: t0, dur: d }; dur = Math.max(dur, d); }
+    if (d) { g.eng = { t0: t0, dur: d, first: isFinite(g.engFirst) ? g.engFirst : null }; dur = Math.max(dur, d); }
+    delete g.engFirst;
   });
   // the other side's people at a building taken in the scene run off, away from the ones coming in
   GROUPS.forEach(function (g) {
@@ -2554,7 +2591,7 @@ function stageEngagements(e, idx) {
     var G = openGround(rootOf(g.place), false); if (!G) return;
     var inc = GROUPS.filter(function (h) { return h.eng && rootOf(h.place) === rootOf(g.place) && !opposed(ctlTo[rootOf(g.place)], h.bloc); })[0];
     var T = inc ? [inc.cx, inc.cy] : engTarget(g), away = engDir({ members: g.members, cx: g.cx, cy: g.cy }, G, T, 26) || [g.cx - T[0], g.cy - T[1]];
-    var al = Math.hypot(away[0], away[1]) || 1, at = inc ? inc.eng.dur * 0.4 : 1.5, dd = 0;
+    var al = Math.hypot(away[0], away[1]) || 1, at = 0.3, dd = 0;   // off at once, before the others are on them
     g.members.forEach(function (m, i) {
       var run = freeRun(G, m.x, m.y, away[0] / al, away[1] / al, 26);
       m.eout = { gx: m.x + away[0] / al * run, gy: m.y + away[1] / al * run, L: Math.max(1, run), delay: at + hash(g.seed + i * 3.7) * 1.2 };
@@ -2589,6 +2626,7 @@ function stageEngagements(e, idx) {
     dur = Math.max(dur, 12);
   });
   ENG.dur = dur;
+  if (REDUCED) { engageFinish(); ENG.dur = 0; }   // prefers-reduced-motion: the fight as it ends, nobody running
 }
 function engage(t, FS) {
   if (!cur || intro) return;
@@ -2609,9 +2647,9 @@ function engage(t, FS) {
       }
       if (m.env) {   // the envoys go to the door, wait, and come back
         var V = m.env; tau = t - e0 - V.at; if (tau < 0) return;
-        var go = V.L / 1.3, u = tau < go ? tau / go : tau < go + 5 ? 1 : Math.max(0, 1 - (tau - go - 5) / go);
-        m.x = m.ax + (V.gx - m.ax) * u; m.y = m.ay + (V.gy - m.ay) * u; m.walk = (tau < go || (tau > go + 5 && u > 0)) ? 1 : 0;
-        m.yaw = tau < go + 5 ? facingYaw(m.ax, m.ay, V.gx, V.gy) : facingYaw(V.gx, V.gy, m.ax, m.ay);
+        var go = V.L / 1.6, u = tau < go ? tau / go : tau < go + 3 ? 1 : Math.max(0, 1 - (tau - go - 3) / go);   // to the door, three seconds there, and back
+        m.x = m.ax + (V.gx - m.ax) * u; m.y = m.ay + (V.gy - m.ay) * u; m.walk = (tau < go || (tau > go + 3 && u > 0)) ? 1 : 0;
+        m.yaw = tau < go + 3 ? facingYaw(m.ax, m.ay, V.gx, V.gy) : facingYaw(V.gx, V.gy, m.ax, m.ay);
         if (u <= 0 && tau > go) { m.x = m.ax; m.y = m.ay; m.yaw = m.ayaw; m.walk = 0; delete m.env; }
         return;
       }
@@ -2652,10 +2690,11 @@ function engage(t, FS) {
           var hx0 = cx0 + nx0 * P.side, hy0 = cy0 + ny0 * P.side;
           makeWay(hx0, hy0, ux, uy, stop, FS || 2, t, null);
           if (Math.abs(steer.side - P.side) > 0.5) makeWay(cx0 + nx0 * steer.side - ux * stop, cy0 + ny0 * steer.side - uy * stop, ux, uy, stop * 2, FS || 2, t, null);
-          var way = inTheWay(hx0, hy0, ux, uy, want - P.d + stop + 0.5, FS || 2, null), nx = Math.min(want, P.d + Math.max(0, steer.stopAt));
+          var way = inTheWay(hx0, hy0, ux, uy, want - P.d + stop + 0.5, FS || 2, null), nx = Math.min(want, P.d + Math.max(0, steer.stopAt), P.d + P.sp * 1.5 * dte);   // no faster than half again its pace, making up time lost waiting
           if (steer.slow) nx = Math.min(nx, P.d + 1.4 * dte);
           if (steer.guns && steer.guns.length && (steer.stopAt < 1 || steer.slow)) wheelAside(steer.guns, ux, uy, t);
           if (way.along < Infinity) nx = Math.min(nx, Math.max(P.d, P.d + way.along - stop));
+          if (nx > P.d) { var inn = inOutline(P.sx + ux * nx + nx0 * P.side, P.sy + uy * nx + ny0 * P.side, ux, uy, pr.k, FS || 2); if (inn.length) { nx = P.d; askAside(inn, ux, uy, FS || 2, t); } }
           if (nx - P.d < 0.05) { P.held = (P.held || 0) + dte; if (P.held > 1 && way.list.length) askAside(way.list, ux, uy, FS || 2, t); } else P.held = 0;
           P.d = nx;
         }
@@ -2684,7 +2723,8 @@ function engage(t, FS) {
       R.t = R.t || t; var tau2 = t - R.t - 5; if (tau2 < 0) return;
       var M = g.members.filter(function (m) { return m.ox == null && !m.dead; });
       M.forEach(function (m, i) {
-        var a = i / M.length * 6.283, gx = R.car.x + Math.cos(a) * 3.6, gy = R.car.y + Math.sin(a) * 3.6, L = Math.hypot(gx - m.ax, gy - m.ay) || 1, f = Math.min(1, tau2 * 4.5 / L);
+        var a = i / M.length * 6.283, F2 = FS || 2, wv = (HALF_W.armoured + 0.6) * F2, lv = (HALF_LEN.armoured + 0.6) * F2, cy2 = Math.cos(R.car.yaw), sy2 = Math.sin(R.car.yaw);   // round its drawn hull, not into it
+        var gx = R.car.x + cy2 * wv * Math.cos(a) + sy2 * lv * Math.sin(a), gy = R.car.y + sy2 * wv * Math.cos(a) - cy2 * lv * Math.sin(a), L = Math.hypot(gx - m.ax, gy - m.ay) || 1, f = Math.min(1, tau2 * 4.5 / L);
         m.x = m.ax + (gx - m.ax) * f; m.y = m.ay + (gy - m.ay) * f; m.yaw = facingYaw(m.x, m.y, R.car.x, R.car.y); m.pose = 'charge'; m.walk = f < 1 ? 1 : 0; m.T = null;
       });
     }
@@ -2696,7 +2736,7 @@ function engage(t, FS) {
 // its end first. A touch on the map hands the camera back.
 var bcam = null, camAfterWalk = null;
 function siteFrame(site) {
-  var d = PHONE ? Math.max(170, Math.min(320, site.r * 2.8 + 120)) : Math.max(110, Math.min(200, site.r * 2.0 + 80));
+  var d = PHONE ? Math.max(170, Math.min(350, site.r * 3.4 + 120)) : Math.max(110, Math.min(200, site.r * 2.0 + 80));   // on a phone, a site wider than about 70 m is seen in part: further back it would not be close
   var cur3 = camera.position.clone().sub(controls.target), base = Math.atan2(cur3.x, cur3.z), best = null;
   [0, 1, -1, 2, -2, 3, -3, 4].forEach(function (k) {
     var th = base + k * Math.PI / 4;
@@ -2755,8 +2795,8 @@ function sceneCam(e, t0, span, extra) {
   bcam = null;
   if (REDUCED) return;
   var sites = sceneSites(e, extra); if (!sites.length) return;
-  var hold = Math.max(5, (span - 1.6 * sites.length) / sites.length), at = t0, steps = [];
-  sites.forEach(function (st) { steps.push({ at: at, site: st }); at += Math.max(hold, st.dur * 0.85) + 1.6; });
+  var hold = Math.max(4, Math.min(14, (span - 1.6 * sites.length) / sites.length)), at = t0, steps = [];
+  sites.forEach(function (st) { steps.push({ at: at, site: st }); at += Math.max(hold, Math.min(st.dur * 0.85, 30)) + 1.6; });
   if (sites.length > 1) steps.push({ at: at, site: sites[0] });   // and back to the first, to stay
   bcam = { steps: steps, i: 0 };
 }
@@ -2866,7 +2906,7 @@ function battle(t, FS) {
     if ((!g.fire && !g.assault && !g.patrol) || !g.members || !arrived(g) || (g.foe && !arrived(g.foe))) return;   // nothing before both sides are there
     assault(g, t, dt);
     if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path && !pr.ein) patrolStep(g, pr, t, dt, FS); }); return; }
-    var held = g.foe && g.foe.eng && t < g.foe.eng.t0 + g.foe.eng.dur * 0.8;   // the relief walks into it ("met by a blast of rifle-fire")
+    var held = g.foe && g.foe.eng && t < g.foe.eng.t0 + (g.foe.eng.first != null ? g.foe.eng.first : g.foe.eng.dur * 0.8);   // the relief walks into it ("met by a blast of rifle-fire"): the fire starts as the first of it arrives
     if (g.windows && !held) g.windows.forEach(function (w) {
       if ((w.tf -= dt) > 0) return; w.tf = 1.2 + Math.random() * 4;
       if (shots++ > 30) return;
@@ -3009,6 +3049,19 @@ function inTheWay(x, y, ux, uy, reach, FS, own, all) {   // the first person in 
   WALK_PREV.forEach(function (w) { if (w.mv !== own) test(w.x, w.y, null); });
   return { along: best, list: all ? list : list.filter(function (q) { return q.al < best + 2 * FS; }) };
 }
+// the people standing inside a vehicle's outline, were it at (x, y) heading (ux, uy): it does not move there
+// while there are any (they step out first), whatever its way of coming (a swerve round a gun, people
+// beside it still stepping out)
+function inOutline(x, y, ux, uy, k, FS) {
+  var C = clearScale(FS), hl = ((HALF_LEN[k] || 2.5) + 0.3) * C, hw = ((HALF_W[k] || 1) + 0.3) * C, out = [];
+  FOLK.forEach(function (f) {
+    var m = f.m; if (!m || m.pose === 'fallen' || m.pose === 'prone') return;
+    var dx = f.x - x, dy = f.y - y; if (Math.abs(dx) > hl + hw || Math.abs(dy) > hl + hw) return;
+    var al = dx * ux + dy * uy, lat = -dx * uy + dy * ux;
+    if (Math.abs(al) < hl && Math.abs(lat) < hw) out.push({ al: al, lat: lat, ref: f });
+  });
+  return out;
+}
 // people see a vehicle coming: those standing in its lane up to ten metres beyond where it would have to stop
 // start out of its way before it gets there
 function makeWay(x, y, ux, uy, stop, FS, t, own) {
@@ -3124,7 +3177,7 @@ function steerRound(x0, y0, ux, uy, cur, reach, k, FS, self, sideOk) {
   var stopAt = Infinity, gap = false, guns = [];
   iv.forEach(function (q) {
     if (!(cur > q[0] && cur < q[1] && q[2] > hl * 0.5)) return;
-    if (q[3] && !best) { gap = true; guns.push({ pr: q[4], lat: q[5] - cur, half: q[6], hw: hw }); return; }   // pulled open if it can be
+    if (q[3] && !best) { if (q[2] < hl + 3 * C) { gap = true; guns.push({ pr: q[4], lat: q[5] - cur, half: q[6], hw: hw }); } return; }   // pulled open as it comes up to it; till then it drives on
     stopAt = Math.min(stopAt, Math.max(0, q[2] - hl - 0.4 * C));
     if (!best && q[4].k === 'mg') guns.push({ pr: q[4], lat: q[5] - cur, half: q[6], hw: hw });
   });
@@ -4123,10 +4176,10 @@ function select(id, opts) {
     closeAfter = follow && !GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); }) ? null : close;
   }
   scene0 = performance.now();
-  sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed, ENG.dur ? (ENG.dur + 4.5) * 1000 / speed : 0);   // the fight plays out
+  sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed, ENG.dur ? (ENG.dur + 4.5) * 1000 : 0);   // the fight plays out, at its own pace whatever the speed (the speed is the walks')
   bcam = null; camAfterWalk = null;
   if (follow || act || (walk && movers.some(function (mv) { return !mv.arc && !mv.m.done && mv.o.total > 30; }))) camAfterWalk = { e: e };   // close in when the walks and rides on the streets are done, where they end
-  else sceneCam(e, scene0 / 1000 + (opts.instant ? 0.3 : 2.4), sceneDur / 1000 - 2.4);
+  else sceneCam(e, scene0 / 1000 + (opts.instant ? 0.3 : 4.2), sceneDur / 1000 - 4.2);   // the opening frame held a moment before the close shots
   if (bcam) sceneDur = Math.max(sceneDur, (bcam.steps[bcam.steps.length - 1].at - scene0 / 1000 + 4) * 1000);
   try { history.replaceState(null, '', '#' + e.id); } catch (err) { }
 }
@@ -4423,6 +4476,19 @@ function frame(now) {
     flat.normalize();
     var dd = off.length() + (follow.d - off.length()) * kf, pp = Math.acos(Math.max(-1, Math.min(1, off.y / off.length())));
     pp += (follow.pol - pp) * kf;
+    follow.chk = (follow.chk || 0) - real;
+    if (follow.chk <= 0) {   // twice a second: hidden behind the houses? then round to a side it can be seen from
+      follow.chk = 0.5;
+      var fx0 = follow.mv.lx, fy0 = follow.mv.ly, ha = Math.atan2(flat.x, flat.z);
+      if (hiddenBy(camera.position.x, -camera.position.z, camera.position.y, fx0, fy0, 3)) {
+        [1, -1, 2, -2, 3, -3, 4].some(function (k) {
+          var th = ha + k * Math.PI / 4, rr = Math.sin(pp) * dd;
+          if (hiddenBy(fx0 + Math.sin(th) * rr, fy0 - Math.cos(th) * rr, Math.cos(pp) * dd, fx0, fy0, 3)) return false;
+          follow.hd = th; return true;
+        });
+      }
+    }
+    if (follow.hd != null) { var ha2 = Math.atan2(flat.x, flat.z); ha2 += wrapAngle(follow.hd - ha2) * kf; flat.set(Math.sin(ha2), 0, Math.cos(ha2)); }
     controls.target.lerp(want, kt);
     camera.position.set(controls.target.x + flat.x * Math.sin(pp) * dd, Math.cos(pp) * dd, controls.target.z + flat.z * Math.sin(pp) * dd);
   }
@@ -4433,14 +4499,16 @@ function frame(now) {
   Object.keys(pinMeshes).forEach(function (k) { var p = pinMeshes[k]; p.visible = camD > 70; p.scale.y = p.scale.x = p.scale.z = (cur && k === rootOf(cur.loc) ? 1.5 : (dayLocs[k] ? 1 : 0.7)) * psc; });
   if (walk) {
     var f = Math.min(1, (now - walk.t0) / walk.dur), s = gait(f, walk.dur);
-    movers.forEach(function (mv) { mv.f = s; trailTo(mv.o, s); });
+    movers.forEach(function (mv) { mv.f = s; trailTo(mv.o, mv.veh && mv.vd != null && mv.o.total ? Math.min(s, mv.vd / mv.o.total) : s); });   // a vehicle's route draws itself behind the vehicle, not ahead of it
     var heldUp = f >= 1 && now - walk.t0 < walk.dur + 8000 && movers.some(function (mv) { return mv.veh && mv.lag > 1; });   // a car still held up by people
     if (f >= 1 && !heldUp) {
-      movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); }); walk = null;
+      movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); if (mv.veh) { mv.vd = null; mv.atEnd = true; } }); walk = null;   // held up past the wait: put at its journey's end
+      if (now - scene0 + 3500 / speed > sceneDur) sceneDur = now - scene0 + 3500 / speed;   // a walk that ran late: the scene still has its time after it
       if (ctlWait) { ctlWait = false; applyControl(cur.t); hereGlow(); }   // the change of hands, and the scene's own building still lit
       if (camAfterWalk && cur === camAfterWalk.e && !REDUCED) {   // the walk done, down close to the scene, or to where the ride ended
         var endAt = closeAfter ? null : movers.filter(function (mv) { return follow && mv === follow.mv; }).map(function (mv) { var q = mv.o.pts[mv.o.pts.length - 1]; return [q.x, -q.z]; });
         sceneCam(cur, now / 1000 + 0.1, Math.max(6, (sceneDur - (now - scene0)) / 1000), endAt && endAt.length ? endAt : null);
+        if (bcam) sceneDur = Math.max(sceneDur, (bcam.steps[bcam.steps.length - 1].at + 4) * 1000 - scene0);   // and the scene lasts till they are over
         if (!bcam && closeAfter && !flight) flyTo(closeAfter, 2400);
         camAfterWalk = null;
       } else if (closeAfter && !flight) flyTo(closeAfter, 2400);   // the walk done, down to the scene
@@ -4469,7 +4537,7 @@ function frame(now) {
   fog.near = camD * 0.85 + 300; fog.far = camD * 2.6 + 2500;
   sky.position.copy(camera.position);
   controls.update();
-  renderer.render(scene, camera);
+  if (!(window.__td && window.__td.norender)) renderer.render(scene, camera);   // the audits measure without drawing (?debug only)
   updateLabels();
 }
 
@@ -4499,7 +4567,7 @@ function boot(state) {
     }
   }, 30);
 }
-if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, bcam: function () { return bcam; }, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
+if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, obst: OBST, halfW: HALF_W, sceneDur: function () { return sceneDur; }, norender: false, bcam: function () { return bcam; }, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
   finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; camAfterWalk = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
