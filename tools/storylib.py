@@ -26,19 +26,24 @@ FIELDS = {
     'source': ['id', 'kind', 'url', 'cite', 'note'],
     'actor': ['id', 'kind', 'bloc', 'track', 'part_of', 'seat', 'wd', 'name', 'reed', 'ru', 'stance', 'note'],
     'stance': ['from', 's', 'ev', 'ref', 'note'],
-    'place': ['id', 'kind', 'zone', 'in', 'll', 'acc', 'stage', 'conf', 'exists', 'osm', 'site_osm', 'wd', 'src', 'geo', 'ctl0',
+    'place': ['id', 'kind', 'zone', 'in', 'll', 'acc', 'stage', 'hall', 'conf', 'exists', 'osm', 'site_osm', 'wd', 'src', 'geo', 'ctl0',
               'name', 'reed', 'ru', 'addr1917', 'addr_now', 'ident', 'today', 'note'],
     'geo': ['m', 'at', 'q', 'osm_v', 'on', 'src', 'note'],
+    # a meeting-hall inside its building (a room): where it is and its size are the map's unless a source says
+    'hall': ['ll', 'dims', 'axis', 'plan', 'features', 'note'],
+    'feature': ['k', 'ref'],
     'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
-    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags',
+    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'house', 'actors', 'tags',
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone', 'raised'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
     'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack', 'outside', 'done'],
     'outside': ['source', 'q', 'en'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'brief', 'ref', 'outside'],
-    'gone': ['who', 'place', 'ref'],
+    'presence': ['who', 'place', 'size', 'n', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'brief', 'ref', 'outside'],
+    'gone': ['who', 'place', 'all', 'ref'],
+    # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words
+    'house': ['pose', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
     # the who's who: the parties, soviets, committees and forces Reed names, and their people
     'faction': ['id', 'kind', 'group', 'order', 'side', 'part_of', 'actors', 'members', 'see', 'pic', 'name', 'names', 'ru', 'sum', 'def', 'also', 'background', 'note'],
@@ -60,6 +65,7 @@ REQUIRED = {
     'ctl': ['place', 'state'],
     'presence': ['who'],
     'gone': ['who'],
+    'house': ['pose', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'url'],
     'faction': ['id', 'kind', 'group', 'order', 'side', 'name', 'names', 'sum', 'def', 'background'],
     'person': ['id', 'factions', 'name', 'names', 'role', 'bio'],
@@ -68,7 +74,7 @@ REQUIRED = {
 PROSE = {'cite', 'name', 'note', 'title', 'why', 'sum', 'q', 'ident', 'today', 'ru', 'reed',
          'addr1917', 'addr_now', 'caption', 'names', 'role'}
 NESTED_LIST = {'stance', 'also', 'moves', 'ctl', 'present', 'gone'}   # one line per item
-NESTED_ONE = {'geo', 'ctl0', 'doc', 'ref', 'def', 'background', 'bio'}                  # one line for the whole object
+NESTED_ONE = {'geo', 'ctl0', 'doc', 'ref', 'def', 'background', 'bio', 'hall', 'house'}                  # one line for the whole object
 
 ENUM = {
     'source.kind': {'primary', 'secondary', 'reference', 'map', 'data'},
@@ -88,7 +94,10 @@ ENUM = {
     'move.rc': {'stated', 'inferred', 'none'},
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
-    'pose': {'fallen', 'prone'},
+    'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer'},
+    'bench': {'left', 'centre', 'right', 'platform', 'press', 'aisles'},
+    'hall.plan': {'rows'},
+    'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits'},
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons', 'awm'},
@@ -116,7 +125,23 @@ MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|swing down|filing
 # The fighting, in the scene whose passage says so: who fires (and from the windows), who lies dead
 # or wounded, who throws himself flat, who runs at the enemy
 POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen|to death|shooting down|shot down',
-              'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters'}
+              'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters',
+              # in a meeting-hall: the house on its feet, a vote by show of cards, cheering, hooting
+              'stand': r'stood up|on (their|its|our) feet|\brose\b|rising|got up|standing up',
+              'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
+              'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|exultation|pandemonium|embracing',
+              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|threatening'}
+HALL_POSES = ('stand', 'vote', 'cheer', 'jeer')   # drawn in a meeting-hall only
+# where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
+# left, centre and right are the map's arrangement unless he says whose the benches were
+BENCH_WORDS = {'platform': r'platform|presidium|tribune', 'press': r'press', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
+               'left': r'', 'centre': r'', 'right': r''}
+# a body leaving the hall, or coming into it, in the scene that says so
+WALKOUT_WORDS = r'left the (hall|Congress|room|platform)|leave the (hall|Congress|room)|walk(ed|s)? out|pushed their way out|got up and (left|went)|withdr[ae]w'
+WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession'
+# a meeting over: everyone at the place goes (`gone` with `all`)
+DISPERSE_WORDS = r'dissolved|dispersed|adjourn|broke up|emptied|went home|to their homes'
+FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait'}
 RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'
@@ -189,7 +214,7 @@ def _order(rec, kind):
 
 def _sub(kind_of, key):
     return {'stance': 'stance', 'also': 'ref', 'moves': 'move', 'ctl': 'ctl', 'present': 'presence', 'gone': 'gone',
-            'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc', 'ref': 'ref', 'def': 'ref', 'background': 'bio', 'bio': 'bio'}.get(key)
+            'geo': 'geo', 'ctl0': 'ctl0', 'doc': 'doc', 'ref': 'ref', 'def': 'ref', 'background': 'bio', 'bio': 'bio', 'hall': 'hall', 'features': 'feature', 'house': 'house'}.get(key)
 
 
 def _flat(obj, kind):
@@ -200,6 +225,8 @@ def _flat(obj, kind):
     for k, v in _order(obj, kind):
         if k == 'cf' and isinstance(v, list):
             v = [OrderedDict(_order(x, 'ref')) if isinstance(x, dict) else x for x in v]
+        if k == 'features' and isinstance(v, list):
+            v = [OrderedDict(_order(x, 'feature')) if isinstance(x, dict) else x for x in v]
         parts.append(f'{_j(k)}: {_j(v)}')
     return '{' + ', '.join(parts) + '}'
 
@@ -516,9 +543,13 @@ def presence_spans(events, actors, places):
     reports the place taken. A later `present` entry for the same body and place adds to it (its size
     and count replace the old ones, its kit joins the old kit), and a `brief` one shows the sum for
     one scene only, unless it is a column marching past (`march`), which is a body of its own. A
-    formation (`form`, `march`, `face`) and the fighting (`fire`, `at`, `pose`, `assault`, `patrol`)
-    are the scene's, not the body's: a span keeps them only for the scene that states them, its first.
-    Being indoors (`inside`) is the body's, and holds until Reed says otherwise.
+    formation (`form`, `march`, `face`), the fighting (`fire`, `at`, `pose`, `assault`, `patrol`) and
+    a walk into a hall (`walkin`) are the scene's, not the body's: a span keeps them only for the scene
+    that states them, its first. Being indoors (`inside`) and where a body sits in a hall (`bench`) are
+    the body's, and hold until Reed says otherwise. A body that walks out of a hall (`walkout`) is there
+    for that scene and gone after it; if only part of it leaves (`part`), the leavers are a body of their
+    own for that scene and the rest stays. A `gone` entry with `all` ends every body at its place (a
+    meeting dissolved).
 
     Returns (spans, misses). A span is {who, place, start, end, ev, how, end_by, end_ev, size?, n?, kit?}
     and is shown in scenes start <= i < end (end None: to the last scene). misses lists
@@ -553,13 +584,13 @@ def presence_spans(events, actors, places):
         return sp
 
     def formation(sp, rec):
-        for k in ('form', 'march', 'face', 'fire', 'at', 'pose', 'assault', 'patrol'):
+        for k in ('form', 'march', 'face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkout', 'walkin', 'part'):
             if k in rec:
                 sp[k] = rec[k]
 
     def merge(sp, rec):
         """a later word on the same body adds to what is known: its kit joins the kit already there"""
-        for k in ('size', 'n', 'say', 'inside', 'outside'):
+        for k in ('size', 'n', 'say', 'inside', 'outside', 'bench'):
             if k in rec:
                 sp[k] = rec[k]
         if rec.get('kit'):
@@ -586,7 +617,18 @@ def presence_spans(events, actors, places):
             if not isinstance(r, dict):
                 continue
             key = (r.get('who'), r.get('place', loc))
-            if r.get('brief'):   # the sum with the body already there; a passing column is a body of its own
+            if r.get('walkout'):   # a body leaving the hall: there for this scene, gone after it; only part of it, and the rest stays
+                old = live.get(key)
+                if old is not None:
+                    end(key, i, 'walkout', eid)
+                    if r.get('part'):   # the rest, fewer by the leavers
+                        rest = {k: old[k] for k in ('size', 'n', 'kit', 'inside', 'outside', 'bench') if k in old}
+                        if isinstance(old.get('n'), int) and isinstance(r.get('n'), int):
+                            rest['n'] = max(1, old['n'] - r['n'])
+                        live[key] = begin(key, i, rest, eid, 'present')
+                sp = begin(key, i, r, eid, 'present', old=old)
+                sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'walkout', eid
+            elif r.get('brief'):   # the sum with the body already there; a passing column is a body of its own
                 sp = begin(key, i, r, eid, 'present', old=None if r.get('march') else live.get(key))
                 sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'brief', eid
             elif key in live:
@@ -599,8 +641,11 @@ def presence_spans(events, actors, places):
             key = (r.get('who'), r.get('place', loc))
             if key in live:
                 end(key, i + 1, 'gone', eid)
-            else:
+            elif not r.get('all'):
                 misses.append((eid, key[0], key[1]))
+            if r.get('all'):   # the meeting is over: every body there goes with it
+                for k in [k for k in live if k[1] == key[1]]:
+                    end(k, i + 1, 'gone', eid)
         for c in e.get('ctl', []):
             if not isinstance(c, dict):
                 continue

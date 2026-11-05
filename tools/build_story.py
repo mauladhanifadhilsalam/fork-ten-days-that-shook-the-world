@@ -418,6 +418,11 @@ for p in T['places']:
     if p.get('stage'):
         sx, sy = P(*p['stage'])
         rec['stage'] = [round(sx, 1), round(sy, 1)]
+    if p.get('hall'):   # a meeting-hall drawn inside its building: its middle in map metres, size, the way it faces
+        h = p['hall']
+        hx, hy = P(*h['ll'])
+        rec['hall'] = {'p': [round(hx, 1), round(hy, 1)], 'dims': h['dims'], 'axis': h.get('axis', 0), 'plan': h.get('plan', 'rows'),
+                       'features': [f['k'] for f in h.get('features', [])]}
     if xy:
         dist = math.hypot(*xy) / 1000
         rec['p'] = [round(xy[0], 1), round(xy[1], 1)]
@@ -535,6 +540,14 @@ ACTOR_FIG = {
     'duma-procession': [('bourgeois', .5), ('bourgeoiswoman', .2), ('intelligent', .3)],
     'car-occupants': [('bourgeois', .7), ('bourgeoiswoman', .3)],   # turned out of private automobiles
     'peasants-congress': [('peasant', .75), ('soldier', .25)],
+    # the Congress's delegates: Reed's "representatives of the workers and soldiers"; the opposition's speakers
+    # officers and intelligentsia ("a shapeless military surgeon's uniform", "the epaulets of a captain")
+    'congress': [('soldier', .5), ('worker', .5)], 'bolsheviki': [('soldier', .4), ('worker', .4), ('sailor', .2)],
+    'left-srs': [('peasant', .4), ('soldier', .3), ('sailor', .15), ('worker', .15)],
+    'mensheviki': [('intelligent', .5), ('officer', .25), ('soldier', .25)],
+    'srs': [('intelligent', .35), ('peasant', .35), ('officer', .15), ('soldier', .15)],
+    'bund': [('intelligent', 1)], 'menshevik-internationalists': [('intelligent', .7), ('worker', .3)],
+    'tsay-ee-kah-old': [('intelligent', .7), ('officer', .3)], 'congress-presidium': [('intelligent', .6), ('worker', .2), ('soldier', .2)],
     'izvoshtchiki': [('worker', 1)], 'government-troops': [('soldier', 1)], 'boy-scouts': [('child', 1)], 'hotel-officers': [('officer', 1)],
 }
 BLOC_FIG = {
@@ -667,22 +680,28 @@ for sp in spans:
         rec['ship'] = True
     else:
         rec['fig'], rec['n'] = figures(sp['who'], sp.get('size'), sp.get('n'))
-    for k in ('size', 'kit', 'say', 'inside', 'outside'):
+    for k in ('size', 'kit', 'say', 'inside', 'outside', 'bench'):
         if k in sp:
             rec[k] = sp[k]
+    if sp.get('walkout') and sp['end_by'] == 'walkout':
+        rec['walkout'] = True   # leaving the hall in this scene
+        if sp.get('part'):
+            rec['part'] = True   # some of the body; the rest stays in its seats
     if sp.get('form') and in_tour[sp['start']]:   # drawn in its own scene only
         e0 = events_all[sp['start']]
         words = [L.norm(x) for x in L.segments(e0.get('q', ''))] + [L.norm(r['q']) for r in e0.get('also', [])]
         rec.update(formation(sp, ' '.join(words)))
     if in_tour[sp['start']]:   # the fighting, too, is drawn in its own scene only
-        for k in ('face', 'fire', 'at', 'pose', 'assault', 'patrol'):
+        for k in ('face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkin'):
             if k in sp:
                 rec[k] = sp[k]
     presence.append(rec)
 
 events = []
 for e in [e for e, ok in zip(events_all, in_tour) if ok]:
-    rec = {k: e[k] for k in ('id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'actors', 'tags', 'title', 'why', 'sum', 'raised') if k in e}
+    rec = {k: e[k] for k in ('id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'actors', 'tags', 'title', 'why', 'sum', 'raised') if k in e}
+    if e.get('house'):   # the whole hall's response, with Reed's words for it
+        rec['house'] = {'pose': e['house']['pose'], 'q': L.norm(e['house']['ref']['q'])}
     rec['q'] = ' … '.join(L.segments(e['q']))
     if e.get('also'):
         rec['also'] = [{'sec': a['sec'], 'q': ' … '.join(L.segments(a['q']))} for a in e['also']]

@@ -61,6 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
+    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'house': DICT, 'all': BOOL,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
     'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
@@ -373,6 +374,8 @@ class Checker:
                     F.err('field.missing', w, 'a located place needs acc (metres)')
                 elif p.get('conf') == 'conjectural' and p['acc'] < 50:
                     F.warn('geo.acc-small', w, f'conjectural pin with acc {p["acc"]} m; is it really that precise?')
+            if 'hall' in p:
+                self.hall(p, ll, w)
             if 'stage' in p and isinstance(p['stage'], list) and len(p['stage']) == 2:
                 if not ll:
                     F.err('geo.stage', w, 'stage (where its figures stand) needs a located place')
@@ -538,6 +541,10 @@ class Checker:
         for i, r in enumerate(e.get('also', [])):
             if fields(F, r, 'ref', f'{w}.also[{i}]') and isinstance(r.get('q'), str):
                 self.quote_ok(r.get('sec'), r['q'], f'{w}.also[{i}]')
+        if 'speaker' in e:
+            self.speaker(e, pos, w)
+        if 'house' in e:
+            self.house(e, w)
         d = e.get('doc')
         if isinstance(d, dict) and fields(F, d, 'doc', w + '.doc'):
             enum(F, d, 'cal', 'cal', w + '.doc')
@@ -639,6 +646,8 @@ class Checker:
                     continue
                 if a is not None:
                     self.named(a, sup, rw)
+                if key == 'gone' and 'all' in r and (r['all'] is not True or not re.search(L.DISPERSE_WORDS, sup[2], re.I)):
+                    F.err('phrase.not-in-text', rw, f'all: everyone there goes, in Reed\'s words for a meeting over ({L.DISPERSE_WORDS})')
                 if key == 'present':
                     # Reed's words near his passage; for a body only another source gives, that source's own
                     # words (its size phrase then vouches for a formation or a facing as Reed's would)
@@ -667,6 +676,8 @@ class Checker:
                         self.facing(r, sup[2], rw, here)
                     if r.get('inside'):
                         self.indoors(r, sup[2], rw, here)
+                    if any(k in r for k in ('bench', 'walkout', 'walkin', 'part')) or r.get('pose') in L.HALL_POSES:
+                        self.in_hall(r, e, sup[2], rw)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
 
@@ -682,6 +693,93 @@ class Checker:
                 F.err('ctl.kind', cw, f'a {pl.get("kind")} cannot be held')
             used['place'][c.get('place')] += 1
             self.control_state(c, cw)
+
+    def hall(self, p, ll, w):
+        """a meeting-hall inside its building: a room, with its centre, size and the way it faces; its features
+        each in Reed's words (where it is and its size are the map's unless a source says)"""
+        F, h, hw = self.F, p['hall'], w + '.hall'
+        if not isinstance(h, dict) or not fields(F, h, 'hall', hw):
+            return
+        if p.get('kind') != 'room':
+            F.err('hall.kind', hw, 'a hall is drawn inside its building: the place must be a room')
+        c = h.get('ll')
+        if not (isinstance(c, list) and len(c) == 2 and all(isinstance(x, (int, float)) for x in c)):
+            F.err('field.type', hw, 'll is [lat, lon], the middle of the hall')
+        elif ll and L.dist_m(ll, c) > 400:
+            F.err('geo.stage', hw, f'the hall is {L.dist_m(ll, c):.0f} m from its pin; keep it within 400 m')
+        d = h.get('dims')
+        if not (isinstance(d, list) and len(d) == 2 and all(isinstance(x, (int, float)) and 4 <= x <= 120 for x in d)):
+            F.err('field.range', hw, 'dims is [length, width] in metres, each 4 to 120')
+        if 'axis' in h and not (isinstance(h['axis'], int) and 0 <= h['axis'] < 360):
+            F.err('field.range', hw, 'axis is the bearing from the back of the hall to its platform, 0 to 359 degrees')
+        if 'plan' in h and h['plan'] not in L.ENUM['hall.plan']:
+            F.err('field.enum', hw, f'plan {h["plan"]!r} is not one of {sorted(L.ENUM["hall.plan"])}')
+        for i, f in enumerate(h.get('features', [])):
+            fw = f'{hw}.features[{i}]'
+            if not isinstance(f, dict) or not fields(F, f, 'feature', fw):
+                continue
+            if f.get('k') not in L.ENUM['hall.feature']:
+                F.err('field.enum', fw, f'feature {f.get("k")!r} is not one of {sorted(L.ENUM["hall.feature"])}')
+                continue
+            ref = f.get('ref')
+            if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
+                F.err('field.missing', fw, 'ref: Reed\'s words for it')
+                continue
+            if self.quote_ok(ref.get('sec'), ref['q'], fw + '.ref') is not None and not re.search(L.FEATURE_WORDS[f['k']], ref['q'], re.I):
+                F.err('phrase.not-in-text', fw, f'{f["k"]}: the quote has no word for it ({L.FEATURE_WORDS[f["k"]]})')
+
+    def in_hall(self, r, e, text, where):
+        """a body in a meeting-hall: where it sits, whether it walks out or in, each with Reed's words"""
+        F, here = self.F, r.get('place', e.get('loc'))
+        hall = (self.P.get(here) or {}).get('hall')
+        if not hall:
+            F.err('hall.none', where, f'bench, walkout and walkin are for a body in a meeting-hall; {here!r} has no hall')
+            return
+        if 'bench' in r:
+            if r['bench'] not in L.ENUM['bench']:
+                F.err('field.enum', where, f'bench {r["bench"]!r} is not one of {sorted(L.ENUM["bench"])}')
+            elif L.BENCH_WORDS[r['bench']] and not re.search(L.BENCH_WORDS[r['bench']], text, re.I):
+                F.err('phrase.not-in-text', where, f'bench {r["bench"]!r}: the passage has no word for it ({L.BENCH_WORDS[r["bench"]]})')
+        for k, pat in (('walkout', L.WALKOUT_WORDS), ('walkin', L.WALKIN_WORDS)):
+            if r.get(k) and not re.search(pat, text, re.I):
+                F.err('phrase.not-in-text', where, f'{k}: the passage has no word for it ({pat})')
+        if r.get('walkout') and r.get('walkin'):
+            F.err('field.range', where, 'a body walks out or walks in, not both')
+        if r.get('walkout') and r.get('brief'):
+            F.err('field.range', where, 'walkout already ends the body after its scene; drop brief')
+        if 'part' in r and not (r.get('walkout') and re.search(r'\bpart\b|some of|a few of|several of|half', text, re.I)):
+            F.err('phrase.not-in-text', where, 'part: only some of a body walking out, in Reed\'s words ("only part of")')
+
+    def house(self, e, w):
+        """the whole hall's response in a scene: a hall pose, with Reed's words for it"""
+        F, h, hw = self.F, e['house'], w + '.house'
+        if not isinstance(h, dict) or not fields(F, h, 'house', hw):
+            return
+        if not (self.P.get(e.get('loc')) or {}).get('hall'):
+            F.err('hall.none', hw, 'house: the scene is not in a meeting-hall')
+        if h.get('pose') not in L.HALL_POSES:
+            F.err('field.enum', hw, f'pose {h.get("pose")!r} is not one of {list(L.HALL_POSES)}')
+            return
+        ref = h.get('ref')
+        if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
+            F.err('field.missing', hw, "ref: Reed's words for it")
+        elif self.quote_ok(ref.get('sec'), ref['q'], hw + '.ref') is not None and not re.search(L.POSE_WORDS[h['pose']], ref['q'], re.I):
+            F.err('phrase.not-in-text', hw, f'pose {h["pose"]!r}: the quote has no word for it ({L.POSE_WORDS[h["pose"]]})')
+
+    def speaker(self, e, pos, w):
+        """the one at the tribune: a person in the Faction Map, named near the scene's passage, in a hall"""
+        F, pid = self.F, e['speaker']
+        per = {p['id']: p for p in self.people if isinstance(p, dict) and 'id' in p}.get(pid)
+        if per is None:
+            F.err('ref.unknown', w, f'speaker: no person {pid!r} in people.json')
+            return
+        if not (self.P.get(e.get('loc')) or {}).get('hall'):
+            F.err('hall.none', w, 'speaker: the scene is not in a meeting-hall')
+        names = [L.norm(n).lower() for n in [per.get('name')] + list(per.get('names') or []) if isinstance(n, str)]
+        names += [n.split()[-1] for n in names if ' ' in n]   # "Leon Trotzky": "Trotzky"
+        t = self.book.secs.get(e.get('sec'), '').lower()
+        if pos is None or not any(n in t[max(0, pos - 1500): pos + 1500] for n in names):
+            F.err('presence.unnamed', w, f'speaker {pid}: Reed does not name them near this passage')
 
     def scene_text(self, e):
         """The scene's own words: its quote and its other passages, normalised and joined."""

@@ -27,6 +27,10 @@ SECTIONS = {
     'App.III.7': ['At 1 A. M. a detachment of soldiers and sailors from Smolny occupied the Telegraph Agency. '
                   'At 1.35 the Post Office was occupied by the Military Revolutionary Committee of the '
                   'Provisional Government.'],
+    'V': ['So we came into the great meeting-hall, under the white chandeliers. The Red Guards sat on the left. '
+          'On the platform sat the presidium, the Sailors among them. Kameniev rang the bell. Fifty delegates got up and '
+          'pushed their way out, in a storm of hoots. Only part of the Sailors left the Congress; the rest were going to stay. '
+          'Kameniev asked all in favour to hold up their cards. And thereupon the Congress was dissolved.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running."],
 }
@@ -448,14 +452,18 @@ REAL_TEXT = os.path.join(ROOT, 'cache', 'sections.json')
                      'needs data/ and cache/sections.json')
 class RealData(unittest.TestCase):
     def load(self):
-        return {n: L.load_json(os.path.join(REAL_DATA, n + '.json')) for n in ['meta'] + L.TABLES}
+        # the who's who and the pictures too: a scene's speaker is a person in it, and a faction's photograph a picture
+        return {n: L.load_json(os.path.join(REAL_DATA, n + '.json')) for n in ['meta'] + L.TABLES + ['pictures', 'factions', 'people']}
 
     def errors(self, d):
         with tempfile.TemporaryDirectory() as tmp:
+            data = os.path.join(tmp, 'data')
+            os.makedirs(data)
+            os.symlink(os.path.join(ROOT, 'media'), os.path.join(tmp, 'media'))   # the pictures' files, beside data/
             for n, obj in d.items():
                 text = L.canonical(n, obj if n == 'meta' else L.sort_table(n, obj))
-                L.write_text(os.path.join(tmp, n + '.json'), text)
-            _, F = C.run(tmp, REAL_TEXT)
+                L.write_text(os.path.join(data, n + '.json'), text)
+            _, F = C.run(data, REAL_TEXT)
             return F.codes('ERROR')
 
     def test_real_data_passes(self):
@@ -594,3 +602,93 @@ class Glossary(unittest.TestCase):
     def test_side_is_one_of_the_four(self):
         d = good(); f, _ = self.add(d); f['side'] = 'neutral'
         self.assertIn('field.enum', errors(d))
+
+
+class Hall(unittest.TestCase):
+    """a meeting-hall in its building: who sits where, who walks out (all or part), the house's response,
+    the speaker at the tribune and the end of the session, each with Reed's words"""
+    def add(self, d):
+        g = {'m': 'hand', 'on': '2026-10-29'}
+        d['places'].append({'id': 'hall', 'kind': 'room', 'zone': 'city', 'in': 'smolny', 'll': [59.947473, 30.395867], 'acc': 60,
+                            'conf': 'named', 'geo': g, 'name': 'The great hall', 'reed': ['great meeting-hall'],
+                            'hall': {'ll': [59.9472, 30.3962], 'dims': [40, 18], 'axis': 180, 'plan': 'rows',
+                                     'features': [{'k': 'chandeliers', 'ref': {'sec': 'V', 'q': 'under the white chandeliers'}}]}})
+        Glossary.add(self, d)
+        d['factions'][0]['members'].append('kam-p')
+        d['people'].append({'id': 'kam-p', 'factions': ['mrc-f'], 'name': 'Kameniev', 'names': ['Kameniev'], 'role': 'In the chair',
+                            'bio': {'source': 'ref1917', 'url': 'https://example.org/k', 'en': 'He chaired.'}})
+        base = {'tq': 'inferred', 'cal': 'none', 'sec': 'V', 'loc': 'hall', 'witness': 'reported', 'why': 'In the night.', 'sum': 'In the hall.'}
+        d['events'] += [
+            dict(base, id='session', t='1917-11-08T01:00', tr=['1917-11-08T00:30', '1917-11-08T01:30'], title='The session',
+                 q='So we came into the great meeting-hall', speaker='kam-p',
+                 house={'pose': 'vote', 'ref': {'sec': 'V', 'q': 'Kameniev asked all in favour to hold up their cards.'}},
+                 present=[{'who': 'red-guards', 'size': 'The Red Guards', 'n': 20, 'bench': 'left', 'ref': {'sec': 'V', 'q': 'The Red Guards sat on the left.'}},
+                          {'who': 'sailors', 'size': 'Fifty delegates', 'n': 10, 'bench': 'platform', 'ref': {'sec': 'V', 'q': 'On the platform sat the presidium, the Sailors among them.'}}]),
+            dict(base, id='leaving', t='1917-11-08T01:40', tr=['1917-11-08T01:35', '1917-11-08T01:50'], title='Some leave',
+                 q='Only part of the Sailors left the Congress',
+                 present=[{'who': 'sailors', 'size': 'Only part of the Sailors', 'n': 3, 'walkout': True, 'part': True,
+                           'ref': {'sec': 'V', 'q': 'Only part of the Sailors left the Congress; the rest were going to stay.'}}]),
+            dict(base, id='over', t='1917-11-08T02:00', tr=['1917-11-08T01:55', '1917-11-08T02:30'], title='Dissolved',
+                 q='And thereupon the Congress was dissolved.',
+                 gone=[{'who': 'red-guards', 'place': 'hall', 'all': True, 'ref': {'sec': 'V', 'q': 'And thereupon the Congress was dissolved.'}}]),
+        ]
+        return ev(d, 'session'), ev(d, 'leaving'), ev(d, 'over'), pl(d, 'hall')
+
+    def test_a_good_hall_passes(self):
+        d = good(); self.add(d)
+        self.assertEqual(errors(d), [])
+
+    def test_a_hall_is_a_room_of_a_fit_size(self):
+        d = good(); *_, h = self.add(d); h['kind'] = 'building'
+        self.assertIn('hall.kind', errors(d))
+        d = good(); *_, h = self.add(d); h['hall']['dims'] = [400, 18]
+        self.assertIn('field.range', errors(d))
+
+    def test_a_feature_needs_its_word(self):
+        d = good(); *_, h = self.add(d); h['hall']['features'][0]['k'] = 'columns'
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_benches_only_in_a_hall(self):
+        d = good(); self.add(d); ev(d, 'reed-walks')['present'][0]['bench'] = 'left'
+        self.assertIn('hall.none', errors(d))
+
+    def test_the_platform_needs_its_word(self):
+        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'platform'
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_a_walkout_needs_its_words(self):
+        d = good(); _, l, *_ = self.add(d); l['present'][0]['ref']['q'] = 'the rest were going to stay.'
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_part_only_for_a_walkout(self):
+        d = good(); s, *_ = self.add(d); s['present'][0]['part'] = True
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_the_house_needs_its_word(self):
+        d = good(); s, *_ = self.add(d); s['house']['pose'] = 'cheer'
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_the_speaker_is_a_person_in_the_hall(self):
+        d = good(); s, *_ = self.add(d); s['speaker'] = 'nobody'
+        self.assertIn('ref.unknown', errors(d))
+        d = good(); self.add(d); ev(d, 'dan-bell')['speaker'] = 'kam-p'
+        self.assertIn('hall.none', errors(d))
+
+    def test_all_needs_words_for_the_end(self):
+        d = good(); *_, o, _ = self.add(d); o['gone'][0]['ref']['q'] = 'Kameniev rang the bell.'
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_spans(self):
+        d = good(); self.add(d)
+        evs = L.sort_table('events', d['events'])
+        ids = [e['id'] for e in evs]
+        sp = L.presence_spans(evs, d['actors'], d['places'])[0]
+        at = lambda who, i: [(s.get('n'), s.get('walkout'), s['end_by']) for s in sp
+                             if s['who'] == who and s['place'] == 'hall' and s['start'] <= i and (s['end'] is None or i < s['end'])]
+        i0, i1, i2 = ids.index('session'), ids.index('leaving'), ids.index('over')
+        self.assertEqual(at('sailors', i0), [(10, None, 'walkout')])
+        # part of them leave: the rest, fewer by the leavers, stay in their seats until the session is over
+        self.assertEqual(sorted(at('sailors', i1), key=str), sorted([(7, None, 'gone'), (3, True, 'walkout')], key=str))
+        self.assertEqual(at('sailors', i2), [(7, None, 'gone')])
+        self.assertEqual(at('red-guards', i2), [(20, None, 'gone')])
+        self.assertEqual(at('red-guards', i2 + 1) + at('sailors', i2 + 1), [])
