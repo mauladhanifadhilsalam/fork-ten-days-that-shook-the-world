@@ -79,17 +79,23 @@ var PEOPLE = (function (THREE) {
   // o: coat, len ('long' | 'mid' | 'short'), legs, hat, hatCol, band, rifle, skatka, belts, armband, boards,
   //    lampas, skirt, scarf, beard, notebook, sabre; pose: 'stand' (the default), and for a fight 'aim'
   //    (standing, the rifle at the shoulder), 'kneel' (kneeling to fire), 'charge' (running, bayonet
-  //    first), 'prone' (flat on the face) or 'fallen' (on the back, the rifle dropped beside)
+  //    first), 'prone' (flat on the face) or 'fallen' (on the back, the rifle dropped beside); and in a
+  //    meeting-hall 'seat' (on a bench), 'seatvote' (seated, a card held up), 'vote' (standing, a card held
+  //    up), 'cheer' (both arms up), 'jeer' (a fist up) and 'speak' (an arm out, at the tribune)
   function person(o) {
     var pose = o.pose || 'stand';
     if (pose === 'fallen' || pose === 'prone') return lieDown(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), pose === 'fallen', o.rifle);
     if (pose === 'limp') return lean(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), 0.2, 0.14);   // wounded, held up between two ("supported by two comrades")
     var m = new Model(), coat = o.coat, legs = o.legs || coat, boots = o.boots || C.boots, skin = o.skin || C.skin;
     var squat = pose === 'squat' && !o.skirt;   // on the heels by a fire, the forearms on the knees ("squatting around fires")
+    var seat = pose === 'seat' || pose === 'seatvote';   // on a bench in a meeting-hall, the hands on the knees
     var kneel = pose === 'kneel' && !o.skirt && o.rifle, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
-    var dy = squat ? -0.41 : kneel ? -0.38 : 0;   // down, everything above the hips comes down
+    var dy = squat ? -0.41 : kneel ? -0.38 : seat ? -0.42 : 0;   // down, everything above the hips comes down
     // legs swing about the hip at y = 0.86 (parts 1, 2)
-    if (squat) {   // both knees bent up in front, the thighs level, the shins upright, heels down
+    if (seat && o.skirt) {   // seated, the skirt over the knees and down to the floor
+      m.box(o.skirt, 0, 0.47, 0.17, 0.44, 0.15, 0.48, 0, 0, 0, 0); m.box(o.skirt, 0, 0.26, 0.38, 0.42, 0.44, 0.09, 0, 0, 0, 0);
+      m.box(boots, -0.08, 0.04, 0.46, 0.12, 0.08, 0.2, 0, 0, 0, 0); m.box(boots, 0.08, 0.04, 0.46, 0.12, 0.08, 0.2, 0, 0, 0, 0);
+    } else if (squat || seat) {   // both knees bent up in front, the thighs level, the shins upright, heels down
       [-1, 1].forEach(function (sx) {
         m.box(legs, 0.12 * sx, 0.47, 0.19, 0.15, 0.16, 0.44, 0, 0.08 * sx, 0, 0);
         m.box(legs, 0.14 * sx, 0.27, 0.39, 0.15, 0.42, 0.16, 0, 0, 0, 0);
@@ -113,7 +119,8 @@ var PEOPLE = (function (THREE) {
     }
     // body
     m.box(coat, 0, 1.13 + dy, 0, 0.44, 0.56, 0.26);
-    if (o.len === 'long') m.taper(coat, 0, 0.66 + dy, 0, 0.44, 0.27, 0.56, 0.36, 0.5);
+    if (seat) { if (o.len !== 'short' && !o.skirt) m.box(coat, 0, 0.5, 0.13, 0.46, 0.08, 0.38); }   // the coat's skirts over the lap
+    else if (o.len === 'long') m.taper(coat, 0, 0.66 + dy, 0, 0.44, 0.27, 0.56, 0.36, 0.5);
     else if (o.len === 'mid') m.taper(coat, 0, 0.78 + dy, 0, 0.44, 0.27, 0.5, 0.32, 0.26);
     if (o.belt !== false) m.box(o.beltCol || C.leather, 0, 0.88 + dy, 0, 0.455, 0.055, 0.28);
     if (o.skatka) { m.box(o.skatka, 0.02, 1.13 + dy, 0.14, 0.11, 0.74, 0.09, 0, 0, 0.78); m.box(o.skatka, 0.02, 1.13 + dy, -0.14, 0.11, 0.74, 0.09, 0, 0, -0.78); }
@@ -136,6 +143,10 @@ var PEOPLE = (function (THREE) {
     } else if (squat) {   // the left forearm on the left knee
       m.box(coat, -0.25, 0.86, 0.2, 0.12, 0.5, 0.14, -0.95, 0, 0, 0); m.box(skin, -0.24, 0.6, 0.42, 0.09, 0.1, 0.1);
       if (o.armband) m.box(o.armband, -0.26, 0.96, 0.1, 0.135, 0.08, 0.155, -0.95, 0, 0, 0);
+    } else if (seat) {   // the left hand on the left knee
+      m.box(coat, -0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, -0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, -0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
+    } else if (pose === 'cheer') {   // both arms flung up
+      m.box(coat, -0.377, 1.652, 0, 0.12, 0.6, 0.14, 0, 0, 0.436); m.box(skin, -0.512, 1.942, 0, 0.1, 0.1, 0.1);
     } else {
       m.box(coat, -0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, -0.07, 3);
       m.box(skin, -0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, 3);
@@ -147,13 +158,24 @@ var PEOPLE = (function (THREE) {
       m.box(C.wood, 0.31, 1.2 + dy, 0.18, 0.04, 1.28, 0.06); m.box(C.steel, 0.31, 2.02 + dy, 0.18, 0.012, 0.42, 0.012);
     } else if (squat) {   // the right forearm on the right knee
       m.box(coat, 0.25, 0.86, 0.2, 0.12, 0.5, 0.14, -0.95, 0, 0, 0); m.box(skin, 0.24, 0.6, 0.42, 0.09, 0.1, 0.1);
+    } else if (pose === 'vote' || pose === 'seatvote') {   // "to hold up their cards": the right arm straight up, a card in the hand
+      m.box(coat, 0.25, 1.68 + dy, 0.02, 0.12, 0.6, 0.14); m.box(skin, 0.25, 2.0 + dy, 0.03, 0.09, 0.1, 0.1);
+      m.box(C.white, 0.25, 2.11 + dy, 0.045, 0.13, 0.17, 0.02);
+    } else if (pose === 'cheer') {
+      m.box(coat, 0.377, 1.652, 0, 0.12, 0.6, 0.14, 0, 0, -0.436); m.box(skin, 0.512, 1.942, 0, 0.1, 0.1, 0.1);
+    } else if (pose === 'jeer') {   // "shaking their fists": the right fist up and forward
+      m.box(coat, 0.25, 1.573, 0.23, 0.12, 0.6, 0.14, 0.873, 0, 0); m.box(skin, 0.25, 1.78, 0.475, 0.11, 0.11, 0.11);
+    } else if (pose === 'speak') {   // at the tribune, the right arm out over the hall
+      m.box(coat, 0.25, 1.535, 0.29, 0.12, 0.6, 0.14, 1.31, 0, 0); m.box(skin, 0.25, 1.54, 0.6, 0.09, 0.1, 0.1);
+    } else if (seat) {   // the right hand on the right knee
+      m.box(coat, 0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, 0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, 0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
     } else {
       m.box(coat, 0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, 0.07, armR);
       m.box(skin, 0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, armR);
       if (o.notebook) m.box(C.white, 0.33, 0.86 + dy, 0.09, 0.1, 0.14, 0.03, -0.3);
       if (o.cane) m.box(C.black, 0.33, 0.45, 0.04, 0.03, 0.8, 0.03, 0, 0, 0, armR);
     }
-    if (o.sabre) m.box(C.steel, -0.25, 0.62 + dy, -0.06, 0.03, 0.8, 0.05, 0.25);
+    if (o.sabre && !seat) m.box(C.steel, -0.25, 0.62 + dy, -0.06, 0.03, 0.8, 0.05, 0.25);
     // head
     var head = new Model();
     head.box(skin, 0, 1.45, 0, 0.12, 0.08, 0.12);
@@ -237,13 +259,14 @@ var PEOPLE = (function (THREE) {
   Object.keys(FIG_OPTS).forEach(function (k) { FIG[k] = person(FIG_OPTS[k]); });
   // where a rifle's muzzle is, in each firing pose (model metres, facing +z)
   var MUZZLE = { aim: [0.12, 1.42, 1.15], kneel: [0.12, 1.04, 1.15], charge: [0.09, 1.5, 1.02] };
-  var POSED = {};
+  var POSED = {}, HALL_POSES = ['seat', 'seatvote', 'vote', 'cheer', 'jeer', 'speak'];
   // a figure type in a pose, built the first time it is asked for: 'soldier.aim', 'redguard.fallen'
   function posed(key) {
     if (POSED[key]) return POSED[key];
     var p = key.split('.'), o = FIG_OPTS[p[0]];
     if (!o) return null;
-    return (POSED[key] = person(Object.assign({}, o, { pose: p[1] })).geometry(FIG_SCALE[p[0]] || 1));
+    var hall = HALL_POSES.indexOf(p[1]) >= 0;   // a delegate in the hall: no rifle in the hands, no cane
+    return (POSED[key] = person(Object.assign({}, o, { pose: p[1] }, hall ? { rifle: false, cane: false, notebook: false } : {})).geometry(FIG_SCALE[p[0]] || 1));
   }
   var FIG_SCALE = { womansoldier: 0.94, workerwoman: 0.94, workerwoman2: 0.94, bourgeoiswoman: 0.95, child: 0.62 };
   // a type's variants, so a body of men is not a row of clones
@@ -424,6 +447,36 @@ var PEOPLE = (function (THREE) {
     m.box('#6b5640', 0, 0.12, 1.6, 7.0, 0.24, 0.5);
     return m;
   }
+  // ---------- a meeting-hall ----------
+  // a bench for three, seen facing +z: its seat under the hips of a seated figure, its back behind
+  function bench() {
+    var m = new Model(), w = C.wood, dk = '#3a2a1e';
+    m.box(w, 0, 0.36, 0.06, 1.8, 0.06, 0.44); m.box(w, 0, 0.74, -0.2, 1.8, 0.46, 0.05);
+    [-0.85, 0, 0.85].forEach(function (x) { m.box(dk, x, 0.17, 0.06, 0.06, 0.34, 0.36); m.box(dk, x, 0.55, -0.2, 0.06, 0.4, 0.06); });
+    return m;
+  }
+  // the presidium table, with the chairman's bell ("ringing the bell"; "jangled the bell")
+  function table() {
+    var m = new Model();
+    m.box('#2f3a2e', 0, 0.74, 0, 3.4, 0.05, 0.95); m.box('#2f3a2e', 0, 0.45, 0.47, 3.4, 0.6, 0.02);   // a dark cloth down the front
+    [[-1.6, -0.4], [1.6, -0.4]].forEach(function (q) { m.box(C.wood, q[0], 0.37, q[1], 0.08, 0.74, 0.08); });
+    m.cyl(C.brass, 0.5, 0.82, 0.1, 0.1, 0.1, 8); m.box(C.black, 0.5, 0.9, 0.1, 0.025, 0.08, 0.025);
+    m.box(C.white, -0.6, 0.775, 0.05, 0.3, 0.01, 0.22); m.box(C.white, 0.0, 0.775, -0.1, 0.22, 0.01, 0.3);   // papers
+    return m;
+  }
+  // the reading stand at the front of the platform ("gripping the edge of the reading stand")
+  function tribune() {
+    var m = new Model();
+    m.box(C.wood, 0, 0.55, 0, 0.72, 1.1, 0.5); m.box('#5a4130', 0, 1.13, -0.04, 0.78, 0.05, 0.58, -0.3);
+    return m;
+  }
+  // "under the white chandeliers": a white ring of lamps on a stem, hung from above (the origin at the top)
+  function chandelier() {
+    var m = new Model(), wh = '#eeeae0';
+    m.cyl(wh, 0, -0.5, 0, 0.05, 1.0, 6); m.cyl(wh, 0, -1.05, 0, 1.3, 0.08, 16); m.cyl(wh, 0, -1.25, 0, 0.5, 0.35, 10, 0, 0, 0, 0, 0.2);
+    for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4; m.ball('#fff6d8', Math.cos(a) * 0.62, -0.95, Math.sin(a) * 0.62, 0.16); }
+    return m;
+  }
   function torch() { var m = new Model(); m.box(C.wood, 0, 1.25, 0, 0.04, 1.0, 0.04); m.cyl('#3a2a1c', 0, 1.78, 0, 0.09, 0.12, 6); return m; }
 
   // the cruiser Aurora, at her real size (126.8 m by 16.8 m): three funnels, two masts
@@ -458,7 +511,8 @@ var PEOPLE = (function (THREE) {
       gun: fieldGun('#4d5242').geometry(), mg: maxim('#3c3f36').geometry(), cab: cab().geometry(), tram: tram().geometry(), loco: loco().geometry(), wagon: wagon().geometry(),
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
       logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), horn: horn().geometry(), trench: trench().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
-      torch: torch().geometry(), horse: horse('#5a3f2a').geometry(), horse2: horse('#3a2c22').geometry(),
+      torch: torch().geometry(), horse: horse('#5a3f2a').geometry(),
+      bench: bench().geometry(), table: table().geometry(), tribune: tribune().geometry(), chandelier: chandelier().geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()
     };

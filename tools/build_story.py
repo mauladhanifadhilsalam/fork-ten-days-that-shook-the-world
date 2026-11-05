@@ -423,6 +423,8 @@ for p in T['places']:
         hx, hy = P(*h['ll'])
         rec['hall'] = {'p': [round(hx, 1), round(hy, 1)], 'dims': h['dims'], 'axis': h.get('axis', 0), 'plan': h.get('plan', 'rows'),
                        'features': [f['k'] for f in h.get('features', [])]}
+        if h.get('note'):   # what of the hall is the map's, on the card with the place's own note
+            rec['note'] = (rec.get('note', '') + ' ' + h['note']).strip()
     if xy:
         dist = math.hypot(*xy) / 1000
         rec['p'] = [round(xy[0], 1), round(xy[1], 1)]

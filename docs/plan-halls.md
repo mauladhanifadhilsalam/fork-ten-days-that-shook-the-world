@@ -1,6 +1,6 @@
 # Plan: the congress and meeting halls, and the walkouts
 
-Status: a plan, not yet started. Scope, as asked: the scenes of the congresses and meetings, so that the
+Status: phase 1 done (Smolny's great hall and the Second Congress, with the schema, checker, builder, drawing, camera and the hall audit); phases 2 to 5 not started. The scenes of phase 2 already open the hall, with their bodies as the data has them. Scope, as asked: the scenes of the congresses and meetings, so that the
 walkouts can be shown. Not the Winter Palace's rooms, the Military Revolutionary Committee's offices or the
 State Bank.
 
@@ -103,6 +103,12 @@ scene briefly, as now.
 3. The City Duma's two halls.
 4. Fontanka 6: the Peasants' Congress, the old Executive Committee and Tchernov leaving.
 5. Optional: the Cirque Moderne (it needs a mesh of its own), the Mariinsky Palace, the Riding School.
+
+## Decisions taken
+
+- **The hall's shape.** No outside source read gives where the great hall is in Smolny or its size (Russian Wikipedia names it the White or Assembly Hall; the rest came only from search summaries, not read). So the hall is schematic, 40 by 18 m in the main block south of the entrance, platform to the south, and marked as the map's in its record and on the card.
+- **Seating.** Faction blocks, for the rising on the chair's left and against on its right, marked as the map's. Sizes from Reed's presidium "upon proportionality", four figures to a seat.
+- **The hall's response** is the scene's (`house`), not a body's: Reed rarely names a faction beside the hooting or the cheering.
 
 ## Decisions before starting
 

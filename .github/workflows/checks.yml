@@ -47,6 +47,8 @@ jobs:
           - motion.js
           - camera.js
           - camera.js --phone --step 2
+          - hall.js
+          - hall.js --phone
     name: page (${{ matrix.audit }})
     steps:
       - uses: actions/checkout@v4

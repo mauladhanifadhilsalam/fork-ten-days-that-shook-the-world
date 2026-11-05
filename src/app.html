@@ -380,6 +380,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
           <li>The camera opens each scene on a frame that takes in everything it names, then comes in close, where the people are drawn at twice life size, to each place where the scene’s own are, and ends close on the first; a walk or a ride it follows first, close behind, and comes down where it ends. A touch on the map hands it back to you.</li>
           <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it.  Cars, trucks, cabs, trams and armoured cars stop for the people in their way: those standing about step aside and back, marchers are waited for, and a crowd that throws itself flat as a car comes lies in the gutters, as Reed has it. They steer round guns, barricades and other vehicles; where there is no way round, a machine gun is wheeled aside and a barricade pulled open for them, and put back after. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
+        <li>The Congress and its walk-outs are drawn inside Smolny’s great hall. In a scene there Smolny is cut away over the hall, as in an architect’s section, and the hall is laid out inside: benches in three blocks with aisles, the platform with the presidium table and the reading stand, the door at the back, and the “white chandeliers” Reed names. He does not say where the hall is in the building or how big it is: its place, its size and the platform at its south end are the map’s, and it is drawn at street level. So is who sits where: the factions in blocks, those for the rising on the chair’s left and those against on its right. Their numbers follow the presidium Reed says was chosen “upon proportionality” (“14 Bolsheviki, 7 Socialist Revolutionaries, 3 Mensheviki and 1 Internationalist”), four figures to a seat; the split of the seven between the Left Socialist Revolutionaries and the rest, and the Mensheviki Internationalists and the <i>Bund</i>, are the map’s. By those proportions more walk out than Reed’s “fifty delegates got up and pushed their way out”: his two counts do not agree, and the map keeps the factions whole. A faction that walks out rises, goes down an aisle and out at the back, while the hall hoots or cheers as Reed has it; one that comes in walks up onto the platform. The card names the speaker at the reading stand and who walks out or in.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -515,6 +516,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, PHONE ? 1.5 : 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = !PHONE;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.localClippingEnabled = true;   // a building cut away over a meeting-hall
 var scene = new THREE.Scene();
 var fog = new THREE.Fog(0xc9c4b6, 1500, 9000);
 scene.fog = fog;
@@ -673,7 +675,7 @@ function buildKeyBuildings() {
       o.roofMat = new THREE.MeshLambertMaterial({ color: ROOF.clone(), emissive: new THREE.Color(0, 0, 0) });
       var wm = new THREE.Mesh(geom(walls, true), o.wallMat), rm = new THREE.Mesh(geom(roofs, false), o.roofMat);
       wm.castShadow = rm.castShadow = true; wm.receiveShadow = rm.receiveShadow = true;
-      scene.add(wm); scene.add(rm);
+      scene.add(wm); scene.add(rm); o.meshes = [wm, rm];   // a hall inside cuts them away
     }
     if (areas.length) {
       var shapes = shapesFrom(areas.map(function (b) { return [b.o].concat(b.h); }));
@@ -1675,22 +1677,26 @@ function layoutPlace(id, groups, t, loc, scene) {
   });
 }
 function stageScene(e, noReed) {
-  var idx = seq.indexOf(e), byPlace = {}, briefs = {};
+  var idx = seq.indexOf(e), byPlace = {}, briefs = {}, hallGs = [], H = noReed ? null : hallOf(e);   // the intro's and the boot's stagings open no hall
   GROUPS = [];
+  setHall(H);
   function on(p) { return p.from <= idx && (p.to == null || idx < p.to); }
   // a brief entry is the body already there plus what Reed adds, for this scene: draw it once (a
   // column marching past is a body of its own)
-  (S.presence || []).forEach(function (p) { if (p.brief && !p.march && on(p)) briefs[p.who + '|' + p.place] = 1; });
+  (S.presence || []).forEach(function (p) { if (p.brief && !p.march && !p.part && on(p)) briefs[p.who + '|' + p.place] = 1; });   // part of a body walking out of a hall is drawn beside the rest
   // and those whose building the other side takes in this scene: there as it begins, to run off
   var takenTo = {}; (e.ctl || []).forEach(function (c) { if (c.holder) takenTo[rootOf(c.place)] = blocOf(c.holder); });
   function fled(p) { return p.to === idx && p.from < idx && !p.ship && takenTo[rootOf(p.place)] && opposed(takenTo[rootOf(p.place)], blocOf(p.who)); }
   (S.presence || []).forEach(function (p, pi) {
     if (!(on(p) || fled(p)) || (!p.brief && briefs[p.who + '|' + p.place])) return;
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
+    if (l.hall && !(H && H.id === p.place)) return;   // in a hall, seen only in a scene there
     var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && (p.from === idx || p.form === 'line') ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && (p.from === idx || p.form === 'line') ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship, flee: !on(p) };
     GROUPS.push(g);
-    if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
+    if (l.hall) hallGs.push(g);
+    else if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
   });
+  if (H) stageHall(H, hallGs, e);
   Object.keys(byPlace).forEach(function (id) {
     // the ones who were there before come first, so they keep their ground from scene to scene
     // (and Reed's formations and cruising cars before them, so the others make way)
@@ -1740,6 +1746,331 @@ function roomOf() {
   });
 }
 function figScale(m, FS) { return m.room && m.ox == null ? Math.min(FS, Math.max(2, m.room / 0.8)) : FS; }
+// ---------- a meeting-hall ----------
+// A hall Reed's scenes are set in (the great hall of Smolny) is drawn inside its building. In a scene there,
+// the building is cut down to the hall's walls over the hall's length, as in an architect's section, and the
+// hall is laid out inside: the floor, benches in three blocks with aisles between and along the walls, the
+// platform at its end with the presidium table and the reading stand, the windows, the door at the back and
+// the features Reed names (the white chandeliers). Where the hall is in its building, its size and the end its
+// platform is at are the map's, as the place's note says; its people are drawn twice life size, as close in
+// the city, so the benches are set out for that. Who sits where: the platform, the press table and the
+// aisles where Reed says so; the factions in blocks, those for the rising on the chair's left and those
+// against on its right, which is the map's arrangement.
+var HS = 2, HALLS = {}, hallOn = null;   // hallOn: the hall the open scene is in
+function hallOf(e) { var l = e && PL[e.loc]; return l && l.hall ? hallLayout(e.loc) : null; }
+function hallLayout(id) {
+  if (HALLS[id]) return HALLS[id];
+  var h = PL[id].hall, L = h.dims[0], Wd = h.dims[1], a = h.axis * Math.PI / 180;
+  var f = [Math.sin(a), Math.cos(a)], lf = [f[1], -f[0]];   // toward the platform; the chair's left, as it looks down the hall
+  var H = { id: id, bid: rootOf(id), L: L, W: Wd, f: f, lf: lf, c: h.p, Hc: 5.2, Hp: 1.4, Dp: 6.5, feats: h.features || [] };
+  H.at = function (u, v) { return [h.p[0] + f[0] * u + lf[0] * v, h.p[1] + f[1] * u + lf[1] * v]; };
+  H.uv = function (x, y) { var dx = x - h.p[0], dy = y - h.p[1]; return [dx * f[0] + dy * f[1], dx * lf[0] + dy * lf[1]]; };
+  H.yawF = Math.atan2(f[0], -f[1]); H.yawB = Math.atan2(-f[0], f[1]);   // facing the platform; facing the hall from it
+  // the seats: three blocks of benches between the aisles, rows from the front back
+  var sa = 1.8, ia = 1.8, bw = (Wd - 2 * sa - 2 * ia) / 3, sp = Math.max(1, Math.floor(bw / (0.6 * HS) + 0.01)), pitch = bw / sp;
+  H.ub = -L / 2 + 3.6; H.uf = L / 2 - H.Dp - 2.2; H.rp = 0.95 * HS;
+  H.rows = Math.floor((H.uf - H.ub) / H.rp) + 1;
+  H.blocks = { left: bw + ia, centre: 0, right: -(bw + ia) };   // the middle of each block, across the hall
+  H.aisles = { side: [Wd / 2 - sa / 2, -(Wd / 2 - sa / 2)], inner: [bw / 2 + ia / 2, -(bw / 2 + ia / 2)] };
+  H.bw = bw; H.sp = sp;
+  H.seats = {};
+  Object.keys(H.blocks).forEach(function (b) {
+    var list = [];
+    for (var r = 0; r < H.rows; r++) for (var s = 0; s < sp; s++) list.push({ u: H.uf - r * H.rp, v: H.blocks[b] - bw / 2 + (s + 0.5) * pitch, row: r, block: b, col: s });
+    H.seats[b] = list;
+  });
+  // the platform's seats behind the table, the reading stand at its front, the door in the back wall
+  H.tableU = L / 2 - 3.4; H.chairU = L / 2 - 2.0; H.tribune = [L / 2 - H.Dp + 1.1, bw / 2 + ia + 0.6];
+  H.door = [-L / 2, 0];
+  // the building's width across the hall, at its two ends and its middle: how far the section goes
+  var recs = KEYR[H.bid] || [];
+  function inB(x, y) { return recs.some(function (rec) { return inRing(rec.r, x, y) && !rec.holes.some(function (q) { return inRing(q, x, y); }); }); }
+  function span(u) {
+    var lo = 0, hi = 0, k;
+    for (k = 0.5; k < 80; k += 0.5) { var p = H.at(u, k); if (!inB(p[0], p[1])) break; hi = k; }
+    for (k = 0.5; k < 80; k += 0.5) { var q = H.at(u, -k); if (!inB(q[0], q[1])) break; lo = -k; }
+    return [Math.min(lo, -Wd / 2 - 0.5), Math.max(hi, Wd / 2 + 0.5)];
+  }
+  H.u0 = -L / 2 - 14; H.u1 = L / 2 + 0.6;   // the cut takes in the corridor outside the door too, where those who walk out go
+  H.ends = [span(H.u0 - 0.6), span(H.u1 + 0.6)];
+  var mid = span(0);
+  H.v0 = Math.min(mid[0], H.ends[0][0], H.ends[1][0]) - 0.8; H.v1 = Math.max(mid[1], H.ends[0][1], H.ends[1][1]) + 0.8;
+  H.Hb = recs.reduce(function (m, rec) { return Math.max(m, rec.h); }, 10);
+  H.inStrip = function (x, y) { var q = H.uv(x, y); return q[0] >= H.u0 && q[0] <= H.u1 && q[1] >= H.v0 && q[1] <= H.v1; };
+  // the building is cut low over the hall, and so is the hall's wall on the side the camera looks in from, as
+  // in a cutaway drawing; the far wall and the ends stand to their height
+  H.Hlow = 1.2; H.view = 0;
+  var was = hallOn; hallOn = H; hallView(H); hallOn = was;
+  // the standing room: the side aisles, the back of the hall, then the window-sills of the far wall
+  H.stand = [];
+  // in the side aisles against the wall, so that one walking down the aisle passes them on the benches' side
+  for (var u = H.uf; u >= H.ub - 0.2; u -= 0.8 * HS) H.aisles.side.forEach(function (v) { var sg = v > 0 ? 1 : -1; H.stand.push({ u: u + (hash(u * 3.1 + v) - 0.5) * 0.3, v: sg * (Wd / 2 - 0.5), hy: 0, aisle: v }); });
+  H.walkSide = Wd / 2 - 1.8 + 0.55;   // the line a walker keeps to in a side aisle
+  for (var u2 = -L / 2 + 1.2; u2 <= H.ub - 1.4; u2 += 1.5) for (var v2 = -Wd / 2 + 1.2; v2 <= Wd / 2 - 1.2; v2 += 1.6) if (Math.abs(v2) > 1.8) H.stand.push({ u: u2, v: v2, hy: 0 });
+  H.windows = []; for (var uw = -L / 2 + 4; uw <= L / 2 - 3; uw += 4.6) H.windows.push(uw);
+  H.windows.forEach(function (uw) { H.stand.push({ u: uw, v: -H.view * (Wd / 2 - 0.55), hy: 1.8, sill: -H.view }); });
+  HALLS[id] = H;
+  return H;
+}
+// the hall's walls, floor, platform and windows, and the cut faces of its building: built once
+function hallShell(H) {
+  if (H.shell) return H.shell;
+  var grp = new THREE.Group(), mats = {};
+  function mat(c) { return mats[c] || (mats[c] = new THREE.MeshLambertMaterial({ color: c })); }
+  function box(u0, u1, v0, v1, y0, y1, col) {
+    var m = new THREE.Mesh(new THREE.BoxGeometry(Math.abs(v1 - v0), y1 - y0, Math.abs(u1 - u0)), mat(col)), p = H.at((u0 + u1) / 2, (v0 + v1) / 2);
+    m.position.set(p[0], (y0 + y1) / 2, -p[1]); m.rotation.y = H.yawF; m.receiveShadow = true; grp.add(m); return m;
+  }
+  var L = H.L, Wd = H.W, T = 0.45, Hc = H.Hc, white = '#e9e4d8', cut = '#9a6b55';
+  box(H.u0 - 0.6, H.u1 + 0.6, H.v0, H.v1, 0, 0.04, '#b9b2a2');   // the corridors' floor, under the section
+  box(-L / 2, L / 2, -Wd / 2, Wd / 2, 0, 0.08, '#8a6a4a');          // the parquet
+  // the walls, white inside ("the White Hall"), with the door in the back one; their cut tops
+  var hN = function (sgn) { return sgn === H.view ? H.Hlow : Hc; };   // the wall nearest the camera, cut low
+  box(-L / 2 - T, L / 2 + T, Wd / 2, Wd / 2 + T, 0, hN(1), white); box(-L / 2 - T, L / 2 + T, -Wd / 2 - T, -Wd / 2, 0, hN(-1), white);
+  box(L / 2, L / 2 + T, -Wd / 2, Wd / 2, 0, Hc, white);
+  box(-L / 2 - T, -L / 2, 1.3, Wd / 2, 0, Hc, white); box(-L / 2 - T, -L / 2, -Wd / 2, -1.3, 0, Hc, white); box(-L / 2 - T, -L / 2, -1.3, 1.3, 3.2, Hc, white);
+  [[-L / 2 - T, L / 2 + T, Wd / 2, Wd / 2 + T, hN(1)], [-L / 2 - T, L / 2 + T, -Wd / 2 - T, -Wd / 2, hN(-1)], [L / 2, L / 2 + T, -Wd / 2, Wd / 2, Hc], [-L / 2 - T, -L / 2, -Wd / 2, Wd / 2, Hc]].forEach(function (q) { box(q[0], q[1], q[2], q[3], q[4], q[4] + 0.08, cut); });
+  // the windows on the long walls, their sills ("perched on every window-sill")
+  H.windows.forEach(function (uw) { var s = -H.view, v = s * Wd / 2; box(uw - 1.0, uw + 1.0, v - s * 0.05, v + s * 0.02, 1.8, Hc, '#2c3644'); box(uw - 1.1, uw + 1.1, v - s * 0.5, v, 1.6, 1.8, '#d6cfbf'); });
+  // the platform, its steps at either side
+  box(L / 2 - H.Dp, L / 2, -Wd / 2, Wd / 2, 0, H.Hp, '#7a5a3e'); box(L / 2 - H.Dp - 0.02, L / 2 - H.Dp, -Wd / 2, Wd / 2, 0.1, H.Hp - 0.05, '#5e4430');
+  [1, -1].forEach(function (s) { for (var k = 0; k < 3; k++) box(L / 2 - H.Dp - 1.6 + k * 0.53, L / 2 - H.Dp, s * (Wd / 2 - 0.2), s * (Wd / 2 - 1.6), 0, H.Hp * (k + 1) / 4, '#6e5038'); });
+  // the building cut through at the hall's two ends, from the hall's walls up to its roof
+  [[H.u0 - 0.6, H.ends[0]], [H.u1 + 0.6, H.ends[1]]].forEach(function (q) { box(q[0] - 0.3, q[0] + 0.3, q[1][0], q[1][1], H.Hlow, H.Hb, cut); });
+  grp.visible = false; scene.add(grp);
+  H.shell = grp;
+  // the building's own walls and roof are cut away above the hall's walls over its length
+  var F = new THREE.Vector3(H.f[0], 0, -H.f[1]), LF = new THREE.Vector3(H.lf[0], 0, -H.lf[1]);
+  function pt(u, v, y) { var p = H.at(u, v); return new THREE.Vector3(p[0], y, -p[1]); }
+  H.planes = [new THREE.Plane().setFromNormalAndCoplanarPoint(F, pt(H.u1, 0, 0)), new THREE.Plane().setFromNormalAndCoplanarPoint(F.clone().negate(), pt(H.u0, 0, 0)),
+    new THREE.Plane().setFromNormalAndCoplanarPoint(LF, pt(0, H.v1, 0)), new THREE.Plane().setFromNormalAndCoplanarPoint(LF.clone().negate(), pt(0, H.v0, 0)),
+    new THREE.Plane().setFromNormalAndCoplanarPoint(new THREE.Vector3(0, -1, 0), new THREE.Vector3(0, H.Hlow, 0))];
+  return grp;
+}
+function setHall(H) {
+  if (hallOn === H) return;
+  if (hallOn) {   // put the building back
+    hallOn.shell.visible = false;
+    var o0 = KEYM[hallOn.bid];
+    if (o0) [o0.wallMat, o0.roofMat].forEach(function (m) { m.clippingPlanes = []; m.needsUpdate = true; });
+    if (o0 && o0.meshes) o0.meshes.forEach(function (m) { m.castShadow = true; });
+  }
+  hallOn = H;
+  if (!H) return;
+  hallShell(H).visible = true;
+  var o = KEYM[H.bid];
+  if (o) [o.wallMat, o.roofMat].forEach(function (m) { m.clippingPlanes = H.planes; m.clipIntersection = true; m.needsUpdate = true; });
+  if (o && o.meshes) o.meshes.forEach(function (m) { m.castShadow = false; });   // the cut-away roof casts no shadow into the hall
+}
+// people in the hall: seated by blocks, on the platform, standing in the aisles; who walks out or in; the
+// speaker at the reading stand; the house's response
+var SPEAKER_FIG = { dan: 'officer', krylenko: 'soldier', lenin: 'worker' };   // "a shapeless military surgeon's uniform"; "a uniform without insignia"; "shabby clothes"
+function stageHall(H, gs, e) {
+  var taken = {}, house = e.house && e.house.pose, out = gs.filter(function (g) { return g.p.walkout; });
+  function seatList(b) { return H.seats[b].filter(function (s) { return !taken[s.u.toFixed(2) + ',' + s.v.toFixed(2)]; }); }
+  function take(s) { taken[s.u.toFixed(2) + ',' + s.v.toFixed(2)] = 1; }
+  var order = { platform: 0, left: 1, centre: 2, right: 3, press: 4, aisles: 5 };
+  gs.sort(function (a, b) { return (order[a.p.bench || 'centre'] - order[b.p.bench || 'centre']) || (a.pi - b.pi); });
+  var standI = 0;
+  gs.forEach(function (g) {
+    var bench = g.p.bench || 'centre', n = Math.max(1, g.n || 12), figs = members(g.fig || [['worker', 1]], n, g.seed);
+    g.members = []; g.props = []; g.fires = []; g.inside = true; g.hall = H; g.bench = bench;
+    g.walkout = !!g.p.walkout && g.p.from === seq.indexOf(e); g.walkin = !!g.p.walkin && g.p.from === seq.indexOf(e);
+    // the house's response: all, for a vote or for rising; for cheering and hooting, the side of the rising
+    var hp = g.pose || (house && bench !== 'platform' && !g.walkout && !g.walkin && (house === 'vote' || house === 'stand' || (SIDE[g.bloc] === 1 && !out.some(function (h) { return h.who === g.who; }))) ? house : null);
+    if (bench === 'platform') {
+      for (var i = 0; i < n; i++) {
+        var v = (i - (n - 1) / 2) * 1.25, q = H.at(H.chairU, v);
+        g.members.push({ k: figs[i], x: q[0], y: q[1], yaw: H.yawB, idle: 0.4, pose: 'seat', hy: H.Hp, hs: HS, home: { u: H.chairU, v: v, hy: H.Hp, pose: 'seat', yaw: H.yawB } });
+      }
+    } else if (bench === 'aisles' || bench === 'press') {
+      for (var j = 0; j < n && standI < H.stand.length; j++) {
+        var st = H.stand[standI++], p = H.at(st.u, st.v), sill = st.sill != null;
+        var yaw = sill ? Math.atan2(-H.lf[0] * st.sill, H.lf[1] * st.sill) : H.yawF;
+        g.members.push({ k: figs[j], x: p[0], y: p[1], yaw: yaw, idle: 0.5, pose: sill ? 'seat' : null, hy: st.hy, hs: HS, aisle: st.aisle, home: { u: st.u, v: st.v, hy: st.hy, pose: sill ? 'seat' : null, yaw: yaw, sill: sill } });
+      }
+    } else {
+      // its own block first, then the nearest with room: a faction keeps together, row by row
+      var near = { left: ['left', 'centre', 'right'], centre: ['centre', 'left', 'right'], right: ['right', 'centre', 'left'] }[bench] || ['centre', 'left', 'right'], k = 0;
+      near.forEach(function (b) {
+        seatList(b).forEach(function (s) {
+          if (k >= n) return; take(s); var p = H.at(s.u, s.v);
+          g.members.push({ k: figs[k++], x: p[0], y: p[1], yaw: H.yawF, idle: 0.3, pose: 'seat', hy: 0, hs: HS, seat: s, home: { u: s.u, v: s.v, hy: 0, pose: 'seat', yaw: H.yawF } });
+        });
+      });
+    }
+    // the response, in a wave over a second or two; some only rise, some do more
+    if (hp) g.members.forEach(function (m, i) {
+      var r = hash(g.seed + i * 3.3), seated = m.home.pose === 'seat' && m.home.hy < 1;
+      m.react = { at: 1.2 + r * 1.6, pose: hp === 'vote' ? (seated ? 'seatvote' : 'vote') : hp === 'stand' ? null : r < (hp === 'jeer' ? 0.55 : 0.7) ? hp : null, hy: m.home.hy };
+      if (hp === 'vote' && m.home.sill) m.react.pose = 'seatvote';
+    });
+    var sx = 0, sy = 0; g.members.forEach(function (m) { sx += m.x; sy += m.y; });
+    g.cx = g.members.length ? sx / g.members.length : H.c[0]; g.cy = g.members.length ? sy / g.members.length : H.c[1]; g.r = 6;
+  });
+  // walking out: rising row by row, the nearest the door first, down the nearest aisle and out at the back
+  var seated = []; gs.forEach(function (g) { g.members.forEach(function (m) { if (m.seat) seated.push({ m: m, g: g }); }); });
+  gs.forEach(function (g) {
+    if (!g.walkout) return;
+    g.members.forEach(function (m) {   // the aisle at the end of the row with fewest who stay seated in the way
+      if (!m.seat) return;
+      var s = m.seat, ends = [-1, 1].map(function (sg) { var e2 = H.blocks[s.block] + sg * (H.bw / 2 + 0.9); return Math.abs(e2) > H.W / 2 - 1.8 ? sg * H.walkSide : e2; });   // an inner aisle's middle, or a side aisle's bench side
+      var cost = ends.map(function (ve) { return seated.filter(function (o) { return o.g !== g && !o.g.walkout && o.m.seat.row === s.row && o.m.seat.block === s.block && (o.m.seat.v - s.v) * (ve - s.v) > 0; }).length * 10 + Math.abs(ve - s.v); });
+      m.va = cost[0] <= cost[1] ? ends[0] : ends[1];
+    });
+    // the back rows first, and in a row the one nearest the aisle
+    var list = g.members.slice().sort(function (a, b) { return ((a.seat ? a.seat.u : 0) - (b.seat ? b.seat.u : 0)) || (a.seat && b.seat ? Math.abs(a.seat.v - a.va) - Math.abs(b.seat.v - b.va) : 0); });
+    list.forEach(function (m, i) {
+      var hm = m.home, path = [[hm.u, hm.v, hm.hy]];
+      if (m.seat) path.push([hm.u + 0.35 * HS, hm.v, 0], [hm.u + 0.35 * HS, m.va, 0], [H.ub - 1.0, m.va, 0]);
+      else path.push([hm.u, hm.v, 0], [H.ub - 1.0, hm.v, 0]);
+      path.push([-H.L / 2 + 1.0, H.door[1], 0], [-H.L / 2 - 3.5, H.door[1], 0]);
+      m.walkPath = hallPath(H, path); m.walkAt = 2.0 + i * 0.4; m.leave = true;
+    });
+  });
+  // walking in at the door, up the aisle nearest the platform's steps, up onto it and to the seats
+  gs.forEach(function (g) {
+    if (!g.walkin) return;
+    var order = g.members.slice().sort(function (a, b) { return Math.abs(a.home.v) - Math.abs(b.home.v); });   // the middle seats first, so none passes one seated
+    order.forEach(function (m, i) {
+      var hm = m.home, side = hm.v >= 0 ? 1 : -1, va = side * H.walkSide, ub = H.L / 2 - 0.9;
+      var path = [[-H.L / 2 - 3.5, 0, 0], [-H.L / 2 + 1.0, 0, 0], [H.ub - 1.0, va, 0], [H.L / 2 - H.Dp - 1.7, va, 0], [H.L / 2 - H.Dp + 0.5, va, H.Hp], [ub, va, H.Hp], [ub, hm.v, H.Hp], [hm.u, hm.v, H.Hp]];
+      m.walkPath = hallPath(H, path); m.walkAt = 1.0 + i * 0.7; m.enter = true;
+    });
+  });
+  // the speaker, at the reading stand; with the ones walking in, he comes in last
+  if (e.speaker) {
+    var who = e.speaker, k0 = SPEAKER_FIG[who] || 'intelligent', tp = H.at(H.tribune[0] + 0.7, H.tribune[1]), sm = { k: k0, x: tp[0], y: tp[1], yaw: H.yawB, idle: 0.2, pose: 'speak', hy: H.Hp, hs: HS, home: { u: H.tribune[0] + 0.7, v: H.tribune[1], hy: H.Hp, pose: 'speak', yaw: H.yawB } };
+    var wi = gs.filter(function (g) { return g.walkin; })[0];
+    if (wi) {
+      var side = H.tribune[1] >= 0 ? 1 : -1, va2 = side * H.walkSide;
+      sm.walkPath = hallPath(H, [[-H.L / 2 - 3.5, 0, 0], [-H.L / 2 + 1.0, 0, 0], [H.ub - 1.0, va2, 0], [H.L / 2 - H.Dp - 1.7, va2, 0], [H.L / 2 - H.Dp + 0.5, va2, H.Hp], [sm.home.u, sm.home.v, H.Hp]]);
+      sm.walkAt = 1.0 + wi.members.length * 0.7 + 0.8; sm.enter = true;
+    }
+    GROUPS.push({ members: [sm], props: [], fires: [], bloc: 'neutral', label: ((PEO[who] || {}).name || who).replace(/ \(.*\)$/, ''), place: H.id, seed: 5, cx: tp[0], cy: tp[1], r: 3, inside: true, hall: H, speaker: who });
+  }
+  H.t0 = null;   // the hall's own clock starts when the camera is down in it
+}
+// a walk through the hall: points [u, v, height] to map points, with lengths along the way
+function hallPath(H, pts) {
+  var out = [], s = 0;
+  pts.forEach(function (q, i) { var p = H.at(q[0], q[1]); if (i) s += Math.hypot(p[0] - out[i - 1].x, p[1] - out[i - 1].y); out.push({ x: p[0], y: p[1], h: q[2], s: s }); });
+  return { pts: out, len: s };
+}
+var HALL_WALK = 1.6 * HS;   // metres a second: a brisk walk, at the hall's scale
+// each frame: where the walkers are, and who has risen
+function hallStep(g, t) {
+  var H = g.hall, T = H.t0 == null ? -1 : t - H.t0, mx = 0, my = 0, mn = 0;
+  g.members.forEach(function (m) {
+    var hm = m.home;
+    m.walk = false;
+    if (m.walkPath) {
+      var P = m.walkPath, tt = T - m.walkAt, d = tt < 0.6 ? 0 : (tt - 0.6) * HALL_WALK;
+      if (m.enter && (T < 0 || tt < 0)) { m.gone = true; return; }   // not come in yet
+      if (m.leave && (T < 0 || tt < 0)) { m.gone = false; m.pose = hm.pose; m.hy = hm.hy; m.yaw = hm.yaw; var p0 = H.at(hm.u, hm.v); m.x = p0[0]; m.y = p0[1]; return; }
+      if (d >= P.len) {
+        if (m.leave) { m.gone = true; return; }
+        var pe = H.at(hm.u, hm.v); m.x = pe[0]; m.y = pe[1]; m.hy = hm.hy; m.pose = hm.pose; m.yaw = hm.yaw; m.gone = false; return;
+      }
+      m.gone = false; m.pose = null;
+      var a = P.pts[0], b = P.pts[1];
+      for (var i = 1; i < P.pts.length; i++) { a = P.pts[i - 1]; b = P.pts[i]; if (b.s >= d) break; }
+      var k = b.s > a.s ? Math.max(0, Math.min(1, (d - a.s) / (b.s - a.s))) : 1;
+      m.x = a.x + (b.x - a.x) * k; m.y = a.y + (b.y - a.y) * k; m.hy = a.h + (b.h - a.h) * k;
+      if (d > 0) { m.walk = true; if (Math.hypot(b.x - a.x, b.y - a.y) > 0.01) m.yaw = Math.atan2(b.x - a.x, -(b.y - a.y)); }
+      else m.yaw = hm.yaw;
+      return;
+    }
+    m.pose = hm.pose; m.hy = hm.hy; m.yaw = hm.yaw;
+    if (m.react && T >= m.react.at) { m.pose = m.react.pose; m.hy = m.react.hy; }
+  });
+  // a body walking out or in: its label goes with those still in the hall, and when the last is gone, with them
+  if (g.walkout || g.walkin || (g.speaker && g.members[0].enter)) {
+    g.members.forEach(function (m) { if (!m.gone) { mx += m.x; my += m.y; mn++; } });
+    if (mn) { g.cx = mx / mn; g.cy = my / mn; }
+    g.nolabel = !mn;
+  }
+}
+// those standing in an aisle make way for one walking down it, and close in again behind ("people surged in upon him")
+function hallMakeWay(gs, t) {
+  var walkers = [];
+  gs.forEach(function (g) { g.members.forEach(function (m) { if (m.walk && !m.gone) walkers.push(m); }); });
+  if (!walkers.length) return;
+  gs.forEach(function (g) {
+    g.members.forEach(function (m) {
+      if (m.aisle == null || m.walk) return;
+      walkers.forEach(function (w) {
+        if (Math.hypot(w.x - m.x, w.y - m.y) > 2.2 * HS / 2 * 1.4) return;
+        var H = g.hall, s = m.aisle > 0 ? 1 : -1, dv = s * 0.7;   // back against the wall
+        m.aside = m.aside || { cx: 0, cy: 0 }; m.aside.t = t; m.aside.tx = H.lf[0] * dv; m.aside.ty = H.lf[1] * dv;
+      });
+    });
+  });
+}
+// the hall's furniture, each frame (instanced like the people)
+var hallGlow = null;
+function drawHallKit(H, t) {
+  for (var r = 0; r < H.rows; r++) Object.keys(H.blocks).forEach(function (b) { var p = H.at(H.uf - r * H.rp, H.blocks[b]); put('bench', p[0], 0, -p[1], H.yawF, HS, 0, 0, 0); });
+  [-1, 1].forEach(function (s) { var p = H.at(H.chairU, s * 1.9); put('bench', p[0], H.Hp, -p[1], H.yawB, HS, 0, 0, 0); });
+  var tb = H.at(H.tableU, 0); put('table', tb[0], H.Hp, -tb[1], H.yawB, HS, 0, 0, 0);
+  var tr = H.at(H.tribune[0], H.tribune[1]); put('tribune', tr[0], H.Hp, -tr[1], H.yawB, HS, 0, 0, 0);
+  if (H.feats.indexOf('chandeliers') >= 0) {
+    var cs = 1.4, top = H.Hc + 0.9;
+    [-H.L / 4, 0, H.L / 4].forEach(function (u) {
+      var p = H.at(u, 0); put('chandelier', p[0], top, -p[1], 0, cs, 0, 0, 0);
+      if (darkNow) for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4; glowFx.add(p[0] + Math.cos(a) * 0.62 * cs, top - 0.95 * cs, -p[1] + Math.sin(a) * 0.62 * cs, 0.5, 1.0, 0.86, 0.6, 0.55); }
+    });
+  }
+}
+
+// the camera in a hall: down over the rows to the platform, from the side where the section opens it (on a
+// phone, whose screen is tall, from the back down the length of the hall); a walk-out followed to the door,
+// then back to the platform
+// the side to look in from: the one from which the fewest of the hall's points are hidden by houses
+function hallView(H) {
+  if (H.view) return H.view;
+  var probe = [[0, 0], [-H.L / 2 + 1, 0], [H.L / 2 - 2, 0], [-H.L / 2 + 1, H.W / 2 - 1], [-H.L / 2 + 1, -H.W / 2 + 1], [H.L / 2 - 2, H.W / 2 - 1], [H.L / 2 - 2, -H.W / 2 + 1], [H.ub, 0], [H.uf, 0]];
+  var best = null;
+  [1, -1].forEach(function (s) {
+    var c = H.at(-4, s * (H.W / 2 + 26)), n = 0;
+    probe.forEach(function (q) { var p = H.at(q[0], q[1]); if (hiddenBy(c[0], c[1], 28, p[0], p[1], 1.5)) n++; });
+    if (!best || n < best.n) best = { s: s, n: n };
+  });
+  return (H.view = best.s);
+}
+function hallFrame(H, kind, at, along) {
+  var s = hallView(H), L = H.L, Wd = H.W, t, p, h, pts;
+  function q(u, v) { var m = H.at(u, v); return [m[0], m[1]]; }
+  // the walk: steep, to see over the heads of a house on its feet; on a phone, every shot from high over the
+  // back wall, clear of the building behind it
+  if (kind === 'walk') { t = at; p = PHONE ? [at[0] - 6, at[1] * 0.4] : [at[0] - 2, s * (Wd / 2 + 9)]; h = PHONE ? 50 : 34; pts = along && along.length ? along : [q(at[0] * 2 + L / 2, at[1] * 2), q(-L / 2 - 2, 0), q(-L / 2, Wd / 2), q(-L / 2, -Wd / 2)]; }
+  else if (kind === 'front') { t = [L / 2 - H.Dp - 1, 0]; p = PHONE ? [L / 2 - H.Dp - 16, 0] : [L / 2 - H.Dp - 11, s * (Wd / 2 + 14)]; h = PHONE ? 30 : 16; pts = [q(L / 2, Wd / 2), q(L / 2, -Wd / 2), q(H.uf - 2 * H.rp, Wd / 2), q(H.uf - 2 * H.rp, -Wd / 2)]; }
+  else { t = [1.5, 0]; p = PHONE ? [-L / 2 - 4, 0] : [-4, s * (Wd / 2 + 26)]; h = PHONE ? 60 : 28; pts = [q(-L / 2, Wd / 2), q(-L / 2, -Wd / 2), q(L / 2, Wd / 2), q(L / 2, -Wd / 2)]; }
+  var tm = H.at(t[0], t[1]), pm = H.at(p[0], p[1]), T = new THREE.Vector3(tm[0], 0, -tm[1]);
+  var dir = new THREE.Vector3(pm[0], h, -pm[1]).sub(T), d = dir.length(), pos = null; dir.normalize();
+  // back far enough for the whole of it, and in the clear part of the screen, beside the card
+  for (var k = 0; k < 14; k++) {
+    pos = T.clone().add(dir.clone().multiplyScalar(d));
+    for (var it = 0; it < 2; it++) { var sh = centreShift(pos, T, pts); if (!sh) break; T.add(sh); pos.add(sh); }
+    if (!offClear(pos, T, pts)) break;
+    d *= 1.1;
+  }
+  return { target: T, pos: pos };
+}
+function hallCam(H, e, t0) {
+  H.t0 = t0 + 1.0;
+  if (REDUCED) { H.t0 = -1e9; bcam = null; return; }   // no motion: the hall as the scene leaves it
+  var gs = GROUPS.filter(function (g) { return g.hall === H; }), end = 0, walkers = [];
+  gs.forEach(function (g) { g.members.forEach(function (m) { if (m.walkPath) { end = Math.max(end, m.walkAt + 0.6 + m.walkPath.len / HALL_WALK); if (m.leave) walkers.push(m); } }); });
+  var steps = [{ at: t0, fr: hallFrame(H, 'over') }];
+  if (walkers.length) {
+    var su = 0, sv = 0; walkers.forEach(function (m) { su += m.home.u; sv += m.home.v; }); su /= walkers.length; sv /= walkers.length;
+    var along = []; walkers.forEach(function (m) { m.walkPath.pts.forEach(function (p) { along.push([p.x, p.y]); }); });   // the whole of their way, seats to door
+    steps.push({ at: H.t0 + 1.6, fr: hallFrame(H, 'walk', [(su - H.L / 2) / 2, sv / 2], along) });
+  }
+  steps.push({ at: H.t0 + Math.max(7, end + 1.0), fr: hallFrame(H, 'front') });
+  bcam = { steps: steps, i: 0 };
+}
 // A bridge Reed has opened in the scene ("opened the Nicolai Bridge"): its deck parts, a little way off
 // the people on it, and its two leaves stand up. Where along the bridge it opens is the map's.
 var raisedGroup = new THREE.Group(); scene.add(raisedGroup);
@@ -2601,7 +2932,7 @@ function stageEngagements(e, idx) {
   });
   // a garrison "driven back": a party of it comes out of its door toward the fire, and runs back in
   if (SORTIE_RE.test(text)) GROUPS.slice().forEach(function (g) {
-    if (!g.inside || !g.members) return;
+    if (!g.inside || !g.members || g.hall) return;
     var shooter = GROUPS.filter(function (h) { return h.fire && h.at === g.who && h.cx != null; })[0], bl = outlinesOf(rootOf(g.place));
     if (!shooter || !bl.length) return;
     var door = nearestOn(bl, shooter.cx, shooter.cy), G = openGround(rootOf(g.place), false); if (!G || door.d > 400) return;
@@ -2793,6 +3124,7 @@ function sceneSites(e, extra) {
 // the close shots, from time t0, each held while its place has something to watch, within the scene's time
 function sceneCam(e, t0, span, extra) {
   bcam = null;
+  if (hallOn && e.loc === hallOn.id) { hallCam(hallOn, e, t0); return; }
   if (REDUCED) return;
   var sites = sceneSites(e, extra); if (!sites.length) return;
   var hold = Math.max(4, Math.min(14, (span - 1.6 * sites.length) / sites.length)), at = t0, steps = [];
@@ -3188,7 +3520,28 @@ function drawPeople(now, FS) {
   figUni.uTime.value = t;
   reedGlow.visible = false;
   FOLK = []; WALK_PREV = WALK_NOW; WALK_NOW = [];
+  if (hallOn) {   // the hall: its furniture, who walks, who has risen, and room made in the aisles
+    var hgs = GROUPS.filter(function (g) { return g.hall; });
+    hgs.forEach(function (g) { hallStep(g, t); });
+    hallMakeWay(hgs, t);
+    drawHallKit(hallOn, t);
+  }
   GROUPS.forEach(function (g) {
+    if (g.hall) {
+      g.members.forEach(function (mm, i) {
+        if (mm.gone) return;
+        var x = mm.x, y = mm.y, wk = mm.walk ? 1 : 0, yw = mm.yaw;
+        if (mm.aside) {   // stepped back out of the aisle, and in again
+          var A = mm.aside, want = t - A.t < 1.6, gx = want ? A.tx : 0, gy = want ? A.ty : 0, ddx = gx - A.cx, ddy = gy - A.cy, dl = Math.hypot(ddx, ddy);
+          if (dl > 0.02) { var mvd = Math.min(dl, dtp * (want ? 2.6 : 1.2)); A.cx += ddx / dl * mvd; A.cy += ddy / dl * mvd; }
+          x += A.cx; y += A.cy;
+          if (!want && dl <= 0.02 && Math.hypot(A.cx, A.cy) < 0.05) delete mm.aside;
+        }
+        mm.dx = x; mm.dy = y;   // where it is drawn, for the checks
+        put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, mm.hy || 0, -y, yw, mm.hs || HS, g.seed + i * 1.7, wk, mm.pose || wk ? 0.15 : mm.idle);
+      });
+      return;
+    }
     if (!arrived(g)) return;   // its marchers are still on the way
     (g.shares || []).forEach(function (sh) { var away = sh.mv.f > 0; sh.list.forEach(function (mm) { mm.away = away; }); });   // gone with the march
     var adv = 0, walking = 0;
@@ -3515,6 +3868,7 @@ var MODE = { foot: 'on foot', march: 'marching', cavalry: 'riding', cab: 'by hor
 function nameOf(id) { var p = PL[id]; return p ? shortName(p) : id; }
 function actorName(id) { return id === 'reed' ? 'Reed' : (AC[id] ? AC[id].name : id); }
 
+var HOUSE = { vote: 'A show of cards', cheer: 'Cheering', jeer: 'Hooting', stand: 'On its feet' };
 function renderPanel(e) {
   var l = PL[e.loc] || { name: e.loc, conf: 'unlocated' };
   $('ev-date').textContent = dateLabel(e.t);
@@ -3568,6 +3922,21 @@ function renderPanel(e) {
       li.appendChild(document.createTextNode(txt)); ul2.appendChild(li);
     });
     fact('Control', ul2);
+  }
+  if (l.hall) {   // in a meeting-hall: who is at the tribune, who walks out or in, how the house takes it
+    if (e.speaker) {
+      var spk = PEO[e.speaker], sb = el('button', 'who-link', spk ? spk.name : e.speaker);
+      if (spk) { sb.title = 'Faction Map: ' + spk.name; sb.onclick = function () { openWho('p:' + e.speaker); }; fact('Speaking', sb); }
+    }
+    var ix = seq.indexOf(e);
+    [['walkout', 'Walking out'], ['walkin', 'Coming in']].forEach(function (kk) {
+      var who = (S.presence || []).filter(function (p) { return p.place === e.loc && p.from === ix && p[kk[0]]; });
+      if (!who.length) return;
+      var sp2 = document.createElement('span');
+      who.forEach(function (p, i) { if (i) sp2.appendChild(document.createTextNode(', ')); sp2.appendChild(whoLink(p.who, actorName(p.who))); if (p.part) sp2.appendChild(document.createTextNode(' (part of them)')); });
+      fact(kk[1], sp2);
+    });
+    if (e.house) fact('The hall', typo(HOUSE[e.house.pose] + ': “' + e.house.q + '”'));
   }
   if (l.off) fact('Where', 'Off the city map, ' + l.off.km + ' km ' + l.off.dir + ' of the centre.');
   rich($('pl-note'), [l.ident, l.today, l.note].filter(Boolean).join(' '));
@@ -3748,6 +4117,7 @@ function frameFor(e) {
 }
 // down among the people of the scene, when there are people to see
 function closeFrame(e) {
+  if (hallOn && e.loc === hallOn.id) return hallFrame(hallOn, 'over');   // down into the hall, over the rows
   // how far off a body still counts: the bodies the scene itself brings in, up to 700 m ("Down the
   // Voskressensky Prospect a great mass of sailors were drawn up"), the rest within 260 m
   var idx0 = seq.indexOf(e);
@@ -3965,8 +4335,8 @@ function hiddenBy(cx, cy, ch, x, y, h) {
     var f = 1 - d / L, px = cx + (x - cx) * f, py = cy + (y - cy) * f, ph = ch + (h - ch) * f;
     var cell = BGRID[Math.floor(px / 100) + ',' + Math.floor(py / 100)]; if (!cell) continue;
     for (var j = 0; j < cell.length; j++) {
-      var rec = cell[j], b = rec.b;
-      if (rec.h > ph && px >= b[0] && px <= b[2] && py >= b[1] && py <= b[3] && inRing(rec.r, px, py) && !rec.holes.some(function (q) { return inRing(q, px, py); })) return true;
+      var rec = cell[j], b = rec.b, rh = hallOn && rec.id === hallOn.bid && hallOn.inStrip(px, py) ? hallOn.Hlow : rec.h;   // cut away over a hall
+      if (rh > ph && px >= b[0] && px <= b[2] && py >= b[1] && py <= b[3] && inRing(rec.r, px, py) && !rec.holes.some(function (q) { return inRing(q, px, py); })) return true;
     }
   }
   return false;
@@ -4568,6 +4938,9 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, obst: OBST, halfW: HALF_W, sceneDur: function () { return sceneDur; }, norender: false, bcam: function () { return bcam; }, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
+  hall: function () { return hallOn && { id: hallOn.id, t0: hallOn.t0, L: hallOn.L, W: hallOn.W, Hc: hallOn.Hc, Hp: hallOn.Hp, Dp: hallOn.Dp, ub: hallOn.ub, uf: hallOn.uf, rows: hallOn.rows, rp: hallOn.rp, bw: hallOn.bw, blocks: hallOn.blocks, aisles: hallOn.aisles, tribune: hallOn.tribune, view: hallOn.view, f: hallOn.f, lf: hallOn.lf, c: hallOn.c }; },
+  hallShots: function () { if (!hallOn || !cur) return null; var keep = hallOn.t0; hallCam(hallOn, cur, performance.now() / 1000); hallOn.t0 = keep; var b = bcam; bcam = null; return b; },
+  hallGo: function (secs) { if (hallOn) hallOn.t0 = performance.now() / 1000 - secs; },   // the hall's clock, as if the camera came down `secs` ago
   finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; camAfterWalk = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}

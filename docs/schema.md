@@ -55,7 +55,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 ## places.json
 
-`{id, kind, zone, in?, ll, acc, stage?, conf, exists, osm?, site_osm?, wd?, src?, geo, ctl0?, name, reed[], ru?, addr1917?, addr_now?, ident?, today?, note?}`
+`{id, kind, zone, in?, ll, acc, stage?, hall?, conf, exists, osm?, site_osm?, wd?, src?, geo, ctl0?, name, reed[], ru?, addr1917?, addr_now?, ident?, today?, note?}`
 
 | field | meaning |
 |---|---|
@@ -64,6 +64,7 @@ Only sources actually read for this project go here: what locates a place, and w
 | `in` | the containing place (a room in Smolny). Must be within 400 m of it, and never cyclic. |
 | `ll`, `acc` | the pin, and its uncertainty radius in metres. `ll: null` only with `conf: "unlocated"` (Reed's lodging). |
 | `stage` | `[lat, lon]`, display only: the open ground where the place's people are drawn, when the open ground nearest the pin is the wrong side of the building. Within 400 m of `ll`. |
+| `hall` | a meeting-hall drawn inside its building, on a `room`: `{ll, dims, axis?, plan?, features?, note?}`. `ll` is the middle of the hall (within 400 m of the pin), `dims` `[length, width]` in metres (4 to 120 each), `axis` the bearing from the back of the hall to its platform, `plan` `rows` (benches facing a platform). `features[]` are `{k, ref}` with `k` one of `chandeliers | columns | gallery | portraits`, each with Reed's words for it ("under the white chandeliers"). Where the hall is in its building and its size are the map's unless a source says; `note` says so. In a scene there, the building is cut away over the hall (and the corridor at its door) down to 1.2 m, as in an architect's section, and the hall's own walls stand to 5.2 m, but for the one on the camera's side, cut low too. Inside: the floor, benches in three blocks with aisles between and along the walls, the platform at its end with the presidium table, the chairman's bell and the reading stand, the windows of the far wall, the door at the back and the features. The people in it are drawn twice life size, as close in the city, and the benches are set out for that. |
 | `conf` | how sure the identification is:<br>• `named`: Reed names it and the site is certain;<br>• `identified`: Reed's name needed interpreting, and `ident` says how ("Military Hotel" is the Astoria);<br>• `conjectural`: our guess, with the reasoning in `ident`;<br>• `unlocated`: no position. |
 | `exists` | does the 1917 structure substantially survive? `true`, `false` or `null` (not known) |
 | `osm` | the surviving element (`way/…`, `relation/…`, `node/…`). Required for a surviving building, station or complex. Forbidden when `exists` is false; use `site_osm` (what stands on the site now) instead. |
@@ -77,7 +78,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 ## events.json
 
-`{id, t, tq, tr?, tp?, cal, dp?, sec, p?, loc, witness, by?, actors?, tags?, title, why?, sum, q, also?, doc?, moves?, ctl?, present?, gone?, raised?}`, sorted by `t`. `raised[]` lists bridges Reed has opened in the scene ("opened the Nicolai Bridge"); the scene's quotes must say so, and the map draws the deck parted and its two leaves up, a little way off the people on it (where along the bridge is the map's). Every event is a passage of Reed's: `sec` and `q` are required. `actors[]` lists the factions and people the scene is about, for filtering by faction; movers and holders are named in `moves` and `ctl` and need not be repeated.
+`{id, t, tq, tr?, tp?, cal, dp?, sec, p?, loc, witness, by?, speaker?, house?, actors?, tags?, title, why?, sum, q, also?, doc?, moves?, ctl?, present?, gone?, raised?}`, sorted by `t`. `raised[]` lists bridges Reed has opened in the scene ("opened the Nicolai Bridge"); the scene's quotes must say so, and the map draws the deck parted and its two leaves up, a little way off the people on it (where along the bridge is the map's). Every event is a passage of Reed's: `sec` and `q` are required. `actors[]` lists the factions and people the scene is about, for filtering by faction; movers and holders are named in `moves` and `ctl` and need not be repeated.
 
 **Time**
 
@@ -97,6 +98,8 @@ Only sources actually read for this project go here: what locates a place, and w
 | `p` | the marxists.org PDF page. Only a convenience, filled by `fmt_story.py --pages` and checked by `check_story.py --pdf`, because that PDF's pagination is regenerated. |
 | `witness` | how Reed knows:<br>• `seen`: Reed was there; his derived position must be at `loc`;<br>• `told`: an informant told him, named in `by` if Reed names them;<br>• `reported`: news, rumour, or his own compiled chronology such as App. III §7;<br>• `document`: a decree, bulletin or proclamation he prints. |
 | `also[]` | other passages `{sec, q}` that support the event |
+| `speaker` | in a scene in a meeting-hall, the person at the reading stand: an id in people.json, named by Reed within 1,500 characters of the scene's quote. With a body walking in to the platform, the speaker comes in last of them. |
+| `house` | in a scene in a meeting-hall, the whole hall's response: `{pose, ref}`, `pose` one of `stand | vote | cheer | jeer` with its word in Reed's quote ("The hall rose", "to hold up their cards", "a thundering wave of cheers", "a storm of hoots"). A vote and a rising are everyone's who is seated or standing; cheering and hooting are the side of the rising's, and not those of a body whose own people are walking out. It starts as the camera comes down into the hall, in a wave over a second or two: some rise and only stand, the rest cheer or shake their fists. Reed rarely names a faction beside the hall's response, so it is the hall's, not a body's. |
 | `doc` | a document read inside the scene: `{at, t, tp, cal, dp?, q}`. It is dated on its own, and must not be dated after the scene that reads it. Example: the Pulkovo telegram, Old Style, read at Smolny at three in the morning. |
 
 **Moves**
@@ -136,7 +139,7 @@ Only sources actually read for this project go here: what locates a place, and w
 
 Who stands where between scenes. Reed's text keeps people at a place until it removes them, and the map keeps them there too.
 
-`present[]`: `{who, place?, size?, n?, kit?, say?, form?, march?, face?, inside?, fire?, at?, pose?, assault?, patrol?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
+`present[]`: `{who, place?, size?, n?, kit?, say?, form?, march?, face?, inside?, fire?, at?, pose?, assault?, patrol?, bench?, walkout?, part?, walkin?, brief?, ref?}` — from this scene on, `who` is at `place` (default `loc`).
 - `who` is a body: a unit, a school, a crowd, a ship, an organ or a party. Never a single person.
 - The evidence is Reed's: `ref` `{sec, q}` is the passage that puts them there; without it, the scene's own quotes. Either way the body must be named there, or within 1,500 characters, under one of its `reed[]` spellings.
 - `size`, `n`, `kit` and `say` as for moves; the kit's words must be in the evidence passage.
@@ -158,9 +161,17 @@ Who stands where between scenes. Reed's text keeps people at a place until it re
 - `assault` is a body that runs at the enemy in waves, bayonets first: `repulsed` (the waves are thrown back: words for the attack, "assaulting", "charged", "waves of", and for its failing, "crumpled", "driven back") or `carried` (they get in: "poured through", "stormed into", "burst into"). In a repulsed assault some of each wave fall where they are hit and lie there, the rest run back; in a carried one the body streams into the building, at its walls, wherever its defenders stand. Nobody fires at a body that is still on its way in.
 - `patrol: true` is a body whose armoured cars (or cars, or trucks) cruise up and down the street they stand in ("cruising back and forth", "up and down"): it needs the words, and a vehicle in `kit`. The cars of 1917 had a driver at each end, so they do not turn. A body that is no more than the cars' crews rides in them: nobody is left standing, and its label goes with the car.
 - `pose` is `fallen` (the dead and the wounded, lying on the ground: "dead", "killed", "wounded", "lay") or `prone` (people who throw themselves flat: "falling flat on their faces", "falling down and lying still in the street"). Each needs its word.
-- Like a formation, `face`, `fire`, `at`, `assault`, `patrol` and `pose` are the scene's: they hold only in the scene that states them.
+- In a meeting-hall, `pose` may also be `stand`, `vote`, `cheer` or `jeer` (with their words), for one body; the hall's response as a whole is the scene's `house`.
+- Like a formation, `face`, `fire`, `at`, `assault`, `patrol`, `pose` and `walkin` are the scene's: they hold only in the scene that states them.
 
-`gone[]`: `{who, place?, ref?}` — the text has them leave `place` (default `loc`) after this scene: "the cannon gone", "the sentries in the Square had all disappeared". The checker errors if nobody of that body is there.
+In a meeting-hall (a place with `hall`):
+- `bench` is where a body sits: `platform` (behind the presidium table), `press` (at the press table), `aisles` (standing in the side aisles against the walls, at the back, and perched on the far wall's window-sills), or `left`, `centre` or `right` (a block of benches, left and right as the chair sees the hall). `platform`, `press` and `aisles` need Reed's word ("On the platform sat the leaders of the old Tsay-ee-kah"; "packed immovably in the aisles and on the sides, perched on every window-sill"). The blocks are the map's arrangement, those for the rising on the chair's left and those against on its right, since Reed says only once whose benches were whose. A body fills its own block from the front row back, and what will not fit takes the nearest block with room. Unlike a formation, `bench` is the body's: it holds until a later entry says otherwise.
+- `walkout: true` is a body leaving the hall in this scene: it needs the words ("left the hall", "leave the Congress", "pushed their way out", "withdraw"), and it ends the body there after the scene, so it takes no `brief`. Its people rise, the back rows first and in a row the one nearest the aisle, step out along the row to the aisle at its end with fewer who stay seated in the way, go down the aisle, keeping to the benches' side of a side aisle while those standing there press back against the wall, and out of the door at the back into the corridor. `part: true` is only some of the body going, with Reed's word for it ("only part of the Mensheviki Internationalists left the Congress"): the leavers are a body of their own for the scene, and the rest, fewer by them, stay in their seats.
+- `walkin: true` is a body coming into the hall in this scene ("the entrance of the presidium"): its people come in at the back door, up the side aisle on their own side, up the platform's steps and behind its benches to their seats, the middle seats first so that none passes one already seated.
+- The camera in a hall scene: first over the whole hall, from the side the fewest of its points are hidden from (on a phone, from high over the back wall); for a walk-out, steep over the walkers' way from their seats to the door; then down to the platform and the speaker. The hall's own clock, for the walks and the response, starts as the camera comes down into it, after any ride of Reed's there. With the reader's system set to reduce motion, the hall is shown as the scene leaves it.
+- Outside a scene in its hall, the bodies in it are not drawn.
+
+`gone[]`: `{who, place?, all?, ref?}` — the text has them leave `place` (default `loc`) after this scene: "the cannon gone", "the sentries in the Square had all disappeared". The checker errors if nobody of that body is there. `all: true` ends every body at the place with it: a meeting over ("And thereupon the Second All-Russian Congress of Soviets was dissolved"), with a word for the end (dissolved, dispersed, adjourned, went home).
 
 A presence also ends, after the scene, when control of its place (or of a place it lies in) passes from its bloc to another: Reed reports the building taken, so its defenders no longer hold it. A later `present` for the same body and place adds to it: its size and count replace the old ones, its kit joins the old kit. `tools/storylib.py` (`presence_spans`) holds these rules, and both the checker and the map use it.
 
