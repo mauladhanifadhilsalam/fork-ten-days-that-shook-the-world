@@ -104,6 +104,15 @@ scene briefly, as now.
 4. Fontanka 6: the Peasants' Congress, the old Executive Committee and Tchernov leaving.
 5. Optional: the Cirque Moderne (it needs a mesh of its own), the Mariinsky Palace, the Riding School.
 
+## Left from phase 1
+
+- The press table Reed sat at ("as we sat at the press table in the big hall"): not drawn, so `press` is not a bench yet.
+- The Front group's walk-out ("The Front group will leave the Congress"), and Kutchin going "down the aisle in the midst of a deafening noise, people surged in upon him": the Front group is not a body in the data, and a single man walking out is not drawn.
+- The "foul blue cloud of cigarette smoke" over the rows.
+- land-decree: Reed's joy is "the peasant delegates'", but the house's cheering is drawn on the whole side of the rising.
+- The chairman's place: Dan "ringing the bell" and Kameniev "reading" stand at the reading stand; the map has no separate place for the chair.
+- A walk-in to the benches, and a walk-out from the platform, are drawn but no scene uses them yet.
+
 ## Decisions taken
 
 - **The hall's shape.** No outside source read gives where the great hall is in Smolny or its size (Russian Wikipedia names it the White or Assembly Hall; the rest came only from search summaries, not read). So the hall is schematic, 40 by 18 m in the main block south of the entrance, platform to the south, and marked as the map's in its record and on the card.
