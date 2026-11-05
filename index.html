@@ -385,7 +385,8 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. One body is ours too: who “bloodily recaptured” the Military Hotel and the Telegraph Agency Reed does not say, and the map draws sailors, who had held the hotel. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
-          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Cars, trucks, cabs, trams and armoured cars stop for the people in their way: those standing about step aside and back, marchers are waited for, and a crowd that throws itself flat as a car comes lies in the gutters, as Reed has it. They steer round guns, barricades and other vehicles; where there is no way round, a machine gun is wheeled aside and a barricade pulled open for them, and put back after. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
+          <li>The camera opens each scene on a frame that takes in everything it names, then comes in close, where the people are drawn at twice life size, to each place where the scene’s own are, and ends close on the first; a walk or a ride it follows first, close behind, and comes down where it ends. A touch on the map hands it back to you.</li>
+          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it.  Cars, trucks, cabs, trams and armoured cars stop for the people in their way: those standing about step aside and back, marchers are waited for, and a crowd that throws itself flat as a car comes lies in the gutters, as Reed has it. They steer round guns, barricades and other vehicles; where there is no way round, a machine gun is wheeled aside and a barricade pulled open for them, and put back after. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -3189,45 +3190,74 @@ function engage(t, FS) {
     }
   });
 }
-// A fight at two places a street or more apart is framed whole, then close at each in turn while it
-// plays, then whole again; a touch on the map hands the camera back
-var bcam = null;
+// Every scene is framed whole as it opens (everything it names in view), then the camera comes in close
+// enough to see the people, drawn at twice life size, at each place where the scene's own are, up to three,
+// for as long as each has something to watch, and ends close on the first; a walk or a ride it follows to
+// its end first. A touch on the map hands the camera back.
+var bcam = null, camAfterWalk = null;
 function siteFrame(site) {
-  var d = Math.max(170, Math.min(320, site.r * 2.4 + 110)), cur3 = camera.position.clone().sub(controls.target), base = Math.atan2(cur3.x, cur3.z), best = null;
+  var d = PHONE ? Math.max(170, Math.min(320, site.r * 2.8 + 120)) : Math.max(110, Math.min(200, site.r * 2.0 + 80));
+  var cur3 = camera.position.clone().sub(controls.target), base = Math.atan2(cur3.x, cur3.z), best = null;
   [0, 1, -1, 2, -2, 3, -3, 4].forEach(function (k) {
     var th = base + k * Math.PI / 4;
-    [0.95, 0.72].forEach(function (pp, pj) {
+    [1.0, 0.88, 0.72].forEach(function (pp, pj) {   // low enough to see the people from the side, if the houses allow
       var hh = Math.cos(pp) * d, rr = Math.sin(pp) * d, cx = site.x + Math.sin(th) * rr, cy = site.y - Math.cos(th) * rr, seen = 0;
-      site.pts.forEach(function (q) { if (!hiddenBy(cx, cy, hh, q[0], q[1], 4)) seen++; });
-      var sc = seen / Math.max(1, site.pts.length) - Math.abs(k) * 0.03 - pj * 0.05;
+      site.pts.forEach(function (q) { if (!hiddenBy(cx, cy, hh, q[0], q[1], 3.5)) seen++; });
+      var sc = seen / Math.max(1, site.pts.length) - Math.abs(k) * 0.03 - pj * 0.04;
       if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp };
     });
   });
   var t = new THREE.Vector3(site.x, 0, -site.y), pos = new THREE.Vector3(site.x + Math.sin(best.th) * Math.sin(best.pp) * d, Math.cos(best.pp) * d, -site.y + Math.cos(best.th) * Math.sin(best.pp) * d);
+  // in the clear part of the screen, beside the card and above the timeline; a body spread wider than the
+  // frame keeps its middle there
+  var pts = site.pts.filter(function (q) { return Math.hypot(q[0] - site.x, q[1] - site.y) <= site.r + 0.5; }).map(function (q) { return [q[0], q[1]]; });
+  for (var it = 0; it < 2; it++) { var sh = centreShift(pos, t, pts); if (!sh) break; t.add(sh); pos.add(sh); }
   return { target: t, pos: pos };
 }
-function battleCam(e, close) {
-  bcam = null;
-  if (REDUCED || !ENG.dur || !close || walk || follow) return;
-  var sites = [];
-  GROUPS.forEach(function (g) {
-    if (!(g.eng || g.sortie || g.carRush) || !g.members || (!g.members.length && !(g.props || []).some(function (pr) { return pr.ein; }))) return;
-    var pts = []; g.members.forEach(function (m) { pts.push([m.ax != null ? m.ax : m.x, m.ay != null ? m.ay : m.y]); if (m.ein) pts.push([m.ein.sx, m.ein.sy]); if (m.esort) pts.push([m.esort.gx, m.esort.gy]); });
-    (g.props || []).forEach(function (pr) { if (pr.ein) pts.push([pr.ein.sx, pr.ein.sy], [pr.ein.hx, pr.ein.hy]); });
+// where the scene's own are: its bodies, the ones at its place, the fights, Reed, a ride's end
+function sceneSites(e, extra) {
+  var idx0 = seq.indexOf(e), here = PL[rootOf(e.loc)], sites = [];
+  function add(pts, dur, own) {
+    if (!pts.length) return;
     var cx = 0, cy = 0; pts.forEach(function (q) { cx += q[0]; cy += q[1]; }); cx /= pts.length; cy /= pts.length;
-    var s0 = sites.filter(function (st) { return Math.hypot(st.x - cx, st.y - cy) < 130; })[0];
+    var s0 = sites.filter(function (st) { return Math.hypot(st.x - cx, st.y - cy) < 120; })[0];
     if (!s0) { s0 = { x: cx, y: cy, pts: [], dur: 0, own: false }; sites.push(s0); }
-    s0.pts = s0.pts.concat(pts); s0.dur = Math.max(s0.dur, g.eng ? g.eng.dur : 10); s0.own = s0.own || rootOf(g.place) === rootOf(e.loc);
+    s0.pts = s0.pts.concat(pts); s0.dur = Math.max(s0.dur, dur); s0.own = s0.own || own;
+  }
+  GROUPS.forEach(function (g) {
+    if (g.cx == null || g.ship || !g.members) return;
+    var atPlace = rootOf(g.place) === rootOf(e.loc) && here && here.p && Math.hypot(g.cx - here.p[0], g.cy - here.p[1]) < 260;
+    if (!((g.p && g.p.from === idx0) || g.eng || g.sortie || g.carRush || g.reed || atPlace)) return;
+    var pts = [];
+    if (g.inside) pts.push([g.cx, g.cy]);   // in the building: the building
+    g.members.forEach(function (m) { if (m.gone && !m.esort) return; pts.push([m.ax != null ? m.ax : m.x, m.ay != null ? m.ay : m.y]); if (m.ein) pts.push([m.ein.sx, m.ein.sy]); if (m.esort) pts.push([m.esort.gx, m.esort.gy]); });
+    (g.props || []).forEach(function (pr) { if (pr.ein) pts.push([pr.ein.sx, pr.ein.sy], [pr.ein.hx, pr.ein.hy]); else if (!pr.ship && OBST[pr.k]) pts.push([pr.x, pr.y]); });
+    add(pts, g.eng ? g.eng.dur : 0, atPlace || !!g.reed);
   });
-  if (!sites.length || (sites.length < 2 && close.dist < 330)) return;   // already close enough to watch
+  (extra || []).forEach(function (q) { add([q], 0, true); });
+  if (!sites.length && here && here.p) add([here.p], 0, true);   // nobody drawn there: the place itself
   sites.forEach(function (st) {
     var cx = 0, cy = 0; st.pts.forEach(function (q) { cx += q[0]; cy += q[1]; }); st.x = cx / st.pts.length; st.y = cy / st.pts.length;
+    // and whoever else stands close by is in the shot whole, not cut in half at its edge
+    GROUPS.forEach(function (g) {
+      if (g.cx == null || g.ship || g.inside || !g.members || !g.members.length || Math.hypot(g.cx - st.x, g.cy - st.y) > 45) return;
+      if (st.pts.some(function (q) { return q[0] === g.members[0].x && q[1] === g.members[0].y; })) return;
+      g.members.forEach(function (m) { if (!m.gone && !m.away) st.pts.push([m.x, m.y]); });
+    });
+    cx = 0; cy = 0; st.pts.forEach(function (q) { cx += q[0]; cy += q[1]; }); st.x = cx / st.pts.length; st.y = cy / st.pts.length;
     st.r = 0; st.pts.forEach(function (q) { st.r = Math.max(st.r, Math.hypot(q[0] - st.x, q[1] - st.y)); });
+    st.r = Math.min(st.r, 90);   // a body spread far is seen in part, close
   });
-  sites.sort(function (a, b) { return (b.own - a.own) || (b.pts.length - a.pts.length); });
-  var at = ENG.t0 + 0.3, steps = [];
-  sites.slice(0, 3).forEach(function (st, i) { steps.push({ at: at, site: st }); at += Math.max(6, st.dur * (i ? 0.7 : 0.85)) + 1.6; });
-  steps.push({ at: at, fr: close });
+  return sites.sort(function (a, b) { return (b.own - a.own) || (b.pts.length - a.pts.length); }).slice(0, 3);
+}
+// the close shots, from time t0, each held while its place has something to watch, within the scene's time
+function sceneCam(e, t0, span, extra) {
+  bcam = null;
+  if (REDUCED) return;
+  var sites = sceneSites(e, extra); if (!sites.length) return;
+  var hold = Math.max(5, (span - 1.6 * sites.length) / sites.length), at = t0, steps = [];
+  sites.forEach(function (st) { steps.push({ at: at, site: st }); at += Math.max(hold, st.dur * 0.85) + 1.6; });
+  if (sites.length > 1) steps.push({ at: at, site: sites[0] });   // and back to the first, to stay
   bcam = { steps: steps, i: 0 };
 }
 function battleCamStep(t) {
@@ -3237,7 +3267,7 @@ function battleCamStep(t) {
 }
 // the scene at its end: everybody where the engagement leaves them
 function engageFinish() {
-  ENG.t0 = -1e9; bcam = null;
+  ENG.t0 = -1e9; bcam = null; camAfterWalk = null;
   GROUPS.forEach(function (g) {
     if (g.eng) g.eng.t0 = -1e9;
     if (g.carRush) { g.carRush.t = -1e9; }
@@ -3622,7 +3652,7 @@ function drawPeople(now, FS) {
       var wx = 0, wy = 0;
       if (pr.aside) {   // wheeled out of a vehicle's way, and back
         var PA = pr.aside, pw = t - PA.t < 4, gx2 = pw ? PA.tx : 0, gy2 = pw ? PA.ty : 0, dx2 = gx2 - PA.cx, dy2 = gy2 - PA.cy, dl2 = Math.hypot(dx2, dy2);
-        if (dl2 > 0.02) { var mv2 = Math.min(dl2, dtp * (pw ? 1.6 : 1.0)); PA.cx += dx2 / dl2 * mv2; PA.cy += dy2 / dl2 * mv2; }
+        if (dl2 > 0.02) { var mv2 = Math.min(dl2, dtp * (pw ? 2.5 : 1.0)); PA.cx += dx2 / dl2 * mv2; PA.cy += dy2 / dl2 * mv2; }
         if (!pw && dl2 <= 0.02 && Math.hypot(PA.cx, PA.cy) < 0.05) delete pr.aside;
         else { wx = PA.cx; wy = PA.cy; }
       }
@@ -3644,7 +3674,7 @@ function drawPeople(now, FS) {
       var fsM = figScale(mm, FS);
       var yw = mm.yaw;
       if (mm.aside) {   // out of a vehicle's way, and back when it has gone by
-        var A = mm.aside, want = t - A.t < 2.5, gx = want ? A.tx : 0, gy = want ? A.ty : 0, ddx = gx - A.cx, ddy = gy - A.cy, dl = Math.hypot(ddx, ddy), st = dtp * (want ? 2.0 : 1.4);   // out of the way quickly, back at a stroll
+        var A = mm.aside, want = t - A.t < 2.5, gx = want ? A.tx : 0, gy = want ? A.ty : 0, ddx = gx - A.cx, ddy = gy - A.cy, dl = Math.hypot(ddx, ddy), st = dtp * (want ? 3.0 : 1.4);   // out of the way quickly, back at a stroll
         if (dl > 0.02) { var mvd = Math.min(dl, st); A.cx += ddx / dl * mvd; A.cy += ddy / dl * mvd; wk = 1; yw = Math.atan2(ddx, ddy); }
         x += A.cx; y += A.cy;
         if (!want && dl <= 0.02 && Math.hypot(A.cx, A.cy) < 0.05) delete mm.aside;
@@ -4107,11 +4137,11 @@ var follow = null;
 function followMover(e) {
   var list = movers.filter(function (mv) { return !mv.arc && mv.o.total > 650; });
   if (!list.length) return null;
-  var reed = list.filter(function (mv) { return mv.m.who === 'reed' && mv.m.rc === 'stated'; })[0];   // his walk, where he gives its way
-  var big = list.filter(function (mv) { return mv.m.who !== 'reed' || mv.m.rc === 'stated'; }).sort(function (a, b) { return b.list.length - a.list.length; })[0];
+  var reed = list.filter(function (mv) { return mv.m.who === 'reed' && (mv.m.rc === 'stated' || mv.veh); })[0];   // his walk, where he gives its way, or his ride
+  var big = list.filter(function (mv) { return mv.m.who !== 'reed' || mv.m.rc === 'stated' || mv.veh; }).sort(function (a, b) { return b.list.length - a.list.length; })[0];
   if (!reed && !big) return null;
   var mv = reed || big, mps = mv.o.total / Math.max(1, walkMs(e, mv.o.total) / speed / 1000);   // metres a second on screen
-  return { mv: mv, d: Math.min(650, Math.max(PHONE ? 320 : 260, mps * 2.2)), pol: 1.0 };
+  return { mv: mv, d: Math.min(PHONE ? 380 : 300, Math.max(PHONE ? 240 : 170, mps * 1.6)), pol: 0.95 };   // close enough to see the car or the column, far enough to keep up with it
 }
 // the body whose march is the scene: the largest that moves on the streets, not Reed, unless Reed's own
 // route is much the longer (the truck ride, the ambulance: his journey is the scene)
@@ -4573,14 +4603,14 @@ function select(id, opts) {
   var people = GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); });
   // a ride of Reed's with no route (an arc: he just turns up), or on a route of ours, is not the scene when
   // there are people at its place to look at
-  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && !o.m.done && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || people)) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people); });
+  var close = closeFrame(e), long = MOVES.some(function (o) { return o.e === e && !o.m.done && o.line.visible && o.total > 650 && !(o.m.draw !== 'street' && (local || people)) && !(o.m.who === 'reed' && o.m.rc !== 'stated' && people && !VEH[o.m.mode]); });   // a ride of his by car is followed, wherever it goes
   var act = REDUCED ? null : actionMover(e);
   closeAfter = null; follow = null;
   if (act) {
     // the scene's own action is a body on the move ("came through the Red Arch at a jingling trot"):
     // the camera picks it up where it sets out, keeps pace with it, then comes down to the scene
     var a0 = act.o.pts[0], a1 = act.o.pts[act.o.pts.length - 1];
-    follow = { mv: act, d: PHONE ? 320 : 260, pol: 0.75 };   // from high enough to see down the streets
+    follow = { mv: act, d: PHONE ? 240 : 170, pol: 0.82 };   // close behind it, high enough to see down the street
     flyTo(frameAt(a0.x, -a0.z, follow.d, follow.pol, a1.x - a0.x, -(a1.z - a0.z)), opts.instant ? 0 : 1800);
     // then down to the scene, if that is where it ends, or it has gone on out of it, or Reed watched it from
     // there; else it stays with the body where it got to
@@ -4593,8 +4623,11 @@ function select(id, opts) {
     closeAfter = follow && !GROUPS.some(function (g) { return g.cx != null && !g.reed && near(g.place, e.loc, 260); }) ? null : close;
   }
   scene0 = performance.now();
-  battleCam(e, close);
-  sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed, ENG.dur ? (ENG.dur + 4.5) * 1000 / speed : 0, bcam ? (bcam.steps[bcam.steps.length - 1].at - ENG.t0 + 6) * 1000 / speed : 0);   // the fight plays out
+  sceneDur = Math.max((walk ? walk.dur : 0) + 3500 / speed, readMs(e) / speed, ENG.dur ? (ENG.dur + 4.5) * 1000 / speed : 0);   // the fight plays out
+  bcam = null; camAfterWalk = null;
+  if (follow || act || (walk && movers.some(function (mv) { return !mv.arc && !mv.m.done && mv.o.total > 30; }))) camAfterWalk = { e: e };   // close in when the walks and rides on the streets are done, where they end
+  else sceneCam(e, scene0 / 1000 + (opts.instant ? 0.3 : 2.4), sceneDur / 1000 - 2.4);
+  if (bcam) sceneDur = Math.max(sceneDur, (bcam.steps[bcam.steps.length - 1].at - scene0 / 1000 + 4) * 1000);
   try { history.replaceState(null, '', '#' + e.id); } catch (err) { }
 }
 function step(dir) { var i = seq.indexOf(cur) + dir; if (i < 0 || i >= seq.length) return false; select(seq[i].id); return true; }
@@ -4781,7 +4814,7 @@ window.addEventListener('keydown', function (ev) {
   else if (ev.key === 'ArrowLeft') { stop(); step(-1); ev.preventDefault(); }
   else if (ev.key === ' ' && tag !== 'BUTTON') { playing ? stop() : play(); ev.preventDefault(); }
 });
-controls.addEventListener('start', function () { flight = null; closeAfter = null; follow = null; bcam = null; if (intro) intro.user = true; });
+controls.addEventListener('start', function () { flight = null; closeAfter = null; follow = null; bcam = null; camAfterWalk = null; if (intro) intro.user = true; });
 
 // ---------- introduction ----------
 var intro = null, INTRO_KEY = 'tendays-intro-seen';
@@ -4879,13 +4912,18 @@ function frame(now) {
     camera.position.lerpVectors(flight.fromP, flight.toP, k);
     if (t >= 1) flight = null;
   } else if (follow && walk && follow.mv.lx != null) {
-    var real = Math.min(2, (now - (follow.last || now)) / 1000), kf = 1 - Math.exp(-real * 2.2); follow.last = now;
-    var want = new THREE.Vector3(follow.mv.lx, 0, -follow.mv.ly), off = camera.position.clone().sub(controls.target);
+    var real = Math.min(2, (now - (follow.last || now)) / 1000), kf = 1 - Math.exp(-real * 2.2), kt = 1 - Math.exp(-real * 6); follow.last = now;
+    // close on its heels: the aim keeps up with a fast ride, the height and distance ease in
+    // where it will be this frame (its place is from the last one; on a slow device a fast ride would leave the picture)
+    var pv = follow.pv, vx = 0, vy = 0;
+    if (pv && now > pv[2]) { vx = (follow.mv.lx - pv[0]) / ((now - pv[2]) / 1000); vy = (follow.mv.ly - pv[1]) / ((now - pv[2]) / 1000); }
+    if (!pv || pv[0] !== follow.mv.lx || pv[1] !== follow.mv.ly) follow.pv = [follow.mv.lx, follow.mv.ly, now];
+    var want = new THREE.Vector3(follow.mv.lx + vx * real, 0, -(follow.mv.ly + vy * real)), off = camera.position.clone().sub(controls.target);
     var flat = new THREE.Vector3(off.x, 0, off.z); if (flat.lengthSq() < 1) flat.set(0, 0, 1);
     flat.normalize();
     var dd = off.length() + (follow.d - off.length()) * kf, pp = Math.acos(Math.max(-1, Math.min(1, off.y / off.length())));
     pp += (follow.pol - pp) * kf;
-    controls.target.lerp(want, kf);
+    controls.target.lerp(want, kt);
     camera.position.set(controls.target.x + flat.x * Math.sin(pp) * dd, Math.cos(pp) * dd, controls.target.z + flat.z * Math.sin(pp) * dd);
   }
   if (skyT < 1) { skyT = Math.min(1, skyT + dt / 1.4); var bl = blendSky(skyFrom, skyTo, ease(skyT)); lightNow = bl; setLight(lightTarget, bl); }
@@ -4900,7 +4938,12 @@ function frame(now) {
     if (f >= 1 && !heldUp) {
       movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); }); walk = null;
       if (ctlWait) { ctlWait = false; applyControl(cur.t); hereGlow(); }   // the change of hands, and the scene's own building still lit
-      if (closeAfter && !flight) flyTo(closeAfter, 2400);   // the walk done, down to the scene
+      if (camAfterWalk && cur === camAfterWalk.e && !REDUCED) {   // the walk done, down close to the scene, or to where the ride ended
+        var endAt = closeAfter ? null : movers.filter(function (mv) { return follow && mv === follow.mv; }).map(function (mv) { var q = mv.o.pts[mv.o.pts.length - 1]; return [q.x, -q.z]; });
+        sceneCam(cur, now / 1000 + 0.1, Math.max(6, (sceneDur - (now - scene0)) / 1000), endAt && endAt.length ? endAt : null);
+        if (!bcam && closeAfter && !flight) flyTo(closeAfter, 2400);
+        camAfterWalk = null;
+      } else if (closeAfter && !flight) flyTo(closeAfter, 2400);   // the walk done, down to the scene
       closeAfter = null; follow = null;
     }
   } else if (playing && now - scene0 > sceneDur) {
@@ -4956,9 +4999,9 @@ function boot(state) {
     }
   }, 30);
 }
-if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
+if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, bcam: function () { return bcam; }, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
   finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
-  movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
+  movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; camAfterWalk = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
   // run the fighting for the last `secs` seconds at 60 frames a second, as a real browser would, so a slow test renderer shows its steady state
