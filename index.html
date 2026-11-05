@@ -385,7 +385,7 @@ body.intro-on .mast .readout, body.intro-on #panel, body.intro-on #tools, body.i
         <li>Where Reed says how a body stands, it stands so in that scene (a cordon stays a line until his text removes it): “an interminable column of soldiers” up the Nevsky, “a long double file of cyclists”, “a line of soldiers, rifles ready”, “three companies of long-coated <i>yunkers</i>” drawn up in ranks. A column he sees marching past walks down the street while the scene lasts, in step or, if he says “irregular” or “out of step”, not. Which way it walks is ours unless he gives it (“up the Nevsky”, read as he uses it, away from the Admiralty).</li>
         <li>The figures are not a head count: Reed’s “two thousand Red Guards” are drawn as about 140, a crowd as 60. Shapes follow photographs of Petrograd in 1917: the soldier’s long belted greatcoat and fur papakha, the Women’s Battalion’s light fur hats, the sailors’ peakless caps, the peasants’ foot-cloths. Colours follow Reed where he gives them (“the red shoulder-straps of the <i>yunker</i>-schools”, the “elephant-coloured” armoured cars); the photographs are black and white, so the rest are conventional. One body is ours too: who “bloodily recaptured” the Military Hotel and the Telegraph Agency Reed does not say, and the map draws sailors, who had held the hotel. Two touches are ours, not the record’s: the red arm-band that tells a Red Guard from the crowd, and the machine-gun belts some sailors wear crossed on the chest.</li>
         <li>The fighting is drawn only where Reed has a body fire, and as he has it. Riflemen kneel or stand to fire at the part of the enemy nearest them; machine guns and armoured cars fire bursts; field-guns recoil and burst their shells on the walls, and the holes stay there in every later scene. A garrison under siege fires from its windows. Troops that “surrounded the building” stand all round it; an assault comes in waves that “crumpled” and fall back, or that “poured through” the doors; armoured cars cruise “back and forth”; the dead and the wounded lie where he puts them, and people who throw themselves flat lie on their faces. A shot he only hears (“a burst of rifle-fire not far off”) is not drawn, and neither is a shooter he does not see.</li>
-          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
+          <li>A fight plays out. Troops who come into it to fire or to storm come up from behind their places in rushes, running, dropping to fire and running on, their guns hauled up by the crews and their armoured cars driving up with them; guns and cars Reed has arrive (“three field-pieces arrived”, “a Bolshevik armoured car appeared”) come up, and the storming waits for the car; men who take a building march up to it, and the other side’s people there run off; the relief at the Telephone Exchange walks into the “blast of rifle-fire” and falls; the patrol with the ultimatum sends three to the Vladimir school’s door and back; the yunkers “driven back” come out of their door toward the fire and run back in; the sailors who “rushed” the stalled car close round it. Where a fight is at two places a street or more apart, the camera goes close to each in turn, then back. Cars, trucks, cabs, trams and armoured cars stop for the people in their way: those standing about step aside and back, marchers are waited for, and a crowd that throws itself flat as a car comes lies in the gutters, as Reed has it. Who is there, whom they fire at and what becomes of them are Reed’s; the way they come and the timing are the map’s.</li>
         <li>Rifles and guns burnt smokeless powder in 1917, so what hangs over a fight is dust and plaster and the smoke of bursting shells, not clouds of gunsmoke. Fires burn after dark.</li>
         <li>Figures grow as you zoom out, so a crowd still reads from across the city; zoom in to see them at closer to life size.</li>
       </ul>
@@ -2080,6 +2080,19 @@ function layoutPlace(id, groups, t, loc, scene) {
     var nLeft = figs.length - fi, doorway = /doorway/i.test(g.size || '');
     var spc = doorway ? 1.6 : nLeft >= 14 ? (isCrowd(g) && FULL_RE.test(sceneText(scene)) ? 3.0 : 2.5) : 2.1;
     var cand = (aord || G.order.slice(cur)).filter(function (kk) { return G.ok[kk]; });
+    // people who throw themselves flat as a vehicle comes lie off its way, in the gutters ("falling down and
+    // lying still in the street, piled in the gutters, heaped up behind telephone-poles"; "The car lumbered
+    // up to the steps of the Duma")
+    if (g.pose === 'prone') {
+      var lanes = movers.filter(function (mv) { return mv.veh && mv.o && mv.o.pts && mv.o.pts.length > 1; });
+      if (lanes.length) {
+        var offLane = cand.filter(function (kk) {
+          var x = cellX(G, kk), y = cellY(G, kk);
+          return lanes.every(function (mv) { var P = mv.o.pts; for (var i = 1; i < P.length; i++) if (segDist(x, y, P[i - 1].x, -P[i - 1].z, P[i].x, -P[i].z) < 6) return false; return true; });
+        });
+        if (offLane.length >= nLeft) cand = offLane;
+      }
+    }
     if (!doorway) {
       var rank = {}; cand.forEach(function (kk, ci) { rank[kk] = ci + (shutIn(kk) ? 500 : 0); });
       cand = cand.filter(function (kk) { return !atWall(kk); }).sort(function (a, b) { return rank[a] - rank[b]; })
@@ -2414,7 +2427,22 @@ function drawMover(mv, FS, t) {
   var head = lead, cols = mv.cols, gunRows = mv.cav && mv.guns ? Math.max(0, (mv.guns * 9 - 2) / 2.75) : 0;
   if (mv.fileOn) head = mv.f * (o.total + (Math.ceil(mv.list.length / cols) + gunRows) * gap * (mv.cav ? 2.2 : 1));   // on through its end, and gone
   if (mv.veh) {
-    var v = alongPath(o, head, 0), vk = mv.veh; mv.lx = v[0]; mv.ly = v[1];
+    var vk = mv.veh, dtv = Math.min(0.25, Math.max(0, t - (mv.vt || t))); mv.vt = t;
+    if (mv.vd == null || head < mv.vd) mv.vd = head;
+    else if (head > mv.vd) {   // where the walk has it; it goes there unless someone is in its way, and makes up the time after
+      var rate = mv.wPrev != null && dtv > 0 ? (head - mv.wPrev) / dtv : 0, next = Math.min(head, mv.vd + Math.max(9, rate * 1.4) * dtv);
+      var here = alongPath(o, mv.vd, 0), ux = Math.sin(here[2]), uy = -Math.cos(here[2]), stop = ((HALF_LEN[vk] || 2.4) + 0.8) * clearScale(FS);
+      makeWay(here[0], here[1], ux, uy, stop, FS, t, mv);
+      var way = inTheWay(here[0], here[1], ux, uy, next - mv.vd + stop + 0.5, FS, mv);
+      if (way.along < Infinity) {
+        next = Math.min(next, Math.max(mv.vd, mv.vd + way.along - stop));
+        if (next - mv.vd < 0.05) { mv.held = (mv.held || 0) + dtv; mv.why = way.list; if (mv.held > 1) askAside(way.list, ux, uy, FS, t); } else mv.held = 0;
+      } else mv.held = 0;
+      mv.vd = next;
+    }
+    mv.wPrev = head; mv.lag = head - mv.vd; head = mv.vd;
+    var v = alongPath(o, head, 0); mv.lx = v[0]; mv.ly = v[1];
+    if (mv.f > 0 && (mv.f < 1 || mv.lag > 0.5)) clearAround(v[0], v[1], Math.sin(v[2]), -Math.cos(v[2]), vk, FS, t);
     patch(v[0], v[1], 3.2 * FS, mv.bloc);
     put(vk, v[0], 0, -v[1], v[2], FS, 0, 0, 0);
     if (mv.redcross) put('redcross', v[0] - Math.sin(v[2]) * 1.1 * FS, 0.7 * FS, -v[1] - Math.cos(v[2]) * 1.1 * FS, v[2] + Math.PI / 2, FS * 0.7, 1, walking, 0);   // at the back, flying
@@ -2455,6 +2483,7 @@ function drawMover(mv, FS, t) {
     }
     if (i === 0) { mv.lx = p[0]; mv.ly = p[1]; }
     if (mv.fileOn && d > o.total) return;
+    WALK_NOW.push({ x: p[0], y: p[1], mv: mv });
     if (mv.cav && mv.guns) key = 'cavalry';
     if (mv.m.run && walking && PK.armed[key]) key += '.charge';   // running at the enemy, bayonet first
     put(key, p[0], 0, -p[1], p[2], FS, i * 1.3, walking, walking ? 0 : 0.3);
@@ -2812,9 +2841,16 @@ function patrolOf(g, pr) {
   var cum = [0]; for (var i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
   pr.path = { p: pts, cum: cum, len: cum[cum.length - 1] }; pr.ph = hash(g.seed + pr.x) * pr.path.len * 2;
 }
-function patrolStep(g, pr, t) {
-  var P = pr.path, L = P.len, u = (t * 2.8 + pr.ph) % (2 * L), s = u < L ? u : 2 * L - u;   // 10 km/h
-  var q = spineAt(P, s);
+function patrolStep(g, pr, t, dt, FS) {
+  var P = pr.path, L = P.len;
+  if (pr.u == null || pr.ph !== pr.ph0) { pr.u = (((t * 2.8 + pr.ph) % (2 * L)) + 2 * L) % (2 * L); pr.ph0 = pr.ph; }   // 10 km/h, up and down
+  var s0 = pr.u < L ? pr.u : 2 * L - pr.u, q0 = spineAt(P, s0), dir = pr.u < L ? 1 : -1, stop = ((HALF_LEN[pr.k] || 2.7) + 0.8) * clearScale(FS);
+  makeWay(q0[0], q0[1], q0[2] * dir, q0[3] * dir, stop, FS || 2, t, null);
+  var way = inTheWay(q0[0], q0[1], q0[2] * dir, q0[3] * dir, stop + (dt || 0) * 2.8 + 0.5, FS || 2, null);
+  if (way.along < stop + (dt || 0) * 2.8) { pr.held = (pr.held || 0) + (dt || 0); if (pr.held > 1) askAside(way.list, q0[2] * dir, q0[3] * dir, FS || 2, t); }
+  else { pr.held = 0; pr.u = (pr.u + (dt || 0) * 2.8) % (2 * L); }
+  var u = pr.u, s = u < L ? u : 2 * L - u, q = spineAt(P, s);
+  clearAround(q[0], q[1], q[2], q[3], pr.k, FS || 2, t);
   pr.x = q[0]; pr.y = q[1]; pr.yaw = Math.atan2(q[2], -q[3]);
   if (!pr.Tt || Math.hypot(pr.Tt[0] - pr.x, pr.Tt[1] - pr.y) > 6) { pr.Tt = [pr.x, pr.y]; pr.T = aimFrom(g, foeOf(g), pr.x, pr.y) || pr.T; }
 }
@@ -2909,6 +2945,10 @@ function propIn(g, G, pr, c, D, delay) {
   var sp = VEH_SPEED[pr.k]; if (!sp || pr.ship) return 0;
   var lx = -c[1], ly = c[0], w = pr.k === 'gun' || pr.k === 'mg' ? 0.8 : 1.6;   // room for its width
   var d = Math.min(freeRun(G, pr.x, pr.y, c[0], c[1], D), freeRun(G, pr.x + lx * w, pr.y + ly * w, c[0], c[1], D), freeRun(G, pr.x - lx * w, pr.y - ly * w, c[0], c[1], D));
+  if (VEH_SPEED[pr.k] && HALF_LEN[pr.k]) {   // a car starts where nobody stands
+    var near = function (x, y) { return GROUPS.some(function (h) { return (h.members || []).some(function (m) { return Math.hypot(m.x - x, m.y - y) < 4 || (m.ein && Math.hypot(m.ein.sx - x, m.ein.sy - y) < 4); }); }); };
+    while (d >= 6 && near(pr.x + c[0] * d, pr.y + c[1] * d)) d -= 2;
+  }
   if (d < 6) return 0;
   pr.ein = { sx: pr.x + c[0] * d, sy: pr.y + c[1] * d, L: d, delay: delay || 0, sp: sp, hx: pr.x, hy: pr.y, hyaw: pr.yaw };
   return pr.ein.delay + d / sp;
@@ -3031,7 +3071,7 @@ function stageEngagements(e, idx) {
   });
   ENG.dur = dur;
 }
-function engage(t) {
+function engage(t, FS) {
   if (!cur || intro) return;
   GROUPS.forEach(function (g) {
     if (!g.members) return;
@@ -3083,6 +3123,18 @@ function engage(t) {
     (g.props || []).forEach(function (pr) {   // a gun hauled up, a car driving up
       var P = pr.ein; if (!P) return;
       var tau = t - e0 - P.delay, f = Math.max(0, Math.min(1, tau * P.sp / P.L));
+      if (HALF_LEN[pr.k] && e0 > -1e8) {   // a car stops for the people in its way
+        var dte = Math.min(0.25, Math.max(0, t - (P.lt || t))); P.lt = t; P.d = P.d || 0;
+        var want = f * P.L, ux = (P.hx - P.sx) / P.L, uy = (P.hy - P.sy) / P.L, stop = (HALF_LEN[pr.k] + 0.8) * clearScale(FS);
+        if (want > P.d) {
+          makeWay(P.sx + ux * P.d, P.sy + uy * P.d, ux, uy, stop, FS || 2, t, null);
+          var way = inTheWay(P.sx + ux * P.d, P.sy + uy * P.d, ux, uy, want - P.d + stop + 0.5, FS || 2, null), nx = want;
+          if (way.along < Infinity) { nx = Math.min(want, Math.max(P.d, P.d + way.along - stop)); if (nx - P.d < 0.05) { P.held = (P.held || 0) + dte; if (P.held > 1) askAside(way.list, ux, uy, FS || 2, t); } else P.held = 0; }
+          P.d = nx;
+        }
+        f = P.d / P.L;
+        if (f < 1) clearAround(P.sx + ux * P.d, P.sy + uy * P.d, ux, uy, pr.k, FS || 2, t);
+      }
       pr.x = P.sx + (P.hx - P.sx) * f; pr.y = P.sy + (P.hy - P.sy) * f;
       pr.yaw = f < 1 ? facingYaw(P.sx, P.sy, P.hx, P.hy) + (pr.k === 'gun' ? Math.PI : 0) : P.hyaw;   // a field-gun comes trail first, its muzzle to the rear
       if (f >= 1) {
@@ -3257,7 +3309,7 @@ function battle(t, FS) {
   GROUPS.forEach(function (g) {
     if ((!g.fire && !g.assault && !g.patrol) || !g.members || !arrived(g) || (g.foe && !arrived(g.foe))) return;   // nothing before both sides are there
     assault(g, t, dt);
-    if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path && !pr.ein) patrolStep(g, pr, t); }); return; }
+    if (!g.fire) { (g.props || []).forEach(function (pr) { if (pr.path && !pr.ein) patrolStep(g, pr, t, dt, FS); }); return; }
     var held = g.foe && g.foe.eng && t < g.foe.eng.t0 + g.foe.eng.dur * 0.8;   // the relief walks into it ("met by a blast of rifle-fire")
     if (g.windows && !held) g.windows.forEach(function (w) {
       if ((w.tf -= dt) > 0) return; w.tf = 1.2 + Math.random() * 4;
@@ -3278,7 +3330,7 @@ function battle(t, FS) {
       if (aimers.length && g.hz <= 0) { g.hz = 0.5; haze(muzzle(aimers[Math.floor(Math.random() * aimers.length)], FS), t, FS); }
     }
     (g.props || []).forEach(function (pr) {
-      if (pr.path && !pr.ein) patrolStep(g, pr, t);
+      if (pr.path && !pr.ein) patrolStep(g, pr, t, dt, FS);
       if (pr.tf == null || !pr.T || pr.ein) return;   // still coming up
       var T = pr.T;
       if (pr.k === 'gun') {
@@ -3379,10 +3431,66 @@ function formPatches(g, FS) {
 
 // ---------- drawing them ----------
 var SHIP_Y = -EMB + 0.2;
+// ---------- vehicles and people ----------
+// A car, a truck, a cab, a tram or an armoured car stops short of the people in its way, and goes on when
+// they have passed or stepped aside. People standing about step out of its way once it has waited a
+// moment, and back when it has gone by; people marching or running are waited for; the fallen are not
+// driven over. FOLK: everyone standing this frame, where drawn; WALK_PREV: the marchers of the last frame.
+var FOLK = [], WALK_NOW = [], WALK_PREV = [], folkT = 0;
+var HALF_LEN = { car: 2.3, truck: 2.9, armoured: 2.7, cab: 2.4, tram: 5.5 };   // the drawn vehicle's half length, at figure scale 1
+// the clearance a vehicle keeps grows with the figures as the camera draws back, but no further than three
+// times life size: from far off a car would otherwise keep the whole street clear and never move
+function clearScale(FS) { return Math.min(3, FS || 2); }
+function inTheWay(x, y, ux, uy, reach, FS, own, all) {   // the first person in the vehicle's lane ahead, within reach metres (all of them, with all)
+  FS = clearScale(FS);
+  var half = 1.05 * FS, best = Infinity, list = [];
+  function test(px, py, ref) {
+    var dx = px - x, dy = py - y; if (Math.abs(dx) > reach + half || Math.abs(dy) > reach + half) return;
+    var al = dx * ux + dy * uy, lat = -dx * uy + dy * ux; if (al <= 0 || al > reach || Math.abs(lat) > half) return;
+    if (al < best) best = al; list.push({ al: al, lat: lat, ref: ref });
+  }
+  FOLK.forEach(function (f) { test(f.x, f.y, f); });
+  WALK_PREV.forEach(function (w) { if (w.mv !== own) test(w.x, w.y, null); });
+  return { along: best, list: all ? list : list.filter(function (q) { return q.al < best + 2 * FS; }) };
+}
+// people see a vehicle coming: those standing in its lane up to ten metres beyond where it would have to stop
+// start out of its way before it gets there
+function makeWay(x, y, ux, uy, stop, FS, t, own) {
+  var ahead = inTheWay(x, y, ux, uy, stop + 10, FS, own, true);
+  if (ahead.list.length) askAside(ahead.list, ux, uy, FS, t);
+}
+function askAside(list, ux, uy, FS, t) {   // the ones standing in the lane step out of it, to the nearer side with ground to stand on
+  list.forEach(function (q) {
+    var f = q.ref, m = f && f.m; if (!m) return;
+    if (m.pose === 'fallen' || m.pose === 'prone' || m.pose === 'squat' || m.ein || m.eout || m.env || m.esort || m.run || m.walk) return;   // a gun's crew stands aside too, and goes back to its gun
+    var A = m.aside || (m.aside = { cx: 0, cy: 0, tx: 0, ty: 0, t: t });
+    A.t = t;
+    if (Math.hypot(A.tx - A.cx, A.ty - A.cy) > 0.3) return;   // on the way out already
+    var G = openGround(rootOf(f.g.place), false), nx = -uy, ny = ux, clear = 1.5 * clearScale(FS);
+    if (Math.abs(q.lat) >= clear - 0.2) return;
+    var tries = [[q.lat >= 0 ? 1 : -1, clear - Math.abs(q.lat)], [q.lat >= 0 ? -1 : 1, clear + Math.abs(q.lat)]];
+    for (var i = 0; i < tries.length; i++) {
+      var sd = tries[i][0], d = tries[i][1], ox = nx * sd * d, oy = ny * sd * d;
+      if (G) { var ci = Math.floor((f.x + ox - G.R.x0) / G.R.cs), cj = Math.floor((f.y + oy - G.R.y0) / G.R.cs); if (ci < 0 || cj < 0 || ci >= G.R.w || cj >= G.R.h || !G.ok[cj * G.R.w + ci]) continue; }
+      A.tx = A.cx + ox; A.ty = A.cy + oy; return;   // from where they stand now
+    }
+  });
+}
+// whoever stands where the vehicle is steps out of it at once (the squad round the car they have stopped)
+function clearAround(x, y, ux, uy, k, FS, t) {
+  var C = clearScale(FS), hl = (HALF_LEN[k] || 2.5) * C, hw = 1.0 * C, list = [];
+  FOLK.forEach(function (f) {
+    var dx = f.x - x, dy = f.y - y; if (Math.abs(dx) > hl + hw || Math.abs(dy) > hl + hw) return;
+    var al = dx * ux + dy * uy, lat = -dx * uy + dy * ux;
+    if (Math.abs(al) < hl && Math.abs(lat) < hw) list.push({ al: al, lat: lat, ref: f });
+  });
+  if (list.length) askAside(list, ux, uy, FS, t);
+}
 function drawPeople(now, FS) {
-  var t = now / 1000;
+  var t = now / 1000, dtp = Math.min(0.25, Math.max(0, t - (folkT || t))); folkT = t;
   figUni.uTime.value = t;
   reedGlow.visible = false;
+  FOLK = []; WALK_PREV = WALK_NOW; WALK_NOW = [];
   GROUPS.forEach(function (g) {
     if (!arrived(g)) return;   // its marchers are still on the way
     (g.shares || []).forEach(function (sh) { var away = sh.mv.f > 0; sh.list.forEach(function (mm) { mm.away = away; }); });   // gone with the march
@@ -3412,7 +3520,15 @@ function drawPeople(now, FS) {
         var sn = Math.sin(ph), dof = sn * (sn > 0 ? (mm.dhi != null ? mm.dhi : 9) : (mm.dlo != null ? mm.dlo : 9)), dv = Math.cos(ph); x += g.drift[0] * dof; y += g.drift[1] * dof; wk = Math.abs(dv) > 0.2 ? 1 : 0; mm.yaw = Math.atan2(g.drift[0] * dv, -g.drift[1] * dv);
       }
       var fsM = figScale(mm, FS);
-      put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, mm.yaw, fsM, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
+      var yw = mm.yaw;
+      if (mm.aside) {   // out of a vehicle's way, and back when it has gone by
+        var A = mm.aside, want = t - A.t < 2.5, gx = want ? A.tx : 0, gy = want ? A.ty : 0, ddx = gx - A.cx, ddy = gy - A.cy, dl = Math.hypot(ddx, ddy), st = dtp * (want ? 2.0 : 1.4);   // out of the way quickly, back at a stroll
+        if (dl > 0.02) { var mvd = Math.min(dl, st); A.cx += ddx / dl * mvd; A.cy += ddy / dl * mvd; wk = 1; yw = Math.atan2(ddx, ddy); }
+        x += A.cx; y += A.cy;
+        if (!want && dl <= 0.02 && Math.hypot(A.cx, A.cy) < 0.05) delete mm.aside;
+      }
+      if (!g.ship) FOLK.push({ x: x, y: y, m: mm, g: g });
+      put(mm.pose ? mm.k + '.' + mm.pose : mm.k, x, 0, -y, yw, fsM, g.spine && !g.ragged ? g.seed : g.seed + i * 1.7, wk, mm.pose || wk ? 0 : mm.idle);   // a column in step, unless Reed says otherwise
       if (mm.carry) carried(mm.carry, x, y, mm.yaw, fsM, t, i, mm.say);
       if (mm.bike) put('bicycle', x + Math.cos(mm.yaw) * 0.5 * fsM, 0, -y - Math.sin(mm.yaw) * 0.5 * fsM, mm.yaw, fsM, 0, 0, 0);
       if (mm.k === 'reed') { reedGlow.position.set(x, 0.8, -y); reedGlow.scale.setScalar(4.5 * FS); reedGlow.visible = true; }
@@ -4658,7 +4774,8 @@ function frame(now) {
   if (walk) {
     var f = Math.min(1, (now - walk.t0) / walk.dur), s = gait(f, walk.dur);
     movers.forEach(function (mv) { mv.f = s; trailTo(mv.o, s); });
-    if (f >= 1) {
+    var heldUp = f >= 1 && now - walk.t0 < walk.dur + 8000 && movers.some(function (mv) { return mv.veh && mv.lag > 1; });   // a car still held up by people
+    if (f >= 1 && !heldUp) {
       movers.forEach(function (mv) { mv.f = 1; fullTrail(mv.o); }); walk = null;
       if (ctlWait) { ctlWait = false; applyControl(cur.t); hereGlow(); }   // the change of hands, and the scene's own building still lit
       if (closeAfter && !flight) flyTo(closeAfter, 2400);   // the walk done, down to the scene
@@ -4669,7 +4786,7 @@ function frame(now) {
   }
   if (playing) $('prog-i').style.width = (Math.min(1, (now - scene0) / sceneDur) * 100).toFixed(2) + '%';
   darkNow = !!(lightTarget && lightTarget.el < 1);
-  battleCamStep(now / 1000); engage(now / 1000); drawPeople(now, FS); battle(now / 1000, FS); drawFx(now / 1000, FS);
+  battleCamStep(now / 1000); engage(now / 1000, FS); drawPeople(now, FS); battle(now / 1000, FS); drawFx(now / 1000, FS);
   var wantL = darkNow && cur && !intro ? 1.05 : 0;   // after dark the scene is lit, as by its street lamps
   stageLight.intensity += (wantL - stageLight.intensity) * Math.min(1, dt * 2.5);
   stageLight.visible = stageLight.intensity > 0.01;
@@ -4717,8 +4834,8 @@ function boot(state) {
     }
   }, 30);
 }
-if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing,
-  finish: function () { if (walk) walk.t0 = -1e9; engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
+if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
+  finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },
