@@ -2611,18 +2611,22 @@ function hallFrame(H, kind, at, along) {
   }
   return { target: T, pos: pos };
 }
+// a hall scene that brings in bodies outside the building too ("at the outer gate the Red Guards had built
+// themselves a bon-fire"): they are seen first, then the camera goes into the hall
+function hallOutside(e) { var ix = seq.indexOf(e); return GROUPS.some(function (g) { return !g.hall && !g.reed && g.p && g.p.from === ix && g.members && g.members.length; }); }
 function hallCam(H, e, t0) {
-  H.t0 = t0 + 1.0;
+  var lead = hallOutside(e) && !REDUCED ? 5 : 0, first = lead ? closeFrame(e) : null;
+  H.t0 = t0 + lead + 1.0;
   if (REDUCED) { H.t0 = -1e9; bcam = null; return; }   // no motion: the hall as the scene leaves it
   var gs = GROUPS.filter(function (g) { return g.hall === H; }), end = 0, walkers = [];
   gs.forEach(function (g) { g.members.forEach(function (m) { if (m.walkPath) { end = Math.max(end, m.walkAt + 0.6 + m.walkPath.len / HALL_WALK); if (m.leave) walkers.push(m); } }); });
-  var steps = [{ at: t0, fr: hallFrame(H, 'over') }];
+  var steps = (first ? [{ at: t0, fr: first, kind: 'outside' }] : []).concat([{ at: t0 + lead, fr: hallFrame(H, 'over'), kind: 'over' }]);
   if (walkers.length) {
     var su = 0, sv = 0; walkers.forEach(function (m) { su += m.home.u; sv += m.home.v; }); su /= walkers.length; sv /= walkers.length;
     var along = []; walkers.forEach(function (m) { m.walkPath.pts.forEach(function (p) { along.push([p.x, p.y]); }); });   // the whole of their way, seats to door
-    steps.push({ at: H.t0 + 1.6, fr: hallFrame(H, 'walk', [(su - H.L / 2) / 2, sv / 2], along) });
+    steps.push({ at: H.t0 + 1.6, fr: hallFrame(H, 'walk', [(su - H.L / 2) / 2, sv / 2], along), kind: 'walk' });
   }
-  steps.push({ at: H.t0 + Math.max(7, end + 1.0), fr: hallFrame(H, 'front') });
+  steps.push({ at: H.t0 + Math.max(7, end + 1.0), fr: hallFrame(H, 'front'), kind: 'front' });
   bcam = { steps: steps, i: 0 };
 }
 // A bridge Reed has opened in the scene ("opened the Nicolai Bridge"): its deck parts, a little way off
@@ -4671,7 +4675,7 @@ function frameFor(e) {
 }
 // down among the people of the scene, when there are people to see
 function closeFrame(e) {
-  if (hallOn && e.loc === hallOn.id) return hallFrame(hallOn, 'over');   // down into the hall, over the rows
+  if (hallOn && e.loc === hallOn.id && !hallOutside(e)) return hallFrame(hallOn, 'over');   // down into the hall, over the rows (unless the scene has its own outside first)
   // how far off a body still counts: the bodies the scene itself brings in, up to 700 m ("Down the
   // Voskressensky Prospect a great mass of sailors were drawn up"), the rest within 260 m
   var idx0 = seq.indexOf(e);

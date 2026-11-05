@@ -61,7 +61,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       const bad = [];
       bc.steps.forEach((s, i) => {
         cam.position.copy(s.fr.pos); cam.lookAt(s.fr.target); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
-        const kind = i === 0 ? 'over' : i === bc.steps.length - 1 ? 'front' : 'walk';
+        const kind = s.kind; if (kind === 'outside') return;   // the scene's own outside the hall: frames.js measures that
         const pts = kind === 'over' ? [at(-H.L / 2, H.W / 2), at(-H.L / 2, -H.W / 2), at(H.L / 2, H.W / 2), at(H.L / 2, -H.W / 2)]
           : kind === 'walk' ? walkers.filter((p, k) => k % 2 === 0) : speaker ? [[speaker.members[0].x, speaker.members[0].y]] : [];
         let off = 0;
