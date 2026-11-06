@@ -768,14 +768,31 @@ class Hall(unittest.TestCase):
         d = good(); s, *_ = self.add(d); del s['speaker']; s['speaker_out'] = {'sec': 'V', 'q': '"I\'m going now!" answered Kameniev, and left the platform.'}
         self.assertIn('field.missing', errors(d))
 
-    def test_the_embrace_is_a_hall_pose_with_its_word(self):
-        d = good(); s, *_ = self.add(d); s['present'][1]['pose'] = 'embrace'; s['present'][1]['ref']['q'] = 'The Sailors and the Red Guards were embracing'
-        del s['present'][1]['bench']
-        self.assertEqual(errors(d), [])
-        d = good(); s, *_ = self.add(d); s['present'][1]['pose'] = 'embrace'
+    def test_the_embrace_is_two_bodies_on_the_platform_one_walking_in(self):
+        q = {'sec': 'V', 'q': 'On the platform sat the presidium, the Sailors among them.'}
+        e = {'sec': 'V', 'q': 'The Sailors and the Red Guards were embracing'}
+        def two(d, s):
+            s['present'][0].update({'bench': 'platform', 'pose': 'embrace', 'ref': {'sec': 'V', 'q': 'The Sailors and the Red Guards were embracing'}})
+            s['present'].append({'who': 'red-guards', 'bench': 'platform', 'ref': q})
+            s['present'][1].update({'pose': 'embrace', 'walkin': True, 'ref': e})
+        d = good(); s, *_ = self.add(d); s['present'] = [s['present'][1], {'who': 'red-guards', 'ref': dict(q)}]
+        s['present'][0].update({'pose': 'embrace', 'ref': dict(e)}); del s['present'][0]['bench']   # a lone embrace, on the benches
+        self.assertIn('field.range', errors(d))
+        d = good(); s, *_ = self.add(d); s['present'][1]['pose'] = 'embrace'   # no word for it
         self.assertIn('fight.not-in-text', errors(d))
         d = good(); self.add(d); ev(d, 'reed-walks')['present'][0]['pose'] = 'embrace'
         self.assertIn('hall.none', errors(d))
+
+    def test_a_whole_hall_does_not_embrace(self):
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'embrace', 'ref': {'sec': 'V', 'q': 'The Sailors and the Red Guards were embracing'}}
+        self.assertIn('field.enum', errors(d))
+
+    def test_the_speaker_leaving_is_named_and_not_coming_in(self):
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': 'Fifty delegates got up and pushed their way out'}
+        self.assertIn('presence.unnamed', errors(d))
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': '"I\'m going now!" answered Kameniev, and left the platform.'}
+        s['present'][0]['walkin'] = True; s['present'][0]['ref']['q'] = 'So we came into the great meeting-hall'
+        self.assertIn('field.range', errors(d))
 
     def test_the_empty_frame_is_a_feature(self):
         d = good(); *_, h = self.add(d); h['hall']['features'].append({'k': 'frame', 'ref': {'sec': 'V', 'q': 'the empty frame from which the picture had been torn'}})
@@ -789,3 +806,13 @@ class Hall(unittest.TestCase):
         evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 34, 'size': '34', 'brief': True}, {'who': 'g', 'pose': 'jeer', 'brief': True}]}]
         sp = L.presence_spans(evs, acts, pls)[0]
         self.assertEqual([(x.get('n'), x.get('pose')) for x in sp], [(34, 'jeer')])
+        # a column marching past stays a body of its own; brief words in different scenes stay apart; and two
+        # brief words add to a body already there, as one
+        evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 10}]},
+               {'id': 'b', 'loc': 'hall', 'present': [{'who': 'g', 'n': 4, 'brief': True}, {'who': 'g', 'pose': 'jeer', 'brief': True},
+                                                      {'who': 'g', 'form': 'column', 'march': True, 'brief': True}]},
+               {'id': 'c', 'loc': 'hall', 'present': [{'who': 'g', 'pose': 'cheer', 'brief': True}]}]
+        sp = L.presence_spans(evs, acts, pls)[0]
+        at = lambda i: sorted((x.get('n') or 0, x.get('pose') or '', bool(x.get('march'))) for x in sp if x['start'] <= i and (x['end'] is None or i < x['end']) and x['end_by'] != 'update')
+        self.assertEqual(at(1), sorted([(4, 'jeer', False), (0, '', True), (10, '', False)]))
+        self.assertEqual(at(2), sorted([(10, 'cheer', False), (10, '', False)]))

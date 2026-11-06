@@ -547,6 +547,12 @@ class Checker:
             self.house(e, w)
         if 'speaker_out' in e:
             self.speaker_out(e, w)
+        emb = [r for r in e.get('present', []) if isinstance(r, dict) and r.get('pose') == 'embrace']
+        if emb:
+            who = {r.get('who') for r in emb}
+            if len(who) != 2 or not all(any(x.get('bench') == 'platform' for x in emb if x.get('who') == k) for k in who) \
+                    or sum(1 for k in who if any(x.get('walkin') for x in emb if x.get('who') == k)) != 1:
+                F.err('field.range', w, 'embrace: two bodies on the platform (bench platform), one of them walking in to the other ("made place for the Peasants\' presidium, the two embracing")')
         d = e.get('doc')
         if isinstance(d, dict) and fields(F, d, 'doc', w + '.doc'):
             enum(F, d, 'cal', 'cal', w + '.doc')
@@ -787,6 +793,14 @@ class Checker:
             return
         if not re.search(L.WALKOUT_WORDS, ref['q'], re.I):
             F.err('phrase.not-in-text', ww, f'speaker_out: the quote has no words for leaving ({L.WALKOUT_WORDS})')
+        per = {p['id']: p for p in self.people if isinstance(p, dict) and 'id' in p}.get(e.get('speaker'))
+        if per is not None:
+            names = [L.norm(n) for n in [per.get('name')] + list(per.get('names') or []) if isinstance(n, str)]
+            names += [n.split()[-1] for n in names if ' ' in n]
+            if not any(re.search(r'\b' + re.escape(n) + r'\b', L.norm(ref['q']), re.I) for n in names if n):
+                F.err('presence.unnamed', ww, f'speaker_out: the quote does not name the speaker ({e.get("speaker")})')
+        if any(isinstance(r, dict) and r.get('walkin') for r in e.get('present', [])):
+            F.err('field.range', ww, 'speaker_out: in a scene where a body walks in, the speaker comes in with it; it cannot also leave')
         if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
             F.err('phrase.not-near', ww, "speaker_out: Reed's words for it are not within 1,500 characters of the scene's own passages")
 
@@ -797,8 +811,8 @@ class Checker:
             return
         if not (self.P.get(e.get('loc')) or {}).get('hall'):
             F.err('hall.none', hw, 'house: the scene is not in a meeting-hall')
-        if h.get('pose') not in L.HALL_POSES:
-            F.err('field.enum', hw, f'pose {h.get("pose")!r} is not one of {list(L.HALL_POSES)}')
+        if h.get('pose') not in L.HOUSE_POSES:
+            F.err('field.enum', hw, f'pose {h.get("pose")!r} is not one of {list(L.HOUSE_POSES)} (a whole hall does not embrace)')
             return
         ref = h.get('ref')
         if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):

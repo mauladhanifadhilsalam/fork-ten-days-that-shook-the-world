@@ -134,6 +134,7 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               # two bodies in each other's arms ("the two embracing")
               'embrace': r'embrac|in (their|each other.s) arms'}
 HALL_POSES = ('stand', 'vote', 'cheer', 'jeer', 'embrace')   # drawn in a meeting-hall only
+HOUSE_POSES = ('stand', 'vote', 'cheer', 'jeer')               # a whole hall's response (it does not embrace)
 # where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
 # left, centre and right are the map's arrangement unless he says whose the benches were
 BENCH_WORDS = {'platform': r'platform|tribune', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',

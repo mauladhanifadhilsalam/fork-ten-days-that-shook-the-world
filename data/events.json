@@ -39,7 +39,7 @@
   {"sec": "II", "q": "Stormy was the all-night meeting of the Petrograd Soviet the 30th of October, at which I was present."}],
  "present": [
   {"who": "petrograd-soviet", "place": "smolny-hall", "size": "workmen, peasants and common soldiers", "n": 48, "bench": "left", "brief": true, "ref": {"sec": "II", "q": "Against them rose up workmen, peasants and common soldiers, passionate and simple."}},
-  {"who": "tsay-ee-kah-old", "place": "smolny-hall", "size": "officers, members of Army Committees, the Tsay-ee-kah", "n": 20, "bench": "right", "brief": true, "ref": {"sec": "II", "q": "officers, members of Army Committees, the Tsay-ee-kah, were there in force."}}]},
+  {"who": "tsay-ee-kah-old", "place": "smolny-hall", "size": "\"moderate\" Socialist intellectuals, officers, members of Army Committees, the Tsay-ee-kah", "n": 20, "bench": "right", "brief": true, "ref": {"sec": "II", "q": "The \"moderate\" Socialist intellectuals, officers, members of Army Committees, the Tsay-ee-kah, were there in force."}}]},
 {"id": "day-of-the-soviet", "t": "1917-11-04T12:00", "tq": "day", "tr": ["1917-11-04T00:00", "1917-11-04T23:59"], "cal": "NS", "dp": "Sunday, November 4th", "sec": "III", "p": 69, "loc": "smolny", "witness": "reported", "actors": ["petrograd-soviet", "petrograd-cossacks"], "tags": ["background"],
  "title": "The Day of the Petrograd Soviet",
  "sum": "Sunday 4 Nov is the Day of the Petrograd Soviet, with mass meetings all over the city; the Cossacks’ rival procession is called off.",
@@ -1420,9 +1420,9 @@
  "sum": "At a packed and ominous Tsay-ee-kah, Bolsheviks attack the press decree; Lenin wins the vote, the Left SRs quit the Military Revolutionary Committee, and five Commissars resign.",
  "q": "On the night of November 17th the great hall was packed and ominous for the meeting of the Tsay-ee-kah.",
  "present": [
-  {"who": "bolsheviki", "place": "smolny-hall", "size": "the Lenin motion was carried by 34 to 24", "n": 34, "bench": "left", "brief": true, "ref": {"sec": "XI", "q": "The resolution of Larin and the Left Socialist Revolutionaries was defeated by 31 to 22; the Lenin motion was carried by 34 to 24."}},
+  {"who": "bolsheviki", "place": "smolny-hall", "size": "the Lenin motion was carried by 34 to 24", "n": 34, "prop": "the vote on the press", "bench": "left", "brief": true, "ref": {"sec": "XI", "q": "The resolution of Larin and the Left Socialist Revolutionaries was defeated by 31 to 22; the Lenin motion was carried by 34 to 24."}},
   {"who": "bolsheviki", "place": "smolny-hall", "pose": "jeer", "brief": true, "ref": {"sec": "XI", "q": "In a storm of hisses and hoots from his own party, Larin offered the following resolution"}},
-  {"who": "left-srs", "place": "smolny-hall", "size": "The resolution of Larin and the Left Socialist Revolutionaries was defeated by 31 to 22", "n": 22, "bench": "centre", "brief": true, "ref": {"sec": "XI", "q": "The resolution of Larin and the Left Socialist Revolutionaries was defeated by 31 to 22; the Lenin motion was carried by 34 to 24."}},
+  {"who": "left-srs", "place": "smolny-hall", "size": "the Lenin motion was carried by 34 to 24", "n": 24, "prop": "the vote on the press", "bench": "centre", "brief": true, "ref": {"sec": "XI", "q": "The resolution of Larin and the Left Socialist Revolutionaries was defeated by 31 to 22; the Lenin motion was carried by 34 to 24."}},
   {"who": "left-srs", "place": "smolny-hall", "pose": "cheer", "brief": true, "ref": {"sec": "XI", "q": "This was met by a thunder of applause, not only from the Left Socialist Revolutionaries, but also from a part of the Bolsheviki."}}]},
 {"id": "uncle-toms-cabin", "t": "1917-11-18T20:00", "tq": "inferred", "tr": ["1917-11-12T18:00", "1917-11-25T23:00"], "cal": "none", "sec": "XII", "p": 295, "loc": "uncle-toms-cabin", "witness": "seen", "actors": ["red-guards"],
  "title": "“Uncle Tom’s Cabin”",
