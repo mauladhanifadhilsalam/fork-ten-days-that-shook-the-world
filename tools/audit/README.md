@@ -59,7 +59,15 @@ columns of fours), 22 in a wall, 289 hidden (4.8%), none in another body, no bod
 `frames.js`: 38 of the 4,146 members of the scenes' own bodies off the clear screen on a desktop (0.9%), 88 on
 a phone (2.1%). `vehicles.js`: 14 scenes, someone inside a moving vehicle in 0.4% of 994 samples, a vehicle
 overlapping something in 0.2%, held in 8.8%, none left behind its walk. `motion.js`: 19 scenes, 0.4% of the
-samples of people moving in a wall, 0.3% through another body. `camera.js`: the camera ends a median 136 m
+samples of people moving in a wall, 0.3% through another body.
+
+After the halls (phases 1 and 2): frames 38 of 4,145 on a desktop, 93 on a phone; `vehicles.js` someone inside
+0.7%, overlapping 0.0%, held 13.2%; `motion.js` 0.6% in a wall, 0.1% through; `camera.js` a median 133 m (128 of
+130 within 250 m), 4 of 951 close-shot samples under 70%; on a phone a median 211 m, 12 of 438; `hall.js` 16
+scenes, no finding on desktop or phone. The held vehicles rose because the hall's new records shift the layout
+seeds of the bodies after them in the data (a body's seed is its index there), so other scenes' crowds are laid
+out afresh: the truck ride's and the Kirochnaya lunch's cars are held longer now. Seeds that do not depend on
+the order of the data would stop an edit in one scene reshuffling another. `camera.js`: the camera ends a median 136 m
 off (128 of 130 scenes within 250 m; the other two are rides that leave the drawn city), every close shot
 with at least 70% of its people on screen in all but 4 of 1,128 samples; on a phone (every other scene) a
 median 215 m, 12 of 534 samples under 70%, the wide bodies seen in part.

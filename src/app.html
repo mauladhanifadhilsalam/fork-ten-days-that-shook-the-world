@@ -3506,9 +3506,10 @@ function askAside(list, ux, uy, FS, t) {   // the ones standing in the lane step
     if (Math.abs(q.lat) >= clear - 0.2) return;
     // the nearer side, the other, then a longer step each way; onto the place's own open ground, or any ground
     // that is no building and no water (the street beyond the place's ground, where a besieging line stands at its edge)
-    // one already stepping aside goes on the way they started, not back across the lane (else, asked again from a
-    // little further on, they dither on its line and the vehicle waits for ever)
-    var was = A.cx * nx + A.cy * ny, near = Math.abs(was) > 0.3 ? (was > 0 ? 1 : -1) : q.lat >= 0 ? 1 : -1, tries = [[near, clear - near * q.lat], [-near, clear + near * q.lat], [near, clear - near * q.lat + 1.5], [-near, clear + near * q.lat + 1.5]];
+    // one already stepping aside and still near the lane's line goes on the way they started, not back across it
+    // (else, asked again from a little further on, they dither on the line and the vehicle waits for ever); one
+    // clearly on a side steps out on that side
+    var was = A.cx * nx + A.cy * ny, near = Math.abs(was) > 0.3 && Math.abs(q.lat) < clear / 2 ? (was > 0 ? 1 : -1) : q.lat >= 0 ? 1 : -1, tries = [[near, clear - near * q.lat], [-near, clear + near * q.lat], [near, clear - near * q.lat + 1.5], [-near, clear + near * q.lat + 1.5]];
     for (var i = 0; i < tries.length; i++) {
       var sd = tries[i][0], d = tries[i][1], ox = nx * sd * d, oy = ny * sd * d, tx = f.x + ox, ty = f.y + oy;
       if (G) {
