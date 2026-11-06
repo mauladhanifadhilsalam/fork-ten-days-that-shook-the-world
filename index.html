@@ -2888,6 +2888,9 @@ function moverOf(o) {
   return { o: o, m: m, list: mm, veh: veh, cav: m.mode === 'cavalry', guns: guns, mass: !!((m.run || MASS_RE.test(sceneText(o.e))) && mm.length > 12), ragged: RAGGED_RE.test((m.size || '') + ' ' + sceneText(o.e)), supported: SUPPORT_RE.test(sceneText(o.e)), trucks: m.mode !== 'truck' && kitHas(m.kit, 'truck') ? Math.max(1, kitNum(m.kit, 'truck')) : 0, redcross: kitHas(m.kit, 'redcross'), cols: m.run && mm.length > 12 ? 6 : mm.length > 8 ? 4 : mm.length > 3 ? 2 : 1, f: 0, arc: m.draw !== 'street', bloc: m.who === 'reed' ? 'observer' : (a.bloc || 'neutral'), leaflets: kitHas(m.kit, 'leaflets'), label: m.who === 'reed' ? 'Reed' : groupLabel(m.who) };
 }
 // inside a building's walls (not in a courtyard of it): the ground a marching figure cannot stand on
+function waterAt(x, y) {   // in the river or a canal
+  return (WATER || []).some(function (p) { return p[0] && inRing(p[0], x, y) && !p.slice(1).some(function (h) { return inRing(h, x, y); }); });
+}
 function wallAt(x, y) {
   var cell = BGRID[Math.floor(x / 100) + ',' + Math.floor(y / 100)]; if (!cell) return false;
   for (var j = 0; j < cell.length; j++) {
@@ -4078,10 +4081,17 @@ function askAside(list, ux, uy, FS, t) {   // the ones standing in the lane step
     if (Math.hypot(A.tx - A.cx, A.ty - A.cy) > 0.3) return;   // on the way out already
     var G = openGround(rootOf(f.g.place), false), nx = -uy, ny = ux, clear = 1.5 * clearScale(FS);
     if (Math.abs(q.lat) >= clear - 0.2) return;
-    var tries = [[q.lat >= 0 ? 1 : -1, clear - Math.abs(q.lat)], [q.lat >= 0 ? -1 : 1, clear + Math.abs(q.lat)]];
+    // the nearer side, the other, then a longer step each way; onto the place's own open ground, or any ground
+    // that is no building and no water (the street beyond the place's ground, where a besieging line stands at its edge)
+    // one already stepping aside goes on the way they started, not back across the lane (else, asked again from a
+    // little further on, they dither on its line and the vehicle waits for ever)
+    var was = A.cx * nx + A.cy * ny, near = Math.abs(was) > 0.3 ? (was > 0 ? 1 : -1) : q.lat >= 0 ? 1 : -1, tries = [[near, clear - near * q.lat], [-near, clear + near * q.lat], [near, clear - near * q.lat + 1.5], [-near, clear + near * q.lat + 1.5]];
     for (var i = 0; i < tries.length; i++) {
-      var sd = tries[i][0], d = tries[i][1], ox = nx * sd * d, oy = ny * sd * d;
-      if (G) { var ci = Math.floor((f.x + ox - G.R.x0) / G.R.cs), cj = Math.floor((f.y + oy - G.R.y0) / G.R.cs); if (ci < 0 || cj < 0 || ci >= G.R.w || cj >= G.R.h || !G.ok[cj * G.R.w + ci]) continue; }
+      var sd = tries[i][0], d = tries[i][1], ox = nx * sd * d, oy = ny * sd * d, tx = f.x + ox, ty = f.y + oy;
+      if (G) {
+        var ci = Math.floor((tx - G.R.x0) / G.R.cs), cj = Math.floor((ty - G.R.y0) / G.R.cs), own = ci >= 0 && cj >= 0 && ci < G.R.w && cj < G.R.h && G.ok[cj * G.R.w + ci];
+        if (!own && (wallAt(tx, ty) || waterAt(tx, ty))) continue;
+      }
       A.tx = A.cx + ox; A.ty = A.cy + oy; return;   // from where they stand now
     }
   });
