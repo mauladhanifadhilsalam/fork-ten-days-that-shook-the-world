@@ -613,7 +613,7 @@
   {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}],
  "present": [
   {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}]},
-{"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "duma-alexander-hall", "witness": "seen", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
+{"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "duma-alexander-hall", "witness": "seen", "speaker": "skobeliev", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
  "title": "The Committee for Salvation is formed",
  "why": "Reed walks from the palace to the Duma “after three”.",
  "sum": "In the Duma’s Alexander Hall, on Skobeliev’s motion, the anti-Bolshevik groups form the Committee for Salvation of Country and Revolution.",
@@ -621,7 +621,7 @@
  "moves": [
   {"who": "reed", "from": "palace-embankment", "via": ["nevsky"], "to": "city-duma", "mode": "foot", "rc": "inferred"}],
  "present": [
-  {"who": "committee-for-salvation", "place": "city-duma", "inside": true, "brief": true}]},
+  {"who": "committee-for-salvation", "place": "duma-alexander-hall", "size": "About a hundred people", "n": 16, "bench": "front", "brief": true, "ref": {"sec": "IV", "q": "About a hundred people were grouped around the platform, where Skobeliev was speaking."}}]},
 {"id": "internationalists-leave", "t": "1917-11-08T04:50", "tq": "inferred", "tr": ["1917-11-08T04:00", "1917-11-08T05:15"], "cal": "none", "sec": "IV", "p": 121, "loc": "smolny-hall", "witness": "seen", "actors": ["menshevik-internationalists", "congress"],
  "house": {"pose": "jeer", "ref": {"sec": "IV", "q": "The vote was overwhelmingly against, and the Mensheviki Internationalists left the Congress in a Whirlwind of Jocular insults."}},
  "title": "The Internationalists leave",
@@ -641,14 +641,16 @@
  "title": "The Twelfth Army goes over",
  "sum": "Krylenko reads a telegram: the Twelfth Army’s new Military Revolutionary Committee has taken command of the Northern Front.",
  "q": "It was exactly 5:17 A.M. when Krylenko, staggering with fatigue, climbed to the tribune with a telegram in his hand."},
-{"id": "duma-in-permanence", "t": "1917-11-08T15:00", "tq": "approx", "tr": ["1917-11-08T12:00", "1917-11-08T17:00"], "tp": "that afternoon", "cal": "none", "sec": "V", "p": 131, "loc": "duma-nicolai-hall", "witness": "seen", "actors": ["duma", "schreider", "cadets"],
+{"id": "duma-in-permanence", "t": "1917-11-08T15:00", "tq": "approx", "tr": ["1917-11-08T12:00", "1917-11-08T17:00"], "tp": "that afternoon", "cal": "none", "sec": "V", "p": 131, "loc": "duma-nicolai-hall", "witness": "seen", "speaker": "schreider", "actors": ["duma", "schreider", "cadets"],
  "title": "The Duma in permanence",
  "sum": "In the Nicolai Hall the Duma sits in permanence, gathering the opposition; Mayor Schreider describes his protest at Smolny.",
  "q": "In the high, amphitheatrical Nicolai Hall that afternoon I saw the Duma sitting in permanence, tempestuous, grouping around it all the forces of opposition.",
  "moves": [
   {"who": "reed", "from": "smolny", "to": "city-duma", "mode": "unknown", "rc": "none", "gap": true}],
  "present": [
-  {"who": "duma", "place": "city-duma", "inside": true, "brief": true}]},
+  {"who": "duma", "place": "duma-nicolai-hall", "size": "the Duma sitting in permanence", "n": 40, "brief": true, "ref": {"sec": "V", "q": "In the high, amphitheatrical Nicolai Hall that afternoon I saw the Duma sitting in permanence, tempestuous, grouping around it all the forces of opposition."}},
+  {"who": "duma", "place": "duma-nicolai-hall", "pose": "jeer", "bench": "right", "brief": true, "ref": {"sec": "V", "q": "Whereupon the Bolsheviki left the chamber, followed by cries of \"German agents! Down with the traitors!\""}},
+  {"who": "bolsheviki", "place": "duma-nicolai-hall", "size": "The Bolshevik faction", "n": 10, "bench": "left", "walkout": true, "ref": {"sec": "V", "q": "Whereupon the Bolsheviki left the chamber, followed by cries of \"German agents! Down with the traitors!\""}}]},
 {"id": "duma-hand-bills", "t": "1917-11-08T16:40", "tq": "inferred", "tr": ["1917-11-08T15:30", "1917-11-08T18:30"], "cal": "none", "sec": "V", "p": 134, "loc": "duma-nevsky", "witness": "seen", "actors": ["duma"],
  "title": "Hand-bills at the Duma’s door",
  "why": "After the afternoon sitting and the news and rumours, which Reed carries on to “toward nightfall”; before the corner of the Liteiny and the evening session at Smolny.",
@@ -1167,13 +1169,16 @@
   {"who": "reed", "from": "city-duma", "via": ["nevsky"], "to": "reed-lodging", "mode": "unknown", "rc": "none"}],
  "present": [
   {"who": "garrison", "size": "the regiments", "n": 120, "form": "column", "march": true, "brief": true, "ref": {"sec": "VIII", "q": "Going home I saw them pass, swinging along with the regular tread of veterans, bayonets in perfect alignment, through the deserted streets of the conquered city"}}]},
-{"id": "schreider-neutral", "t": "1917-11-12T13:00", "tq": "inferred", "tr": ["1917-11-12T11:00", "1917-11-12T16:00"], "cal": "none", "sec": "VIII", "p": 202, "loc": "duma-nicolai-hall", "witness": "seen", "actors": ["schreider", "duma", "polkovnikov"],
+{"id": "schreider-neutral", "t": "1917-11-12T13:00", "tq": "inferred", "tr": ["1917-11-12T11:00", "1917-11-12T16:00"], "cal": "none", "sec": "VIII", "p": 202, "loc": "duma-nicolai-hall", "witness": "seen", "speaker": "schreider", "actors": ["schreider", "duma", "polkovnikov"],
  "title": "“We are perfectly neutral”",
  "why": "The day session, before dusk.",
  "sum": "Mayor Schreider tells the Duma it is neutral, and that he kept the telephones to Smolny working while the yunkers held the Exchange.",
  "q": "We are perfectly neutral. When the Telephone Exchange was occupied by the yunkers Colonel Polkovnikov ordered the telephones to Smolny disconnected",
  "moves": [
   {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "duma", "place": "duma-nicolai-hall", "size": "the Duma was thronged and noisy", "n": 40, "pose": "jeer", "bench": "right", "brief": true, "ref": {"sec": "VIII", "q": "At this there was ironic laughter from the Bolshevik benches, and imprecations from the right."}},
+  {"who": "bolsheviki", "place": "duma-nicolai-hall", "size": "the Bolshevik benches", "n": 10, "bench": "left", "brief": true, "ref": {"sec": "VIII", "q": "At this there was ironic laughter from the Bolshevik benches, and imprecations from the right."}}],
  "gone": [
   {"who": "red-guards", "place": "nevsky", "ref": {"sec": "VIII", "q": "The city had again settled down to normal—shop-shutters up, lights shining"}}]},
 {"id": "pulkovo-battle", "t": "1917-11-12T15:00", "tq": "stated", "tp": "by 3 P.M.", "cal": "NS", "dp": "the 12th of November", "sec": "App.IX.1", "p": 236, "loc": "pulkovo", "witness": "document", "actors": ["pulkovo-detachment", "krasnov-cossacks"],
@@ -1489,13 +1494,21 @@
   {"who": "reed", "from": "hotel-national", "to": "moscow-soviet", "mode": "foot", "rc": "none"},
   {"who": "reed", "with": ["mossoviet"], "from": "moscow-soviet", "via": ["iberian-gate"], "to": "brotherhood-grave", "mode": "march", "rc": "stated"},
   {"who": "workers", "from": "iberian-gate", "to": "red-square", "mode": "march", "rc": "stated"}]},
-{"id": "peasants-first-session", "t": "1917-11-24T15:00", "tq": "inferred", "tr": ["1917-11-23T00:00", "1917-11-26T23:59"], "cal": "none", "sec": "XII", "p": 297, "loc": "duma-alexander-hall", "witness": "reported", "actors": ["peasants-congress", "left-srs", "srs", "bolsheviki"],
+{"id": "peasants-first-session", "t": "1917-11-24T15:00", "tq": "inferred", "tr": ["1917-11-23T00:00", "1917-11-26T23:59"], "cal": "none", "sec": "XII", "p": 297, "loc": "duma-alexander-hall", "witness": "reported", "speaker": "zinoviev", "speaker_out": {"sec": "XII", "q": "Zinoviev, attempting to speak for the Bolsheviki, was hooted down, and as he left the platform, amid laughter"}, "actors": ["peasants-congress", "left-srs", "srs", "bolsheviki"],
+ "house": {"pose": "jeer", "ref": {"sec": "XII", "q": "Zinoviev, attempting to speak for the Bolsheviki, was hooted down"}},
  "title": "The Peasants’ Congress opens",
  "why": "“By November 23d about four hundred had gathered”; the first session followed.",
  "sum": "The Extraordinary Peasants’ Congress meets in the Duma’s Alexander Hall: more than half Left SRs, a fifth Bolsheviki, a quarter conservative SRs.",
  "q": "The first session took place in the Alexander Hall of the Duma building",
+ "also": [
+  {"sec": "XII", "q": "Whereupon the old Executive Committee left the hall"}],
  "present": [
-  {"who": "peasants-congress", "place": "duma-alexander-hall", "inside": true, "brief": true}]},
+  {"who": "left-srs", "place": "duma-alexander-hall", "size": "more than half of all the delegates were Left Socialist Revolutionaries", "n": 30, "bench": "left", "brief": true, "ref": {"sec": "XII", "q": "on the left almost all the delegates wore the uniforms of common soldiers"}},
+  {"who": "bolsheviki", "place": "duma-alexander-hall", "size": "the Bolsheviki controlled a bare fifth", "n": 11, "bench": "left", "brief": true, "ref": {"sec": "XII", "q": "the Bolsheviki controlled a bare fifth, the conservative Socialist Revolutionaries a quarter"}},
+  {"who": "srs", "place": "duma-alexander-hall", "size": "the conservative Socialist Revolutionaries a quarter", "n": 14, "bench": "right", "brief": true, "ref": {"sec": "XII", "q": "To the right was a sprinkling of officers’ epaulettes, and the patriarchal, bearded faces of the older, more substantial peasants"}},
+  {"who": "peasants-congress", "place": "duma-alexander-hall", "size": "a few peasants, non-commissioned officers, and some soldiers", "n": 3, "bench": "centre", "brief": true, "ref": {"sec": "XII", "q": "in the centre were a few peasants, non-commissioned officers, and some soldiers"}},
+  {"who": "workers", "place": "duma-alexander-hall", "size": "The galleries were thronged with workers", "n": 24, "bench": "gallery", "brief": true, "ref": {"sec": "XII", "q": "The galleries were thronged with workers"}},
+  {"who": "peasants-executive", "place": "duma-alexander-hall", "size": "the old Executive Committee", "n": 6, "bench": "right", "walkout": true, "ref": {"sec": "XII", "q": "Whereupon the old Executive Committee left the hall"}}]},
 {"id": "peasants-agreement", "t": "1917-11-28T08:00", "tq": "approx", "tr": ["1917-11-28T05:00", "1917-11-28T12:00"], "tp": "Wednesday morning", "cal": "NS", "dp": "Wednesday morning, November 28th", "sec": "XII", "p": 304, "loc": "smolny", "witness": "reported", "actors": ["left-srs", "bolsheviki", "peasants-congress", "tsay-ee-kah"],
  "title": "The peasants make terms",
  "sum": "After an all-night struggle in the secret conferences at Smolny, the Left SRs and the Bolsheviki agree: the Tsay-ee-kah is to be doubled by 108 members from the Peasants’ Congress, plus delegates of the Army, the Fleet and the Trade Unions.",

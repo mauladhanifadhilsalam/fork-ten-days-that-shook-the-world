@@ -1,6 +1,6 @@
 # Plan: the congress and meeting halls, and the walkouts
 
-Status: phases 1 and 2 done (Smolny's great hall: the Second Congress, and the other sessions there, from the Petrograd Soviet of 30 October to the Peasants' Congress coming in on 29 November); phases 3 to 5 not started. Scope, as asked: the scenes of the congresses and meetings, so that the
+Status: phases 1 to 3 done (Smolny's great hall: the Second Congress, and the other sessions there, from the Petrograd Soviet of 30 October to the Peasants' Congress coming in on 29 November; the City Duma's Alexander and Nicolai Halls); phases 4 and 5 not started. Scope, as asked: the scenes of the congresses and meetings, so that the
 walkouts can be shown. Not the Winter Palace's rooms, the Military Revolutionary Committee's offices or the
 State Bank.
 
@@ -15,7 +15,7 @@ cards' text only.
 | Hall | Scenes in the tour | Walkouts Reed gives |
 |---|---|---|
 | Smolny, the great meeting-hall | `trotzky-oct30`, `smolny-night-nov6`, `dan-after-midnight`, `bolsheviki-leave-old-cec`, `congress-opens`, `bund-leaves-congress`, `internationalists-leave`, `krylenko-telegram`, `lenin-enters`, `peace-carried`, `land-decree`, `sovnarkom-formed`, `trotzky-report-nov12`, `holtzman-telegram`, `press-decree-night`, `banners-intertwined` (16) | "all the Bolsheviki left the hall" (the old _Tsay-ee-kah_, 6 Nov); the Mensheviki, the Socialist Revolutionaries, the Front group and the _Bund_ ("I call upon all delegates to leave this hall"; "As he went down the aisle in the midst of a deafening noise, people surged in upon him"; "will leave the Congress"); the Mensheviki Internationalists, "in a Whirlwind of Jocular insults", only part of them ("only part of the Mensheviki Internationalists left the Congress") |
-| The City Duma: the Alexander Hall and the Nicolai Hall | `salvation-formed`, `peasants-first-session`, `duma-in-permanence`, `schreider-neutral` (4) | none drawn: the Peasants' Congress's first sessions here are reported |
+| The City Duma: the Alexander Hall and the Nicolai Hall | `salvation-formed`, `peasants-first-session`, `duma-in-permanence`, `schreider-neutral` (4) | the Bolsheviki "left the chamber, followed by cries of 'German agents! Down with the traitors!'" (8 Nov); at the Peasants' Congress, reported, "the old Executive Committee left the hall" |
 | Fontanka 6, the Peasants' Congress | `tchernov-leaves`, `peasants-extraordinary-session` (2) | "the old Executive Committee left the hall"; Tchernov "left the platform and the room" ("This is an outrage, not a session!" cried Tchernov, and he left the hall) |
 | Optional: the Cirque Moderne, the Mariinsky Palace (the Council of the Republic), the Mikhailovsky Riding School | `cirque-moderne-meeting`, `council-of-republic-nov5`, `kerensky-council-nov6`, `riding-school` (4) | at the Riding School "about fifty men … turned and rapidly walked out of the building" |
 
@@ -113,6 +113,13 @@ scene briefly, as now.
 - The chairman's place: Dan "ringing the bell" and Kameniev "reading" stand at the reading stand; the map has no separate place for the chair.
 - A walk-in to the benches is used by the Peasants' Congress coming in; a body walking out from the platform is drawn but no scene uses it yet.
 - Phase 2: Gotz "took the chair" and Sverdlov greeted the peasants, but there is one speaker per scene and no chairman, so neither is drawn; nor is Holtzman running down the corridor with the telegram (he is not in the Faction Map), nor the music that "blared down the corridor", nor Larin, whose resolution the press-decree scene's hooting and applause answer (he is not in the Faction Map either, so the scene has no speaker). Which two banners crossed on the wall Reed does not say; the map gives one to each presidium.
+
+## Left from phase 3
+
+- The "ironic laughter from the Bolshevik benches" at Schreider: there is no laughing pose.
+- The Peasants' Congress's first session: the old Executive Committee walks out while Zinoviev is hooted, where Reed has it leave first; one scene holds both. Zinoviev leaving the platform "amid laughter" is drawn, the laughter not.
+- Where the Bolsheviki sat at the Duma, and the Duma's numbers: Reed gives "the Bolshevik benches" and "the right" only; the sides and the counts (40 and 10) are the map's.
+- Layout seeds still follow the presence order, so adding records reshuffles unrelated scenes (the audit numbers move with them).
 
 ## Decisions taken
 

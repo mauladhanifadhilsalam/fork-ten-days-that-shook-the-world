@@ -491,6 +491,17 @@ var PEOPLE = (function (THREE) {
     m.box(g, 0, b / 2, 0, w, b, 0.07); m.box(g, 0, h - b / 2, 0, w, b, 0.07); m.box(g, -w / 2 + b / 2, h / 2, 0, b, h, 0.07); m.box(g, w / 2 - b / 2, h / 2, 0, b, h, 0.07);
     return m;
   }
+  // one of the Duma's "great, gold-framed, red-shrouded Imperial portraits": a broad gilt frame, the picture under
+  // a red cloth gathered at the top and hanging loose below; the origin at its foot, facing +z
+  function portrait() {
+    var m = new Model(), g = '#c09a40', r = '#9e2a22', w = 1.5, h = 2.0, b = 0.16;
+    m.box(g, 0, b / 2, 0, w, b, 0.09); m.box(g, 0, h - b / 2, 0, w, b, 0.09); m.box(g, -w / 2 + b / 2, h / 2, 0, b, h, 0.09); m.box(g, w / 2 - b / 2, h / 2, 0, b, h, 0.09);
+    m.box('#3a2e24', 0, h / 2, -0.02, w - 2 * b, h - 2 * b, 0.02);   // the picture, under the cloth
+    m.box(r, 0, h / 2 + 0.05, 0.07, w - 0.12, h - 0.3, 0.03, 0.05);   // the shroud, hanging out a little at the foot
+    m.cyl(r, 0, h - 0.12, 0.08, 0.16, w - 0.04, 8, 0, 0, Math.PI / 2);   // gathered over the top
+    m.box(r, -w / 2 + 0.2, h / 2 - 0.25, 0.1, 0.18, h - 0.75, 0.04, 0.04, 0, 0.06); m.box(r, w / 2 - 0.2, h / 2 - 0.25, 0.1, 0.18, h - 0.75, 0.04, 0.04, 0, -0.06);   // its folds at the sides
+    return m;
+  }
   // a banner hung flat on a wall, still, a gold edge round the red; tilted one way or the other, so that two
   // cross ("the two banners were intertwined against the white wall")
   function hungBanner(tilt) {
@@ -535,7 +546,7 @@ var PEOPLE = (function (THREE) {
       logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), horn: horn().geometry(), trench: trench().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(),
       bench: bench().geometry(), table: table().geometry(), tribune: tribune().geometry(), chandelier: chandelier().geometry(),
-      frame: emptyFrame().geometry(), hungbannerL: hungBanner(0.22).geometry(), hungbannerR: hungBanner(-0.22).geometry(), horse2: horse('#3a2c22').geometry(),
+      frame: emptyFrame().geometry(), portrait: portrait().geometry(), hungbannerL: hungBanner(0.22).geometry(), hungbannerR: hungBanner(-0.22).geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()
     };

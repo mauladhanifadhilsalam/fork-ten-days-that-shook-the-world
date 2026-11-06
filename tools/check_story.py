@@ -722,6 +722,12 @@ class Checker:
             F.err('field.range', hw, 'axis is the bearing from the back of the hall to its platform, 0 to 359 degrees')
         if 'plan' in h and (not isinstance(h['plan'], str) or h['plan'] not in L.ENUM['hall.plan']):
             F.err('field.enum', hw, f'plan {h["plan"]!r} is not one of {sorted(L.ENUM["hall.plan"])}')
+        elif L.PLAN_WORDS.get(h.get('plan', 'rows')):   # a shape other than rows facing a platform needs Reed's word for it
+            ref = h.get('ref')
+            if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
+                F.err('field.missing', hw, f'plan {h["plan"]!r}: ref, Reed\'s words for the hall\'s shape')
+            elif self.quote_ok(ref.get('sec'), ref['q'], hw + '.ref') is not None and not re.search(L.PLAN_WORDS[h['plan']], ref['q'], re.I):
+                F.err('phrase.not-in-text', hw, f'plan {h["plan"]!r}: the quote has no word for it ({L.PLAN_WORDS[h["plan"]]})')
         for i, f in enumerate(h.get('features', [])):
             fw = f'{hw}.features[{i}]'
             if not isinstance(f, dict) or not fields(F, f, 'feature', fw):
@@ -753,6 +759,10 @@ class Checker:
                 F.err('field.enum', where, f'bench {r["bench"]!r} is not one of {sorted(L.ENUM["bench"])}')
             elif L.BENCH_WORDS[r['bench']] and not re.search(L.BENCH_WORDS[r['bench']], text, re.I):
                 F.err('phrase.not-in-text', where, f'bench {r["bench"]!r}: the passage has no word for it ({L.BENCH_WORDS[r["bench"]]})')
+            elif r['bench'] == 'gallery' and not any(isinstance(f, dict) and f.get('k') == 'gallery' for f in hall.get('features', [])):
+                F.err('field.range', where, 'bench "gallery": the hall has no gallery among its features')
+            if r['bench'] in ('gallery', 'front') and (r.get('walkout') or r.get('walkin')):
+                F.err('field.range', where, f'bench {r["bench"]!r}: those up in the galleries or grouped before the platform are not drawn walking out or in')
         for k, pat in (('walkout', L.WALKOUT_WORDS), ('walkin', L.WALKIN_WORDS)):
             if r.get(k) and not re.search(pat, text, re.I):
                 F.err('phrase.not-in-text', where, f'{k}: the passage has no word for it ({pat})')
@@ -765,7 +775,7 @@ class Checker:
         if r.get('part') and 'n' not in r:
             F.err('field.missing', where, 'part: how many of them walk out (n, with size), so the rest can be drawn fewer by them')
         if 'prop' in r:
-            if not re.search(r'\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred)\b', r.get('size') or '', re.I):
+            if not re.search(r'\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred|half|third|quarter|fifth)\b', r.get('size') or '', re.I):
                 F.err('field.missing', where, 'prop: the size phrase is a count that sets the proportion ("14 Bolsheviki")')
             elif not (re.search(re.escape(r['prop'].split()[-1]), text, re.I) or (sup[0] and sup[1] is not None and self.book.near(sup[0], sup[1], r['prop'].split()[-1]))):
                 F.err('phrase.not-near', where, f'prop {r["prop"]!r}: Reed does not name it within 1,500 characters of the passage')
@@ -838,8 +848,9 @@ class Checker:
             F.err('hall.none', w, 'speaker: the scene is not in a meeting-hall')
         names = [L.norm(n).lower() for n in [per.get('name')] + list(per.get('names') or []) if isinstance(n, str)]
         names += [n.split()[-1] for n in names if ' ' in n]   # "Leon Trotzky": "Trotzky"
-        t = self.book.secs.get(e.get('sec'), '').lower()
-        if pos is None or not any(re.search(r'\b' + re.escape(n) + r'\b', t[max(0, pos - 1500): pos + 1500]) for n in names if n):
+        # named within 1,500 characters of the scene's own passages (its quote, or another passage it cites)
+        near = [self.book.secs.get(sec, '').lower()[max(0, x - 1500): x + 1500] for sec, x in self.scene_at(e)]
+        if pos is None or not any(re.search(r'\b' + re.escape(n) + r'\b', t) for t in near for n in names if n):
             F.err('presence.unnamed', w, f'speaker {pid}: Reed does not name them near this passage')
 
     def scene_text(self, e):

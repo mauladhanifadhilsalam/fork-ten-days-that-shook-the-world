@@ -30,7 +30,7 @@ FIELDS = {
               'name', 'reed', 'ru', 'addr1917', 'addr_now', 'ident', 'today', 'note'],
     'geo': ['m', 'at', 'q', 'osm_v', 'on', 'src', 'note'],
     # a meeting-hall inside its building (a room): where it is and its size are the map's unless a source says
-    'hall': ['ll', 'dims', 'axis', 'plan', 'features', 'note'],
+    'hall': ['ll', 'dims', 'axis', 'plan', 'features', 'ref', 'note'],
     'feature': ['k', 'ref'],
     'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
     'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'speaker_out', 'house', 'actors', 'tags',
@@ -95,8 +95,8 @@ ENUM = {
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
     'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer', 'embrace'},
-    'bench': {'left', 'centre', 'right', 'platform', 'aisles'},
-    'hall.plan': {'rows'},
+    'bench': {'left', 'centre', 'right', 'platform', 'aisles', 'front', 'gallery'},
+    'hall.plan': {'rows', 'amphitheatre'},
     'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits', 'frame'},
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
@@ -130,20 +130,22 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|presidium|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
               'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|exultation|pandemonium|embracing',
-              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening',
+              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with',
               # two bodies in each other's arms ("the two embracing")
               'embrace': r'embrac|in (their|each other.s) arms'}
 HALL_POSES = ('stand', 'vote', 'cheer', 'jeer', 'embrace')   # drawn in a meeting-hall only
 HOUSE_POSES = ('stand', 'vote', 'cheer', 'jeer')               # a whole hall's response (it does not embrace)
 # where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
 # left, centre and right are the map's arrangement unless he says whose the benches were
-BENCH_WORDS = {'platform': r'platform|tribune', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
+BENCH_WORDS = {'platform': r'platform|tribune', 'front': r'(round|around|about|before|in front of) the (platform|tribune)', 'gallery': r'galler', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
                'left': r'', 'centre': r'', 'right': r''}
 # only some of a body walking out ("only part of the Mensheviki Internationalists left the Congress")
 PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b'
 # a body leaving the hall, or coming into it, in the scene that says so
-WALKOUT_WORDS = r'left the (hall|Congress|room|platform)|leave the (hall|Congress|room)|walk(ed|s)? out|pushed their way out|got up and (left|went)|withdr[ae]w'
+WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall|Congress|room)|walk(ed|s)? out|pushed their way out|got up and (left|went)|withdr[ae]w'
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession'
+# a hall's shape, where Reed gives it ("the high, amphitheatrical Nicolai Hall")
+PLAN_WORDS = {'rows': r'', 'amphitheatre': r'amphithea'}
 # a meeting over: everyone at the place goes (`gone` with `all`)
 DISPERSE_WORDS = r'dissolved|dispersed|adjourn|broke up|emptied|went home|to their homes'
 FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait', 'frame': r'\bframe\b'}

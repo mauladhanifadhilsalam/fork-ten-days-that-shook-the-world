@@ -32,7 +32,9 @@ SECTIONS = {
           'pushed their way out, in a storm of hoots. Only part of the Sailors left the Congress; the rest were going to stay. '
           'Kameniev asked all in favour to hold up their cards. And thereupon the Congress was dissolved. '
           '"I\'m going now!" answered Kameniev, and left the platform. The Sailors and the Red Guards were embracing; '
-          'behind them was the empty frame from which the picture had been torn.'],
+          'behind them was the empty frame from which the picture had been torn.',
+          'In the high, amphitheatrical hall the galleries were thronged with workers. About a hundred people were grouped '
+          'around the platform, where Kameniev was speaking, and from the right came imprecations: "Down with the traitors!"'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.'],
@@ -723,7 +725,7 @@ class Hall(unittest.TestCase):
         self.assertIn('presence.unnamed', errors(d))
 
     def test_a_bad_bench(self):
-        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'gallery'
+        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'balcony'
         self.assertIn('field.enum', errors(d))
         d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = ['left']
         self.assertIn('field.type', errors(d))
@@ -816,3 +818,43 @@ class Hall(unittest.TestCase):
         at = lambda i: sorted((x.get('n') or 0, x.get('pose') or '', bool(x.get('march'))) for x in sp if x['start'] <= i and (x['end'] is None or i < x['end']) and x['end_by'] != 'update')
         self.assertEqual(at(1), sorted([(4, 'jeer', False), (0, '', True), (10, '', False)]))
         self.assertEqual(at(2), sorted([(10, 'cheer', False), (10, '', False)]))
+
+    # phase 3: an amphitheatre, a gallery, those grouped round the platform, the hooting
+    def test_an_amphitheatre_needs_its_word(self):
+        q = 'In the high, amphitheatrical hall the galleries were thronged with workers.'
+        d = good(); *_, h = self.add(d); h['hall']['plan'] = 'amphitheatre'; h['hall']['ref'] = {'sec': 'V', 'q': q}
+        self.assertEqual(errors(d), [])
+        d = good(); *_, h = self.add(d); h['hall']['plan'] = 'amphitheatre'
+        self.assertIn('field.missing', errors(d))
+        d = good(); *_, h = self.add(d); h['hall']['plan'] = 'amphitheatre'; h['hall']['ref'] = {'sec': 'V', 'q': 'So we came into the great meeting-hall'}
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); *_, h = self.add(d); h['hall']['plan'] = 'gallery'
+        self.assertIn('field.enum', errors(d))
+
+    def test_the_gallery_is_a_feature_and_its_people_stay(self):
+        q = 'In the high, amphitheatrical hall the galleries were thronged with workers.'
+        def up(d, s):
+            s['present'][0].update({'bench': 'gallery', 'ref': {'sec': 'V', 'q': q}})
+        d = good(); s, *_, h = self.add(d); up(d, s)
+        self.assertIn('field.range', errors(d))   # the hall has no gallery
+        d = good(); s, *_, h = self.add(d); up(d, s); h['hall']['features'].append({'k': 'gallery', 'ref': {'sec': 'V', 'q': q}})
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_, h = self.add(d); h['hall']['features'].append({'k': 'gallery', 'ref': {'sec': 'V', 'q': q}})
+        s['present'][0].update({'bench': 'gallery'})   # "The Red Guards sat on the left": no word for a gallery
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_grouped_round_the_platform(self):
+        q = 'About a hundred people were grouped around the platform, where Kameniev was speaking'
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'size': 'About a hundred people', 'ref': {'sec': 'V', 'q': q}})
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'front'   # "sat on the left"
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'walkin': True, 'ref': {'sec': 'V', 'q': q}})
+        self.assertIn('field.range', errors(d))
+
+    def test_imprecations_and_down_with_are_hooting(self):
+        q = 'from the right came imprecations: "Down with the traitors!"'
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'jeer', 'ref': {'sec': 'V', 'q': q}}
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'pose': 'jeer', 'bench': 'right', 'ref': {'sec': 'V', 'q': q}})
+        self.assertEqual(errors(d), [])

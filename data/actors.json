@@ -178,7 +178,7 @@
   {"from": "1917-11-29T18:00", "s": "support", "ev": "torch-procession"}]},
 {"id": "peasants-executive", "kind": "organ", "bloc": "opposition", "seat": "fontanka-6",
  "name": "Executive Committee of the All-Russian Peasants’ Soviets",
- "reed": ["Executive Committee of the Peasants’ Soviets"],
+ "reed": ["Executive Committee of the Peasants’ Soviets", "old Executive Committee"],
  "ru": "Исполком Всероссийского совета крестьянских депутатов"},
 {"id": "peasants-presidium", "kind": "organ", "bloc": "soviet", "part_of": "peasants-congress",
  "name": "The presidium of the Peasants’ Congress",
