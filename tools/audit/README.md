@@ -72,6 +72,16 @@ off (128 of 130 scenes within 250 m; the other two are rides that leave the draw
 with at least 70% of its people on screen in all but 4 of 1,128 samples; on a phone (every other scene) a
 median 215 m, 12 of 534 samples under 70%, the wide bodies seen in part.
 
+After the City Duma's halls (phase 3): `hall.js` 20 scenes, no finding on desktop or phone (one sample in 10,863
+of Spiridonova brushing the reading stand on a phone); frames 38 of 4,145 on a desktop, 172 on a phone (45 of them
+the yunkers by St Isaac's in `up-the-morskaya-nov5`, off a phone's frame whenever that scene is staged on its own,
+at every commit tried, and in a full run only after some scenes and not others); `vehicles.js` someone inside 1.3%,
+overlapping 0.4%, held 13.3%; `motion.js` 0.7% in a wall, 0.2% through; `camera.js` a median 131 m (128 of 130
+within 250 m), 4 of 913 close-shot samples under 70%; on a phone (every other scene) a median 201 m, 12 of 415.
+The hall's new records moved the layout seeds again: three armoured cars patrolling the Nevsky in
+`sadovaya-red-spark` drove through each other in one run and not in another (where a patrol car is depends on
+the page's clock), so each patrolling car now keeps to its own stretch of the street.
+
 `shot.js --film ID` takes a scene as it plays (at 2, 6, 10, 14 and 18 s): the way to look at a fight.
 
 These numbers say where to look, not that a scene is right: a body can pass every test and still stand
