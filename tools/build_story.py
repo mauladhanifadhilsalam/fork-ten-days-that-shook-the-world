@@ -702,6 +702,8 @@ for sp in spans:
 events = []
 for e in [e for e, ok in zip(events_all, in_tour) if ok]:
     rec = {k: e[k] for k in ('id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'actors', 'tags', 'title', 'why', 'sum', 'raised') if k in e}
+    if e.get('speaker_out'):   # the speaker leaves the platform and the hall in the scene
+        rec['speaker_out'] = True
     if e.get('house'):   # the whole hall's response, with Reed's words for it
         rec['house'] = {'pose': e['house']['pose'], 'q': L.norm(e['house']['ref']['q'])}
     rec['q'] = ' … '.join(L.segments(e['q']))

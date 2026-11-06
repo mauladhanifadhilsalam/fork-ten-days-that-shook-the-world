@@ -33,7 +33,7 @@ FIELDS = {
     'hall': ['ll', 'dims', 'axis', 'plan', 'features', 'note'],
     'feature': ['k', 'ref'],
     'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
-    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'house', 'actors', 'tags',
+    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'speaker_out', 'house', 'actors', 'tags',
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone', 'raised'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
@@ -94,10 +94,10 @@ ENUM = {
     'move.rc': {'stated', 'inferred', 'none'},
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
-    'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer'},
+    'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer', 'embrace'},
     'bench': {'left', 'centre', 'right', 'platform', 'aisles'},
     'hall.plan': {'rows'},
-    'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits'},
+    'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits', 'frame'},
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons', 'awm'},
@@ -127,11 +127,13 @@ MARCH_WORDS = r'march|tramp|shuffl|stumbl|came riding|swinging|swing down|filing
 POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\bfell\b|fallen|to death|shooting down|shot down',
               'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters',
               # in a meeting-hall: the house on its feet, a vote by show of cards, cheering, hooting
-              'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
+              'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|presidium|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
-              'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|exultation|pandemonium|embracing',
-              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|threatening'}
-HALL_POSES = ('stand', 'vote', 'cheer', 'jeer')   # drawn in a meeting-hall only
+              'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|exultation|pandemonium|embracing',
+              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening',
+              # two bodies in each other's arms ("the two embracing")
+              'embrace': r'embrac|in (their|each other.s) arms'}
+HALL_POSES = ('stand', 'vote', 'cheer', 'jeer', 'embrace')   # drawn in a meeting-hall only
 # where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
 # left, centre and right are the map's arrangement unless he says whose the benches were
 BENCH_WORDS = {'platform': r'platform|tribune', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
@@ -143,7 +145,7 @@ WALKOUT_WORDS = r'left the (hall|Congress|room|platform)|leave the (hall|Congres
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession'
 # a meeting over: everyone at the place goes (`gone` with `all`)
 DISPERSE_WORDS = r'dissolved|dispersed|adjourn|broke up|emptied|went home|to their homes'
-FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait'}
+FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait', 'frame': r'\bframe\b'}
 RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'
@@ -551,7 +553,8 @@ def presence_spans(events, actors, places):
     the body's, and hold until Reed says otherwise. A body that walks out of a hall (`walkout`) is there
     for that scene and gone after it; if only part of it leaves (`part`), the leavers are a body of their
     own for that scene and the rest stays. A `gone` entry with `all` ends every body at its place (a
-    meeting dissolved).
+    meeting dissolved). Two brief entries for one body at one place in one scene are one body (unless it
+    marches past).
 
     Returns (spans, misses). A span is {who, place, start, end, ev, how, end_by, end_ev, size?, n?, kit?}
     and is shown in scenes start <= i < end (end None: to the last scene). misses lists
@@ -571,7 +574,7 @@ def presence_spans(events, actors, places):
         inside[pid] = out
     holder = {pid: bloc(p['ctl0']['holder']) for pid, p in Pl.items()
               if isinstance(p.get('ctl0'), dict) and p['ctl0'].get('holder')}
-    spans, live, misses = [], {}, []
+    spans, live, misses, briefs = [], {}, [], {}   # briefs: (key, scene) -> the brief span begun there
 
     def end(key, i, why, eid):
         sp = live.pop(key)
@@ -634,9 +637,14 @@ def presence_spans(events, actors, places):
                             r = dict(r, n=left)
                 sp = begin(key, i, r, eid, 'present', old=old)
                 sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'walkout', eid
+            elif r.get('brief') and not r.get('march') and (key, i) in briefs:   # a second word on the same body in the same scene adds to it
+                merge(briefs[(key, i)], r)
+                formation(briefs[(key, i)], r)
             elif r.get('brief'):   # the sum with the body already there; a passing column is a body of its own
                 sp = begin(key, i, r, eid, 'present', old=None if r.get('march') else live.get(key))
                 sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'brief', eid
+                if not r.get('march'):
+                    briefs[(key, i)] = sp
             elif key in live:
                 update(key, i, r, eid, 'present')
             else:

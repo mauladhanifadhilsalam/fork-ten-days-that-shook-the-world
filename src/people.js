@@ -81,7 +81,8 @@ var PEOPLE = (function (THREE) {
   //    (standing, the rifle at the shoulder), 'kneel' (kneeling to fire), 'charge' (running, bayonet
   //    first), 'prone' (flat on the face) or 'fallen' (on the back, the rifle dropped beside); and in a
   //    meeting-hall 'seat' (on a bench), 'seatvote' (seated, a card held up), 'vote' (standing, a card held
-  //    up), 'cheer' (both arms up), 'jeer' (a fist up) and 'speak' (an arm out, at the tribune)
+  //    up), 'cheer' (both arms up), 'jeer' (a fist up), 'speak' (an arm out, at the tribune) and 'embrace' (both
+  //    arms forward round another facing it: "the two embracing")
   function person(o) {
     var pose = o.pose || 'stand';
     if (pose === 'fallen' || pose === 'prone') return lieDown(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), pose === 'fallen', o.rifle);
@@ -147,6 +148,8 @@ var PEOPLE = (function (THREE) {
       m.box(coat, -0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, -0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, -0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
     } else if (pose === 'cheer') {   // both arms flung up
       m.box(coat, -0.377, 1.652, 0, 0.12, 0.6, 0.14, 0, 0, 0.436); m.box(skin, -0.512, 1.942, 0, 0.1, 0.1, 0.1);
+    } else if (pose === 'embrace') {   // the left arm forward and round, over the other's shoulder
+      m.box(coat, -0.145, 1.434, 0.276, 0.12, 0.6, 0.14, 1.39, 0.364, 0); m.box(skin, -0.033, 1.49, 0.57, 0.09, 0.1, 0.1);
     } else {
       m.box(coat, -0.285, 1.1 + dy, 0, 0.12, 0.58, 0.14, 0, 0, -0.07, 3);
       m.box(skin, -0.31, 0.78 + dy, 0, 0.09, 0.1, 0.1, 0, 0, 0, 3);
@@ -165,6 +168,8 @@ var PEOPLE = (function (THREE) {
       m.box(coat, 0.377, 1.652, 0, 0.12, 0.6, 0.14, 0, 0, -0.436); m.box(skin, 0.512, 1.942, 0, 0.1, 0.1, 0.1);
     } else if (pose === 'jeer') {   // "shaking their fists": the right fist up and forward
       m.box(coat, 0.25, 1.573, 0.23, 0.12, 0.6, 0.14, 0.873, 0, 0); m.box(skin, 0.25, 1.78, 0.475, 0.11, 0.11, 0.11);
+    } else if (pose === 'embrace') {
+      m.box(coat, 0.145, 1.434, 0.276, 0.12, 0.6, 0.14, 1.39, -0.364, 0); m.box(skin, 0.033, 1.49, 0.57, 0.09, 0.1, 0.1);
     } else if (pose === 'speak') {   // at the tribune, the right arm out over the hall
       m.box(coat, 0.25, 1.535, 0.29, 0.12, 0.6, 0.14, 1.31, 0, 0); m.box(skin, 0.25, 1.54, 0.6, 0.09, 0.1, 0.1);
     } else if (seat) {   // the right hand on the right knee
@@ -252,6 +257,8 @@ var PEOPLE = (function (THREE) {
     bourgeoiswoman: ({ coat: '#3b2b38', len: 'long', skirt: '#2d2530', hat: 'ladyhat', hatCol: '#1d1b1f', band: '#d6cdb9', collar: '#5a4636', belt: false }),
     intelligent: ({ coat: '#2d3340', len: 'long', legs: '#262a33', hat: 'furazhka', hatCol: '#22293b', band: '#6f8fb8', belt: false }),
     peasant: ({ coat: '#7b6d5a', len: 'long', legs: '#c2b79c', boots: '#a88e5c', hat: 'fur', hatCol: '#56473a', beard: '#6b5944', sash: '#9b2a20', belt: false }),   // foot-cloths, bast shoes
+    // a woman speaker: "slight, pale, with spectacles and hair drawn flatly down" (Spiridonova)
+    intelligentka: ({ coat: '#2b2b33', len: 'long', skirt: '#24242a', hat: 'none', collar: '#e2dccf', belt: false }),
     child: ({ coat: '#4a443b', len: 'short', legs: '#2c2a27', hat: 'cap', hatCol: '#37332e', belt: false }),
     reed: ({ coat: '#25221f', len: 'long', legs: '#1f1d1b', hat: 'fedora', hatCol: '#2a2724', band: '#111', belt: false, notebook: true, scarfNeck: '#cfc7b4' })
   };
@@ -259,7 +266,7 @@ var PEOPLE = (function (THREE) {
   Object.keys(FIG_OPTS).forEach(function (k) { FIG[k] = person(FIG_OPTS[k]); });
   // where a rifle's muzzle is, in each firing pose (model metres, facing +z)
   var MUZZLE = { aim: [0.12, 1.42, 1.15], kneel: [0.12, 1.04, 1.15], charge: [0.09, 1.5, 1.02] };
-  var POSED = {}, HALL_POSES = ['seat', 'seatvote', 'vote', 'cheer', 'jeer', 'speak'];
+  var POSED = {}, HALL_POSES = ['seat', 'seatvote', 'vote', 'cheer', 'jeer', 'speak', 'embrace'];
   // a figure type in a pose, built the first time it is asked for: 'soldier.aim', 'redguard.fallen'
   function posed(key) {
     if (POSED[key]) return POSED[key];
@@ -268,7 +275,7 @@ var PEOPLE = (function (THREE) {
     var hall = HALL_POSES.indexOf(p[1]) >= 0;   // a delegate in the hall: no rifle in the hands, no cane
     return (POSED[key] = person(Object.assign({}, o, { pose: p[1] }, hall ? { rifle: false, cane: false, notebook: false } : {})).geometry(FIG_SCALE[p[0]] || 1));
   }
-  var FIG_SCALE = { womansoldier: 0.94, workerwoman: 0.94, workerwoman2: 0.94, bourgeoiswoman: 0.95, child: 0.62 };
+  var FIG_SCALE = { womansoldier: 0.94, workerwoman: 0.94, workerwoman2: 0.94, bourgeoiswoman: 0.95, intelligentka: 0.94, child: 0.62 };
   // a type's variants, so a body of men is not a row of clones
   var VARIANTS = { soldier: ['soldier', 'soldier2', 'soldier3'], sailor: ['sailor', 'sailor2'], redguard: ['redguard', 'redguard2'], worker: ['worker', 'worker2'],
     workerwoman: ['workerwoman', 'workerwoman2'], bourgeois: ['bourgeois', 'bourgeois2'] };
@@ -477,6 +484,21 @@ var PEOPLE = (function (THREE) {
     for (var i = 0; i < 8; i++) { var a = i * Math.PI / 4; m.ball('#fff6d8', Math.cos(a) * 0.62, -0.95, Math.sin(a) * 0.62, 0.16); }
     return m;
   }
+  // the empty frame on the white wall "from which the Tsar's picture had been torn": gilt, nothing in it; the
+  // origin at its foot, facing +z
+  function emptyFrame() {
+    var m = new Model(), g = '#b8963e', w = 1.2, h = 1.5, b = 0.11;
+    m.box(g, 0, b / 2, 0, w, b, 0.07); m.box(g, 0, h - b / 2, 0, w, b, 0.07); m.box(g, -w / 2 + b / 2, h / 2, 0, b, h, 0.07); m.box(g, w / 2 - b / 2, h / 2, 0, b, h, 0.07);
+    return m;
+  }
+  // a banner hung flat on a wall, still, a gold edge round the red; tilted one way or the other, so that two
+  // cross ("the two banners were intertwined against the white wall")
+  function hungBanner(tilt) {
+    var m = new Model(), r = '#a8241c', g = '#c4a24a';
+    m.box(r, 0, 0, 0, 2.2, 0.9, 0.02, 0, 0, tilt); m.box(g, 0, 0, -0.014, 2.3, 1.0, 0.005, 0, 0, tilt);
+    m.box(C.wood, 0, Math.cos(tilt) * 0.5, 0.02, 2.5, 0.04, 0.04, 0, 0, tilt);
+    return m;
+  }
   function torch() { var m = new Model(); m.box(C.wood, 0, 1.25, 0, 0.04, 1.0, 0.04); m.cyl('#3a2a1c', 0, 1.78, 0, 0.09, 0.12, 6); return m; }
 
   // the cruiser Aurora, at her real size (126.8 m by 16.8 m): three funnels, two masts
@@ -512,7 +534,8 @@ var PEOPLE = (function (THREE) {
       bicycle: bicycle().geometry(), barricade: barricade(1).geometry(), barricade2: barricade(2).geometry(),
       logs: fireLogs().geometry(), rifles: rifleHeap().geometry(), whiteflag: flag('#efece3', 1.0, 0.65, 2.6).geometry(), redcross: crossFlag(1.0, 0.65, 2.6).geometry(), horn: horn().geometry(), trench: trench().geometry(), flag: flag('#b3261e', 1.0, 0.65, 2.6).geometry(), banner: banner('#a8241c').geometry(),
       torch: torch().geometry(), horse: horse('#5a3f2a').geometry(),
-      bench: bench().geometry(), table: table().geometry(), tribune: tribune().geometry(), chandelier: chandelier().geometry(), horse2: horse('#3a2c22').geometry(),
+      bench: bench().geometry(), table: table().geometry(), tribune: tribune().geometry(), chandelier: chandelier().geometry(),
+      frame: emptyFrame().geometry(), hungbannerL: hungBanner(0.22).geometry(), hungbannerR: hungBanner(-0.22).geometry(), horse2: horse('#3a2c22').geometry(),
       cavalry: horse('#4e3826', { coat: '#5f5b49', legs: '#252c42', lampas: C.red, hat: C.fur }).geometry(),
       avrora: avrora().geometry()
     };

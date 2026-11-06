@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'house': DICT, 'all': BOOL, 'prop': STR,
+    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'house': DICT, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
     'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
@@ -545,6 +545,8 @@ class Checker:
             self.speaker(e, pos, w)
         if 'house' in e:
             self.house(e, w)
+        if 'speaker_out' in e:
+            self.speaker_out(e, w)
         d = e.get('doc')
         if isinstance(d, dict) and fields(F, d, 'doc', w + '.doc'):
             enum(F, d, 'cal', 'cal', w + '.doc')
@@ -762,6 +764,32 @@ class Checker:
             elif not (re.search(re.escape(r['prop'].split()[-1]), text, re.I) or (sup[0] and sup[1] is not None and self.book.near(sup[0], sup[1], r['prop'].split()[-1]))):
                 F.err('phrase.not-near', where, f'prop {r["prop"]!r}: Reed does not name it within 1,500 characters of the passage')
 
+    def scene_at(self, e):
+        """where the scene's own passages are: [(section, position)], its quote and its other passages"""
+        here = []
+        for q in L.segments(e.get('q', '')):
+            if isinstance(q, str):
+                here += [(e.get('sec'), x) for x in self.book.find(e.get('sec'), q)[:1]]
+        for a in e.get('also', []):
+            if isinstance(a, dict) and isinstance(a.get('q'), str):
+                here += [(a.get('sec'), x) for x in self.book.find(a.get('sec'), a['q'])[:1]]
+        return here
+
+    def speaker_out(self, e, w):
+        """the speaker leaving the platform and the hall in the scene ("answered Trotzky, and left the platform")"""
+        F, ref, ww = self.F, e['speaker_out'], w + '.speaker_out'
+        if not isinstance(ref, dict) or not fields(F, ref, 'ref', ww) or not isinstance(ref.get('q'), str):
+            return
+        if 'speaker' not in e:
+            F.err('field.missing', ww, 'speaker_out: whose leaving? the scene needs its speaker')
+        at = self.quote_ok(ref.get('sec'), ref['q'], ww)
+        if at is None:
+            return
+        if not re.search(L.WALKOUT_WORDS, ref['q'], re.I):
+            F.err('phrase.not-in-text', ww, f'speaker_out: the quote has no words for leaving ({L.WALKOUT_WORDS})')
+        if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
+            F.err('phrase.not-near', ww, "speaker_out: Reed's words for it are not within 1,500 characters of the scene's own passages")
+
     def house(self, e, w):
         """the whole hall's response in a scene: a hall pose, with Reed's words for it"""
         F, h, hw = self.F, e['house'], w + '.house'
@@ -782,14 +810,7 @@ class Checker:
         if not re.search(L.POSE_WORDS[h['pose']], ref['q'], re.I):
             F.err('phrase.not-in-text', hw, f'pose {h["pose"]!r}: the quote has no word for it ({L.POSE_WORDS[h["pose"]]})')
         # the scene's own moment: within 1,500 characters of the scene's quote, or of one of its other passages
-        here = []
-        for q in L.segments(e.get('q', '')):
-            if isinstance(q, str):
-                here += [(e.get('sec'), x) for x in self.book.find(e.get('sec'), q)[:1]]
-        for a in e.get('also', []):
-            if isinstance(a, dict) and isinstance(a.get('q'), str):
-                here += [(a.get('sec'), x) for x in self.book.find(a.get('sec'), a['q'])[:1]]
-        if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in here):
+        if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
             F.err('phrase.not-near', hw, "house: Reed's words for it are not within 1,500 characters of the scene's own passages")
 
     def speaker(self, e, pos, w):

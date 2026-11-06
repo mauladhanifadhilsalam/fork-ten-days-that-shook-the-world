@@ -30,7 +30,9 @@ SECTIONS = {
     'V': ['So we came into the great meeting-hall, under the white chandeliers. The Red Guards sat on the left. '
           'On the platform sat the presidium, the Sailors among them. Kameniev rang the bell. Fifty delegates got up and '
           'pushed their way out, in a storm of hoots. Only part of the Sailors left the Congress; the rest were going to stay. '
-          'Kameniev asked all in favour to hold up their cards. And thereupon the Congress was dissolved.'],
+          'Kameniev asked all in favour to hold up their cards. And thereupon the Congress was dissolved. '
+          '"I\'m going now!" answered Kameniev, and left the platform. The Sailors and the Red Guards were embracing; '
+          'behind them was the empty frame from which the picture had been torn.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.'],
@@ -756,3 +758,34 @@ class Hall(unittest.TestCase):
         evs = L.sort_table('events', d['events']); ids = [e['id'] for e in evs]
         sp = L.presence_spans(evs, d['actors'], d['places'])[0]
         self.assertFalse([x for x in sp if x['place'] == 'hall' and (x['end'] is None or x['end'] > ids.index('over') + 1)])   # shown in its scene, gone after it
+
+    # phase 2: the speaker who leaves, the embrace, the empty frame, two brief words on one body
+    def test_the_speaker_leaves_in_words(self):
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': '"I\'m going now!" answered Kameniev, and left the platform.'}
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': 'Kameniev asked all in favour to hold up their cards.'}
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); s, *_ = self.add(d); del s['speaker']; s['speaker_out'] = {'sec': 'V', 'q': '"I\'m going now!" answered Kameniev, and left the platform.'}
+        self.assertIn('field.missing', errors(d))
+
+    def test_the_embrace_is_a_hall_pose_with_its_word(self):
+        d = good(); s, *_ = self.add(d); s['present'][1]['pose'] = 'embrace'; s['present'][1]['ref']['q'] = 'The Sailors and the Red Guards were embracing'
+        del s['present'][1]['bench']
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['present'][1]['pose'] = 'embrace'
+        self.assertIn('fight.not-in-text', errors(d))
+        d = good(); self.add(d); ev(d, 'reed-walks')['present'][0]['pose'] = 'embrace'
+        self.assertIn('hall.none', errors(d))
+
+    def test_the_empty_frame_is_a_feature(self):
+        d = good(); *_, h = self.add(d); h['hall']['features'].append({'k': 'frame', 'ref': {'sec': 'V', 'q': 'the empty frame from which the picture had been torn'}})
+        self.assertEqual(errors(d), [])
+        d = good(); *_, h = self.add(d); h['hall']['features'].append({'k': 'frame', 'ref': {'sec': 'V', 'q': 'under the white chandeliers'}})
+        self.assertIn('phrase.not-in-text', errors(d))
+
+    def test_two_brief_words_on_one_body_in_one_scene_are_one_body(self):
+        acts = [{'id': 'g', 'kind': 'party', 'bloc': 'soviet'}]
+        pls = [{'id': 'hall', 'kind': 'room'}]
+        evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 34, 'size': '34', 'brief': True}, {'who': 'g', 'pose': 'jeer', 'brief': True}]}]
+        sp = L.presence_spans(evs, acts, pls)[0]
+        self.assertEqual([(x.get('n'), x.get('pose')) for x in sp], [(34, 'jeer')])

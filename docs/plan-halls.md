@@ -1,6 +1,6 @@
 # Plan: the congress and meeting halls, and the walkouts
 
-Status: phase 1 done (Smolny's great hall and the Second Congress, with the schema, checker, builder, drawing, camera and the hall audit); phases 2 to 5 not started. The scenes of phase 2 already open the hall, with their bodies as the data has them. Scope, as asked: the scenes of the congresses and meetings, so that the
+Status: phases 1 and 2 done (Smolny's great hall: the Second Congress, and the other sessions there, from the Petrograd Soviet of 30 October to the Peasants' Congress coming in on 29 November); phases 3 to 5 not started. Scope, as asked: the scenes of the congresses and meetings, so that the
 walkouts can be shown. Not the Winter Palace's rooms, the Military Revolutionary Committee's offices or the
 State Bank.
 
@@ -111,7 +111,8 @@ scene briefly, as now.
 - The "foul blue cloud of cigarette smoke" over the rows.
 - land-decree: Reed's joy is "the peasant delegates'", but the house's cheering is drawn on the whole side of the rising.
 - The chairman's place: Dan "ringing the bell" and Kameniev "reading" stand at the reading stand; the map has no separate place for the chair.
-- A walk-in to the benches, and a walk-out from the platform, are drawn but no scene uses them yet.
+- A walk-in to the benches is used by the Peasants' Congress coming in; a body walking out from the platform is drawn but no scene uses it yet.
+- Phase 2: Gotz "took the chair" and Sverdlov greeted the peasants, but there is one speaker per scene and no chairman, so neither is drawn; nor is Holtzman running down the corridor with the telegram (he is not in the Faction Map), nor the music that "blared down the corridor", nor Larin, whose resolution the press-decree scene's hooting and applause answer (he is not in the Faction Map either, so the scene has no speaker). Which two banners crossed on the wall Reed does not say; the map gives one to each presidium.
 
 ## Decisions taken
 
