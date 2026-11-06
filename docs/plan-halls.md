@@ -119,7 +119,9 @@ scene briefly, as now.
 - At Fontanka 6 nobody stands at the tribune in the extraordinary session: Ustinov, Nathanson and Reinstein, who speak, are not in the Faction Map. Sverdlov, who is, "greeted them" only at the end.
 - The old Executive Committee's "rump convention ... in another room of the same building", where Tchernov first spoke, is not drawn; nor is the agreement Ustinov announced "received by the delegates with the wildest joy" before Tchernov came in.
 - Tchernov's return to the Alexander Hall (25 Nov): his walk in, "welcomed with great applause by the majority", and Zinoviev's heckling are not drawn, only the uproar and his leaving; nor is the Executive Committee he brought back (the checker does not take "the Executive Committee" alone for its name).
-- The laughter is a pose with a five-second shake: from far off it reads less than a raised fist.
+- The laughter is a pose with a six-second shake: from far off it reads less than a raised fist. No scene has the speaker's own party in the hall while it laughs, so that part of the rule is untested.
+- Tchernov's return: "some of the Left Socialist Revolutionaries" on their feet with the Bolsheviki, and "the rest of the assembly tried to yell them down", are not drawn: a pose is a whole body's.
+- The speaker leaving as "he": the checker takes the last of the Faction Map's people named before the pronoun, within 600 characters; it does not see people outside the Faction Map, nor whether a name is inside someone's speech.
 
 ## Left from phase 3
 

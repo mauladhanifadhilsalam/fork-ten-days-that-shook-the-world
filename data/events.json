@@ -1512,7 +1512,7 @@
 {"id": "tchernov-outrage", "t": "1917-11-25T18:00", "tq": "inferred", "tr": ["1917-11-25T14:00", "1917-11-25T23:59"], "cal": "none", "sec": "XII", "p": 300, "loc": "duma-alexander-hall", "witness": "reported", "speaker": "tchernov", "speaker_out": {"sec": "XII", "q": "\"This is an outrage, not a session!\" cried Tchernov, and he left the hall"}, "actors": ["tchernov", "peasants-congress", "bolsheviki"],
  "title": "“This is an outrage, not a session!”",
  "why": "Reed has Tchernov arrive “On the afternoon of November 25th”, arrested, taken to Smolny and released before the session.",
- "sum": "Back from Moghilev, Tchernov brings the old Executive Committee back into the Peasants’ Congress in the Duma’s Alexander Hall; Zinoviev heckles him, the Bolsheviki and some Left SRs rise shaking their fists, and Tchernov leaves the hall.",
+ "sum": "Back from Moghilev, Tchernov brings the old Executive Committee back into the Peasants’ Congress; Zinoviev heckles him, the Bolsheviki rise shaking their fists, and Tchernov leaves the hall.",
  "q": "\"This is an outrage, not a session!\" cried Tchernov, and he left the hall; the meeting was adjourned because of the noise and disorder",
  "also": [
   {"sec": "XII", "q": "They agreed to return, and Tchernov entered the hall, welcomed with great applause by the majority, and the hoots and jeers of the Bolsheviki."},
@@ -1548,8 +1548,8 @@
   {"who": "reed", "from": "reed-lodging", "to": "fontanka-6", "mode": "unknown", "rc": "none", "gap": true},
   {"who": "smolny-delegation", "size": "a delegation from Smolny, accompanied by representatives of the Red Army", "from": "smolny", "to": "fontanka-6", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "peasants-congress", "place": "fontanka-6-hall", "size": "the Congress", "n": 60, "brief": true, "ref": {"sec": "XII", "q": "Late in the afternoon of Thursday, November 16th, the Congress met in extraordinary session."}},
-  {"who": "smolny-delegation", "place": "fontanka-6-hall", "size": "a delegation from Smolny, accompanied by representatives of the Red Army", "n": 8, "walkin": true, "brief": true, "ref": {"sec": "XII", "q": "At the end Ustinov announced the arrival rival of a delegation from Smolny, accompanied by representatives of the Red Army, greeted with a rising ovation."}}]},
+  {"who": "smolny-delegation", "place": "fontanka-6-hall", "size": "a delegation from Smolny, accompanied by representatives of the Red Army", "n": 8, "bench": "centre", "walkin": true, "brief": true, "ref": {"sec": "XII", "q": "At the end Ustinov announced the arrival rival of a delegation from Smolny, accompanied by representatives of the Red Army, greeted with a rising ovation."}},
+  {"who": "peasants-congress", "place": "fontanka-6-hall", "size": "the Congress", "n": 60, "brief": true, "ref": {"sec": "XII", "q": "Late in the afternoon of Thursday, November 16th, the Congress met in extraordinary session."}}]},
 {"id": "torch-procession", "t": "1917-11-29T18:30", "tq": "approx", "tr": ["1917-11-29T17:00", "1917-11-29T20:00"], "tp": "It was already dark", "cal": "none", "sec": "XII", "p": 306, "loc": "fontanka-6", "witness": "seen", "actors": ["peasants-congress", "pavlovsky"],
  "title": "The torchlit march to Smolny",
  "sum": "Out of the building in the dark: the Pavlovsky Regiment’s band plays the Marseillaise, banners unfurl, and the peasants march with torches down the bank of the Fontanka to Smolny.",

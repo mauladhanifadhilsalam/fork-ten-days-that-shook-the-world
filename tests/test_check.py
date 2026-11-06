@@ -38,10 +38,14 @@ SECTIONS = {
           'Whereupon the Sailors left the chamber. It was evident that most of the delegates were hostile, and Kameniev was hooted down; '
           'the Red Guards held a bare fifth of the seats.',
           'Then Kameniev demanded the floor once more. He was interrupted by a great burst of laughter; and he left the room. '
-          'At the end came the arrival of the Sailors, greeted with a rising ovation.'],
+          'At the end Kameniev announced the arrival of the Sailors, greeted with a rising ovation. Upon his arrival the Sailor was arrested. '
+          'They went to slaughter and be slaughtered.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
-           'The hall rose, thundering.'],
+           'The hall rose, thundering.',
+           'Kameniev spoke, and then Holtzman. He left the hall at once.',
+           'Kameniev began. ' + 'The debate went on and on, and nobody listened. ' * 14 + 'At last he left the hall.',
+           'Signed: KAMENIEV. Then he left the hall.'],
 }
 
 
@@ -935,7 +939,7 @@ class Hall(unittest.TestCase):
         self.assertIn('hall.none', errors(d))
 
     def test_an_arrival_is_a_walk_in(self):
-        q = 'At the end came the arrival of the Sailors, greeted with a rising ovation.'
+        q = 'At the end Kameniev announced the arrival of the Sailors, greeted with a rising ovation.'
         d = good(); s, *_ = self.add(d); s['present'][1].update({'walkin': True, 'ref': {'sec': 'V', 'q': q}}); del s['present'][1]['bench']
         self.assertNotIn('phrase.not-in-text', errors(d))
         d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'stand', 'ref': {'sec': 'V', 'q': q}}
@@ -948,3 +952,23 @@ class Hall(unittest.TestCase):
         d = good(); s, *_ = self.add(d); s['speaker'] = 'holtzman-p'; s['also'] = [{'sec': 'IX', 'q': 'The hall rose, thundering.'}]
         s['speaker_out'] = {'sec': 'V', 'q': q}   # "he" is Kameniev, not Holtzman
         self.assertIn('presence.unnamed', errors(d))
+
+    # the phase-4 review's cases
+    def test_he_is_the_last_one_named_and_near(self):
+        def leave(speaker, q):
+            d = good(); s, *_ = self.add(d); s['speaker'] = speaker; s['also'] = [{'sec': 'IX', 'q': 'The hall rose, thundering.'}]
+            s['speaker_out'] = {'sec': 'IX', 'q': q}
+            return errors(d)
+        self.assertIn('presence.unnamed', leave('kam-p', 'He left the hall at once.'))          # Holtzman is named after Kameniev
+        self.assertNotIn('presence.unnamed', leave('holtzman-p', 'He left the hall at once.'))
+        self.assertIn('presence.unnamed', leave('kam-p', 'At last he left the hall.'))          # Kameniev is named too far back
+        self.assertNotIn('presence.unnamed', leave('kam-p', 'Then he left the hall.'))          # "KAMENIEV", in capitals
+        d = good(); s, *_ = self.add(d)
+        s['speaker_out'] = {'sec': 'V', 'q': 'Fifty delegates got up and pushed their way out'}   # no "he" at all
+        self.assertIn('presence.unnamed', errors(d))
+
+    def test_slaughter_is_not_laughter_nor_an_arrival_a_walk_in(self):
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'laugh', 'ref': {'sec': 'V', 'q': 'They went to slaughter and be slaughtered.'}}
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); s, *_ = self.add(d); s['present'][1].update({'walkin': True, 'ref': {'sec': 'V', 'q': 'Upon his arrival the Sailor was arrested.'}}); del s['present'][1]['bench']
+        self.assertIn('phrase.not-in-text', errors(d))

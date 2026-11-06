@@ -92,7 +92,7 @@ var PEOPLE = (function (THREE) {
     var squat = pose === 'squat' && !o.skirt;   // on the heels by a fire, the forearms on the knees ("squatting around fires")
     var seat = pose === 'seat' || pose === 'seatvote' || pose === 'seatlaugh';   // on a bench in a meeting-hall, the hands on the knees
     var laugh = pose === 'laugh' || pose === 'seatlaugh';   // "a great burst of laughter": leaning back, the head thrown back, the hands at the belly
-    var lb = laugh ? -0.3 : 0;   // the lean back, radians about the hips
+    var lb = laugh ? -0.3 : 0;   // the lean back, radians about the waist
     var kneel = pose === 'kneel' && !o.skirt && o.rifle, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
     var dy = squat ? -0.41 : kneel ? -0.38 : seat ? -0.42 : 0;   // down, everything above the hips comes down
     // legs swing about the hip at y = 0.86 (parts 1, 2)
@@ -121,17 +121,19 @@ var PEOPLE = (function (THREE) {
         if (o.lampas) m.box(o.lampas, 0.178 * sx, 0.6, -st * sx, 0.012, 0.52, 0.05, 0, 0, 0, i + 1);
       });
     }
-    // body
-    m.box(coat, 0, 1.13 + dy, laugh ? -0.06 : 0, 0.44, 0.56, 0.26, lb);
+    // body. Laughing, everything above the waist leans back about it, and what is on the body goes with it
+    function leanYZ(y, z) { if (!laugh) return [y, z]; var yp = 0.88 + dy, c = Math.cos(lb), s = Math.sin(lb); return [yp + (y - yp) * c - z * s, (y - yp) * s + z * c]; }
+    function onBody(col, x, y, z, sx, sy, sz, rx, ry, rz, part) { var q = leanYZ(y, z); return m.box(col, x, q[0], q[1], sx, sy, sz, (rx || 0) + lb, ry, rz, part); }
+    onBody(coat, 0, 1.13 + dy, 0, 0.44, 0.56, 0.26);
     if (seat) { if (o.len !== 'short' && !o.skirt) m.box(coat, 0, 0.5, 0.13, 0.46, 0.08, 0.38); }   // the coat's skirts over the lap
     else if (o.len === 'long') m.taper(coat, 0, 0.66 + dy, 0, 0.44, 0.27, 0.56, 0.36, 0.5);
     else if (o.len === 'mid') m.taper(coat, 0, 0.78 + dy, 0, 0.44, 0.27, 0.5, 0.32, 0.26);
     if (o.belt !== false) m.box(o.beltCol || C.leather, 0, 0.88 + dy, 0, 0.455, 0.055, 0.28);
-    if (o.skatka) { m.box(o.skatka, 0.02, 1.13 + dy, 0.14, 0.11, 0.74, 0.09, 0, 0, 0.78); m.box(o.skatka, 0.02, 1.13 + dy, -0.14, 0.11, 0.74, 0.09, 0, 0, -0.78); }
-    if (o.belts) { m.box(o.belts, 0, 1.13 + dy, 0.138, 0.05, 0.66, 0.02, 0, 0, 0.62); m.box(o.belts, 0, 1.13 + dy, 0.138, 0.05, 0.66, 0.02, 0, 0, -0.62); }
-    if (o.sash) m.box(o.sash, 0, 0.9 + dy, 0, 0.47, 0.08, 0.29);
-    if (o.collar) m.box(o.collar, 0, 1.41 + dy, -0.01, 0.4, 0.07, 0.27);
-    if (o.boards) { m.box(o.boards, -0.17, 1.42 + dy, 0, 0.1, 0.025, 0.13); m.box(o.boards, 0.17, 1.42 + dy, 0, 0.1, 0.025, 0.13); }
+    if (o.skatka) { onBody(o.skatka, 0.02, 1.13 + dy, 0.14, 0.11, 0.74, 0.09, 0, 0, 0.78); onBody(o.skatka, 0.02, 1.13 + dy, -0.14, 0.11, 0.74, 0.09, 0, 0, -0.78); }
+    if (o.belts) { onBody(o.belts, 0, 1.13 + dy, 0.138, 0.05, 0.66, 0.02, 0, 0, 0.62); onBody(o.belts, 0, 1.13 + dy, 0.138, 0.05, 0.66, 0.02, 0, 0, -0.62); }
+    if (o.sash) onBody(o.sash, 0, 0.9 + dy, 0, 0.47, 0.08, 0.29);
+    if (o.collar) onBody(o.collar, 0, 1.41 + dy, -0.01, 0.4, 0.07, 0.27);
+    if (o.boards) { onBody(o.boards, -0.17, 1.42 + dy, 0, 0.1, 0.025, 0.13); onBody(o.boards, 0.17, 1.42 + dy, 0, 0.1, 0.025, 0.13); }
     // arms swing about the shoulder at y = 1.38 (parts 3, 4); a rifle arm holds still
     var armR = o.rifle || o.notebook ? 0 : 4;
     if (aim) {   // the rifle at the right shoulder, the left hand under the fore-end, aiming along +z
@@ -147,8 +149,8 @@ var PEOPLE = (function (THREE) {
     } else if (squat) {   // the left forearm on the left knee
       m.box(coat, -0.25, 0.86, 0.2, 0.12, 0.5, 0.14, -0.95, 0, 0, 0); m.box(skin, -0.24, 0.6, 0.42, 0.09, 0.1, 0.1);
       if (o.armband) m.box(o.armband, -0.26, 0.96, 0.1, 0.135, 0.08, 0.155, -0.95, 0, 0, 0);
-    } else if (laugh) {   // the left hand on the belly
-      m.box(coat, -0.26, 1.16 + dy, 0.0, 0.12, 0.36, 0.14, -0.35); m.box(coat, -0.13, 0.98 + dy, 0.13, 0.26, 0.12, 0.13, 0, 0.5); m.box(skin, -0.02, 0.98 + dy, 0.18, 0.09, 0.1, 0.1);
+    } else if (laugh) {   // the left hand on the belly: shoulder to elbow at the side, the forearm across the front
+      onBody(coat, -0.27, 1.19 + dy, 0.05, 0.12, 0.354, 0.14, -0.29); onBody(coat, -0.155, 1.0 + dy, 0.15, 0.25, 0.12, 0.13, 0, -0.41); onBody(skin, -0.03, 0.98 + dy, 0.21, 0.09, 0.1, 0.1);
     } else if (seat) {   // the left hand on the left knee
       m.box(coat, -0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, -0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, -0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
     } else if (pose === 'cheer') {   // both arms flung up
@@ -178,7 +180,7 @@ var PEOPLE = (function (THREE) {
     } else if (pose === 'speak') {   // at the tribune, the right arm out over the hall
       m.box(coat, 0.25, 1.535, 0.29, 0.12, 0.6, 0.14, 1.31, 0, 0); m.box(skin, 0.25, 1.54, 0.6, 0.09, 0.1, 0.1);
     } else if (laugh) {   // the right hand on the belly too
-      m.box(coat, 0.26, 1.16 + dy, 0.0, 0.12, 0.36, 0.14, -0.35); m.box(coat, 0.13, 0.98 + dy, 0.13, 0.26, 0.12, 0.13, 0, -0.5); m.box(skin, 0.02, 0.98 + dy, 0.18, 0.09, 0.1, 0.1);
+      onBody(coat, 0.27, 1.19 + dy, 0.05, 0.12, 0.354, 0.14, -0.29); onBody(coat, 0.155, 1.0 + dy, 0.15, 0.25, 0.12, 0.13, 0, 0.41); onBody(skin, 0.03, 0.98 + dy, 0.21, 0.09, 0.1, 0.1);
     } else if (seat) {   // the right hand on the right knee
       m.box(coat, 0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, 0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, 0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
     } else {
@@ -195,12 +197,13 @@ var PEOPLE = (function (THREE) {
     if (o.beard) head.box(o.beard, 0, 1.52, 0.08, 0.2, 0.14, 0.1);
     hat(head, o, coat);
     if (o.scarfNeck) head.box(o.scarfNeck, 0, 1.4, 0.02, 0.3, 0.07, 0.3);
-    // laughing, the head goes back with the lean and tips up: turned about the neck, then moved back
-    var hc = Math.cos(laugh ? -0.45 : 0), hs = Math.sin(laugh ? -0.45 : 0);
+    // laughing, the head tips back on the neck, then goes back with the lean of the body
+    var ht = laugh ? -0.25 : 0, hc = Math.cos(ht), hs = Math.sin(ht), lc = Math.cos(lb), ls = Math.sin(lb);
     for (var hi = 0; hi < head.p.length; hi += 3) {
-      var hy0 = head.p[hi + 1] - 1.45, hz0 = head.p[hi + 2], ny0 = head.n[hi + 1], nz0 = head.n[hi + 2];
-      m.p.push(head.p[hi], 1.45 + hy0 * hc - hz0 * hs + dy - (laugh ? 0.02 : 0), hy0 * hs + hz0 * hc + (aim ? 0.04 : 0) + (laugh ? -0.13 : 0));
-      m.n.push(head.n[hi], ny0 * hc - nz0 * hs, ny0 * hs + nz0 * hc);
+      var hy0 = head.p[hi + 1] - 1.45, hz0 = head.p[hi + 2], q = leanYZ(1.45 + dy + hy0 * hc - hz0 * hs, hy0 * hs + hz0 * hc);
+      var ny1 = head.n[hi + 1] * hc - head.n[hi + 2] * hs, nz1 = head.n[hi + 1] * hs + head.n[hi + 2] * hc;
+      m.p.push(head.p[hi], q[0], q[1] + (aim ? 0.04 : 0));
+      m.n.push(head.n[hi], ny1 * lc - nz1 * ls, ny1 * ls + nz1 * lc);
     }
     m.c.push.apply(m.c, head.c); m.a.push.apply(m.a, head.a);
     return m;
@@ -568,7 +571,8 @@ var PEOPLE = (function (THREE) {
 
   // The shared material: Lambert with vertex colours, plus a vertex hook. Per instance, aAnim is
   // (phase, walk amount, idle amount): legs and arms swing when walking, a crowd turns its heads a
-  // little, flags wave whatever happens. A negative idle amount is laughter: the body shakes.
+  // little, flags wave whatever happens. Laughing, the idle amount is sent as -(1 + idle) standing and
+  // -(2 + idle) seated, and the body above the hips shakes.
   function material(uniforms) {
     var mat = new THREE.MeshLambertMaterial({ vertexColors: true });
     mat.onBeforeCompile = function (sh) {
@@ -582,9 +586,10 @@ var PEOPLE = (function (THREE) {
           'else if (aPart > 2.5 && aPart < 4.5) { float a = (aPart < 3.5 ? -sw : sw) * 0.5; float yy = transformed.y - 1.38;',
           '  transformed.y = 1.38 + yy * cos(a) - transformed.z * sin(a); transformed.z = yy * sin(a) + transformed.z * cos(a); }',
           'else if (aPart > 4.5) { transformed.z += sin(uTime * 4.0 + transformed.x * 3.5 + aAnim.x) * 0.09 * (0.2 + abs(transformed.x)); }',
-          'if (aAnim.z < 0.0) { float q = abs(sin(uTime * 13.0 + aAnim.x)) * -aAnim.z, up = max(0.0, transformed.y - 0.4);',   // laughing: the body above the hips shakes, up and back
+          'float az = aAnim.z, hip = az < -2.0 ? 0.44 : 0.86, idl = az < -2.0 ? -az - 2.0 : az < 0.0 ? -az - 1.0 : az;',   // -(1 + idle) laughing standing, -(2 + idle) seated
+          'if (az < 0.0) { float q = abs(sin(uTime * 13.0 + aAnim.x)), up = max(0.0, transformed.y - hip);',   // the body above the hips shakes, up and back
           '  transformed.y += q * 0.035 * up; transformed.z -= q * 0.05 * up; }',
-          'if (aPart < 4.5) { float t = sin(uTime * 0.6 + aAnim.x * 1.7) * 0.35 * max(aAnim.z, 0.0); float cx = cos(t), sx = sin(t);',
+          'if (aPart < 4.5) { float t = sin(uTime * 0.6 + aAnim.x * 1.7) * 0.35 * idl; float cx = cos(t), sx = sin(t);',
           '  transformed.xz = vec2(transformed.x * cx + transformed.z * sx, -transformed.x * sx + transformed.z * cx); }',
           'transformed.y += abs(sw) * 0.04;'
         ].join('\n'));
