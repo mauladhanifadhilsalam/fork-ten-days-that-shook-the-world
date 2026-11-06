@@ -82,6 +82,12 @@ The hall's new records moved the layout seeds again: three armoured cars patroll
 `sadovaya-red-spark` drove through each other in one run and not in another (where a patrol car is depends on
 the page's clock), so each patrolling car now keeps to its own stretch of the street.
 
+After Fontanka 6 and laughter (phase 4): `hall.js` 23 scenes, no finding on desktop or phone (one sample in
+11,840 of Spiridonova brushing the reading stand on a desktop); smoke 132 scenes, no error; frames 38 of 4,144 on a
+desktop, 172 on a phone (as before, the Morskaya yunkers among them); `vehicles.js` someone inside 1.0%,
+overlapping 0.0%, held 13.1%; `motion.js` 0.7% in a wall, 0.2% through; `camera.js` a median 128 m (129 of 131
+within 250 m), 4 of 889 close-shot samples under 70%; on a phone (every other scene) a median 211 m, 12 of 430.
+
 `shot.js --film ID` takes a scene as it plays (at 2, 6, 10, 14 and 18 s): the way to look at a fight.
 
 These numbers say where to look, not that a scene is right: a body can pass every test and still stand
