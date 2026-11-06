@@ -619,7 +619,9 @@ def figures(who, size=None, n=None):
         low = size.lower()
         found = sorted((m.start(), m.end(), fig) for rx, fig in SIZE_FIG for m in [re.search(rx, low)] if m)
         hits = [f for _, _, f in found]
-        if hits and not (who in ACTOR_FIG and set(hits) <= {f for f, _ in ACTOR_FIG[who]}):
+        # Reed's kinds replace the faction's mix when they are not in it, or when he says almost all of them were
+        # those ("on the left almost all the delegates wore the uniforms of common soldiers")
+        if hits and (not (who in ACTOR_FIG and set(hits) <= {f for f, _ in ACTOR_FIG[who]}) or re.search(r'\b(almost|nearly) all\b', low)):
             # each kind in the share Reed's numbers give it ("five or six Red Guards and a couple of
             # sailors"); a kind with no number of its own takes the one before it ("thousands of
             # soldiers and Red Guards"), and with no numbers at all the shares are even
@@ -706,6 +708,8 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['speaker_out'] = True
     if e.get('house'):   # the whole hall's response, with Reed's words for it
         rec['house'] = {'pose': e['house']['pose'], 'q': L.norm(e['house']['ref']['q'])}
+        if e['house'].get('all'):   # by all the hall but the speaker's party, not one side
+            rec['house']['all'] = True
     rec['q'] = ' … '.join(L.segments(e['q']))
     if e.get('also'):
         rec['also'] = [{'sec': a['sec'], 'q': ' … '.join(L.segments(a['q']))} for a in e['also']]

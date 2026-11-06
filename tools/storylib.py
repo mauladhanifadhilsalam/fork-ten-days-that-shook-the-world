@@ -42,8 +42,9 @@ FIELDS = {
     'ctl': ['place', 'state', 'holder', 'by'],
     'presence': ['who', 'place', 'size', 'n', 'prop', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'brief', 'ref', 'outside'],
     'gone': ['who', 'place', 'all', 'ref'],
-    # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words
-    'house': ['pose', 'ref'],
+    # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words;
+    # `all`: by everyone in the hall but the speaker's party, where Reed says most or all of it
+    'house': ['pose', 'all', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
     # the who's who: the parties, soviets, committees and forces Reed names, and their people
     'faction': ['id', 'kind', 'group', 'order', 'side', 'part_of', 'actors', 'members', 'see', 'pic', 'name', 'names', 'ru', 'sum', 'def', 'also', 'background', 'note'],
@@ -146,6 +147,8 @@ WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession'
 # a hall's shape, where Reed gives it ("the high, amphitheatrical Nicolai Hall")
 PLAN_WORDS = {'rows': r'', 'amphitheatre': r'amphithea'}
+# the hall's response by all of it, not one side's: Reed's word that it was most or all of the hall
+HOUSE_ALL_WORDS = r'most of the delegates|all the delegates|the whole (hall|house|assembly|Congress)|the entire (hall|house|assembly|Congress)'
 # a meeting over: everyone at the place goes (`gone` with `all`)
 DISPERSE_WORDS = r'dissolved|dispersed|adjourn|broke up|emptied|went home|to their homes'
 FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait', 'frame': r'\bframe\b'}

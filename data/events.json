@@ -648,7 +648,7 @@
  "moves": [
   {"who": "reed", "from": "smolny", "to": "city-duma", "mode": "unknown", "rc": "none", "gap": true}],
  "present": [
-  {"who": "duma", "place": "duma-nicolai-hall", "size": "the Duma sitting in permanence", "n": 40, "brief": true, "ref": {"sec": "V", "q": "In the high, amphitheatrical Nicolai Hall that afternoon I saw the Duma sitting in permanence, tempestuous, grouping around it all the forces of opposition."}},
+  {"who": "duma", "place": "duma-nicolai-hall", "size": "the Duma sitting in permanence", "n": 30, "brief": true, "ref": {"sec": "V", "q": "In the high, amphitheatrical Nicolai Hall that afternoon I saw the Duma sitting in permanence, tempestuous, grouping around it all the forces of opposition."}},
   {"who": "duma", "place": "duma-nicolai-hall", "pose": "jeer", "bench": "right", "brief": true, "ref": {"sec": "V", "q": "Whereupon the Bolsheviki left the chamber, followed by cries of \"German agents! Down with the traitors!\""}},
   {"who": "bolsheviki", "place": "duma-nicolai-hall", "size": "The Bolshevik faction", "n": 10, "bench": "left", "walkout": true, "ref": {"sec": "V", "q": "Whereupon the Bolsheviki left the chamber, followed by cries of \"German agents! Down with the traitors!\""}}]},
 {"id": "duma-hand-bills", "t": "1917-11-08T16:40", "tq": "inferred", "tr": ["1917-11-08T15:30", "1917-11-08T18:30"], "cal": "none", "sec": "V", "p": 134, "loc": "duma-nevsky", "witness": "seen", "actors": ["duma"],
@@ -1177,7 +1177,7 @@
  "moves": [
   {"who": "reed", "from": "reed-lodging", "to": "city-duma", "mode": "unknown", "rc": "none"}],
  "present": [
-  {"who": "duma", "place": "duma-nicolai-hall", "size": "the Duma was thronged and noisy", "n": 40, "pose": "jeer", "bench": "right", "brief": true, "ref": {"sec": "VIII", "q": "At this there was ironic laughter from the Bolshevik benches, and imprecations from the right."}},
+  {"who": "duma", "place": "duma-nicolai-hall", "size": "the Duma was thronged and noisy", "n": 30, "pose": "jeer", "bench": "right", "brief": true, "ref": {"sec": "VIII", "q": "At this there was ironic laughter from the Bolshevik benches, and imprecations from the right."}},
   {"who": "bolsheviki", "place": "duma-nicolai-hall", "size": "the Bolshevik benches", "n": 10, "bench": "left", "brief": true, "ref": {"sec": "VIII", "q": "At this there was ironic laughter from the Bolshevik benches, and imprecations from the right."}}],
  "gone": [
   {"who": "red-guards", "place": "nevsky", "ref": {"sec": "VIII", "q": "The city had again settled down to normal—shop-shutters up, lights shining"}}]},
@@ -1495,7 +1495,7 @@
   {"who": "reed", "with": ["mossoviet"], "from": "moscow-soviet", "via": ["iberian-gate"], "to": "brotherhood-grave", "mode": "march", "rc": "stated"},
   {"who": "workers", "from": "iberian-gate", "to": "red-square", "mode": "march", "rc": "stated"}]},
 {"id": "peasants-first-session", "t": "1917-11-24T15:00", "tq": "inferred", "tr": ["1917-11-23T00:00", "1917-11-26T23:59"], "cal": "none", "sec": "XII", "p": 297, "loc": "duma-alexander-hall", "witness": "reported", "speaker": "zinoviev", "speaker_out": {"sec": "XII", "q": "Zinoviev, attempting to speak for the Bolsheviki, was hooted down, and as he left the platform, amid laughter"}, "actors": ["peasants-congress", "left-srs", "srs", "bolsheviki"],
- "house": {"pose": "jeer", "ref": {"sec": "XII", "q": "Zinoviev, attempting to speak for the Bolsheviki, was hooted down"}},
+ "house": {"pose": "jeer", "all": true, "ref": {"sec": "XII", "q": "Almost immediately it was evident that most of the delegates were hostile to the Government of the People's Commissars. Zinoviev, attempting to speak for the Bolsheviki, was hooted down"}},
  "title": "The Peasants’ Congress opens",
  "why": "“By November 23d about four hundred had gathered”; the first session followed.",
  "sum": "The Extraordinary Peasants’ Congress meets in the Duma’s Alexander Hall: more than half Left SRs, a fifth Bolsheviki, a quarter conservative SRs.",
@@ -1503,7 +1503,7 @@
  "also": [
   {"sec": "XII", "q": "Whereupon the old Executive Committee left the hall"}],
  "present": [
-  {"who": "left-srs", "place": "duma-alexander-hall", "size": "more than half of all the delegates were Left Socialist Revolutionaries", "n": 30, "bench": "left", "brief": true, "ref": {"sec": "XII", "q": "on the left almost all the delegates wore the uniforms of common soldiers"}},
+  {"who": "left-srs", "place": "duma-alexander-hall", "size": "almost all the delegates wore the uniforms of common soldiers", "n": 30, "bench": "left", "brief": true, "ref": {"sec": "XII", "q": "on the left almost all the delegates wore the uniforms of common soldiers"}},
   {"who": "bolsheviki", "place": "duma-alexander-hall", "size": "the Bolsheviki controlled a bare fifth", "n": 11, "bench": "left", "brief": true, "ref": {"sec": "XII", "q": "the Bolsheviki controlled a bare fifth, the conservative Socialist Revolutionaries a quarter"}},
   {"who": "srs", "place": "duma-alexander-hall", "size": "the conservative Socialist Revolutionaries a quarter", "n": 14, "bench": "right", "brief": true, "ref": {"sec": "XII", "q": "To the right was a sprinkling of officers’ epaulettes, and the patriarchal, bearded faces of the older, more substantial peasants"}},
   {"who": "peasants-congress", "place": "duma-alexander-hall", "size": "a few peasants, non-commissioned officers, and some soldiers", "n": 3, "bench": "centre", "brief": true, "ref": {"sec": "XII", "q": "in the centre were a few peasants, non-commissioned officers, and some soldiers"}},

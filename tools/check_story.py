@@ -722,12 +722,19 @@ class Checker:
             F.err('field.range', hw, 'axis is the bearing from the back of the hall to its platform, 0 to 359 degrees')
         if 'plan' in h and (not isinstance(h['plan'], str) or h['plan'] not in L.ENUM['hall.plan']):
             F.err('field.enum', hw, f'plan {h["plan"]!r} is not one of {sorted(L.ENUM["hall.plan"])}')
-        elif L.PLAN_WORDS.get(h.get('plan', 'rows')):   # a shape other than rows facing a platform needs Reed's word for it
-            ref = h.get('ref')
-            if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
-                F.err('field.missing', hw, f'plan {h["plan"]!r}: ref, Reed\'s words for the hall\'s shape')
-            elif self.quote_ok(ref.get('sec'), ref['q'], hw + '.ref') is not None and not re.search(L.PLAN_WORDS[h['plan']], ref['q'], re.I):
-                F.err('phrase.not-in-text', hw, f'plan {h["plan"]!r}: the quote has no word for it ({L.PLAN_WORDS[h["plan"]]})')
+        else:   # a shape other than rows facing a platform needs Reed's words for it, naming the hall; rows need none
+            ref, plan = h.get('ref'), h.get('plan', 'rows')
+            if not L.PLAN_WORDS.get(plan):
+                if ref is not None:
+                    F.err('field.range', hw, f'ref is Reed\'s words for a hall\'s shape; plan {plan!r} takes none')
+            elif not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
+                F.err('field.missing', hw, f'plan {plan!r}: ref, Reed\'s words for the hall\'s shape')
+            else:
+                at = self.quote_ok(ref.get('sec'), ref['q'], hw + '.ref')
+                if at is not None and not re.search(L.PLAN_WORDS[plan], ref['q'], re.I):
+                    F.err('phrase.not-in-text', hw, f'plan {plan!r}: the quote has no word for it ({L.PLAN_WORDS[plan]})')
+                elif at is not None and not any(self.book.near(ref['sec'], at, n) for n in p.get('reed', []) if isinstance(n, str)):
+                    F.err('presence.unnamed', hw, f'plan {plan!r}: Reed does not name this hall ({", ".join(p.get("reed", []))}) within 1,500 characters of the quote')
         for i, f in enumerate(h.get('features', [])):
             fw = f'{hw}.features[{i}]'
             if not isinstance(f, dict) or not fields(F, f, 'feature', fw):
@@ -763,6 +770,10 @@ class Checker:
                 F.err('field.range', where, 'bench "gallery": the hall has no gallery among its features')
             if r['bench'] in ('gallery', 'front') and (r.get('walkout') or r.get('walkin')):
                 F.err('field.range', where, f'bench {r["bench"]!r}: those up in the galleries or grouped before the platform are not drawn walking out or in')
+            if r['bench'] == 'front' and not r.get('brief'):
+                F.err('field.range', where, 'bench "front": a crowd round the platform is drawn for its own scene only (brief)')
+            if r['bench'] == 'front' and (e.get('speaker_out') or any(isinstance(o, dict) and (o.get('walkout') or o.get('walkin')) for o in e.get('present', []))):
+                F.err('field.range', where, 'bench "front": its people stand in the aisles, so no one is drawn walking out or in in its scene')
         for k, pat in (('walkout', L.WALKOUT_WORDS), ('walkin', L.WALKIN_WORDS)):
             if r.get(k) and not re.search(pat, text, re.I):
                 F.err('phrase.not-in-text', where, f'{k}: the passage has no word for it ({pat})')
@@ -833,6 +844,12 @@ class Checker:
             return
         if not re.search(L.POSE_WORDS[h['pose']], ref['q'], re.I):
             F.err('phrase.not-in-text', hw, f'pose {h["pose"]!r}: the quote has no word for it ({L.POSE_WORDS[h["pose"]]})')
+        if h.get('all') is not None and h['all'] is not True:
+            F.err('field.range', hw, 'all is true or left out')
+        elif h.get('all') and h['pose'] in ('cheer', 'jeer') and not re.search(L.HOUSE_ALL_WORDS, ref['q'], re.I):
+            F.err('phrase.not-in-text', hw, f'all: the quote has no word for the whole hall or most of it ({L.HOUSE_ALL_WORDS})')
+        elif h.get('all') and h['pose'] not in ('cheer', 'jeer'):
+            F.err('field.range', hw, 'all is for cheering or hooting: a vote or a rising is the whole hall\'s already')
         # the scene's own moment: within 1,500 characters of the scene's quote, or of one of its other passages
         if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
             F.err('phrase.not-near', hw, "house: Reed's words for it are not within 1,500 characters of the scene's own passages")

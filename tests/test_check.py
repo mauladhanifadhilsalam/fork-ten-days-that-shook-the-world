@@ -34,7 +34,9 @@ SECTIONS = {
           '"I\'m going now!" answered Kameniev, and left the platform. The Sailors and the Red Guards were embracing; '
           'behind them was the empty frame from which the picture had been torn.',
           'In the high, amphitheatrical hall the galleries were thronged with workers. About a hundred people were grouped '
-          'around the platform, where Kameniev was speaking, and from the right came imprecations: "Down with the traitors!"'],
+          'around the platform, where Kameniev was speaking, and from the right came imprecations. Others cried, "Down with the traitors!" '
+          'Whereupon the Sailors left the chamber. It was evident that most of the delegates were hostile, and Kameniev was hooted down; '
+          'the Red Guards held a bare fifth of the seats.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.'],
@@ -845,16 +847,75 @@ class Hall(unittest.TestCase):
 
     def test_grouped_round_the_platform(self):
         q = 'About a hundred people were grouped around the platform, where Kameniev was speaking'
-        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'size': 'About a hundred people', 'ref': {'sec': 'V', 'q': q}})
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'brief': True, 'size': 'About a hundred people', 'ref': {'sec': 'V', 'q': q}})
         self.assertEqual(errors(d), [])
-        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'front'   # "sat on the left"
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'brief': True})   # "sat on the left"
         self.assertIn('phrase.not-in-text', errors(d))
-        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'walkin': True, 'ref': {'sec': 'V', 'q': q}})
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'brief': True, 'walkin': True, 'ref': {'sec': 'V', 'q': q}})
         self.assertIn('field.range', errors(d))
 
     def test_imprecations_and_down_with_are_hooting(self):
-        q = 'from the right came imprecations: "Down with the traitors!"'
-        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'jeer', 'ref': {'sec': 'V', 'q': q}}
+        for q in ('from the right came imprecations', 'Others cried, "Down with the traitors!"'):   # each word on its own
+            d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'jeer', 'ref': {'sec': 'V', 'q': q}}
+            self.assertEqual(errors(d), [], q)
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'pose': 'jeer', 'bench': 'right', 'ref': {'sec': 'V', 'q': 'from the right came imprecations'}})
         self.assertEqual(errors(d), [])
-        d = good(); s, *_ = self.add(d); s['present'][0].update({'pose': 'jeer', 'bench': 'right', 'ref': {'sec': 'V', 'q': q}})
+
+    def test_the_gallery_does_not_walk(self):
+        q = 'In the high, amphitheatrical hall the galleries were thronged with workers.'
+        d = good(); _, l, *_, h = self.add(d); h['hall']['features'].append({'k': 'gallery', 'ref': {'sec': 'V', 'q': q}})
+        l['present'][0].update({'bench': 'gallery', 'ref': {'sec': 'V', 'q': q + ' About a hundred people'}})
+        l['present'][0]['ref']['q'] = 'Whereupon the Sailors left the chamber.'   # a walk-out, but no word for a gallery
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); s, *_, h = self.add(d); h['hall']['features'].append({'k': 'gallery', 'ref': {'sec': 'V', 'q': q}})
+        s['present'][0].update({'bench': 'gallery', 'walkin': True, 'ref': {'sec': 'V', 'q': q}})
+        self.assertIn('field.range', errors(d))
+
+    def test_left_the_chamber_is_a_walkout(self):
+        d = good(); _, l, *_ = self.add(d); l['present'][0].update({'part': False, 'ref': {'sec': 'V', 'q': 'Whereupon the Sailors left the chamber.'}})
+        del l['present'][0]['part']
         self.assertEqual(errors(d), [])
+
+    def test_the_speaker_may_be_named_near_another_passage(self):
+        d = good(); s, *_ = self.add(d); s['speaker'] = 'holtzman-p'
+        self.assertIn('presence.unnamed', errors(d))
+        s['also'] = [{'sec': 'IX', 'q': 'The hall rose, thundering.'}]   # Holtzman comes running a line before
+        self.assertNotIn('presence.unnamed', errors(d))
+
+    def test_a_proportion_in_words(self):
+        q = 'the Red Guards held a bare fifth of the seats.'
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'size': 'a bare fifth', 'prop': 'the seats', 'ref': {'sec': 'V', 'q': q}})
+        self.assertNotIn('field.missing', errors(d))
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'size': 'the Red Guards', 'prop': 'the seats', 'ref': {'sec': 'V', 'q': q}})
+        self.assertIn('field.missing', errors(d))
+
+    def test_hooted_by_all_needs_the_word(self):
+        d = good(); s, *_ = self.add(d)
+        s['house'] = {'pose': 'jeer', 'all': True, 'ref': {'sec': 'V', 'q': 'It was evident that most of the delegates were hostile, and Kameniev was hooted down'}}
+        self.assertEqual(errors(d), [])
+        s['house'] = {'pose': 'jeer', 'all': True, 'ref': {'sec': 'V', 'q': 'from the right came imprecations'}}
+        self.assertIn('phrase.not-in-text', errors(d))
+        s['house'] = {'pose': 'vote', 'all': True, 'ref': {'sec': 'V', 'q': 'Kameniev asked all in favour to hold up their cards.'}}
+        self.assertIn('field.range', errors(d))
+        s['house'] = {'pose': 'jeer', 'all': False, 'ref': {'sec': 'V', 'q': 'from the right came imprecations'}}
+        self.assertIn('field.range', errors(d))
+
+    def test_round_the_platform_is_brief_and_still(self):
+        q = 'About a hundred people were grouped around the platform, where Kameniev was speaking'
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'size': 'About a hundred people', 'ref': {'sec': 'V', 'q': q}})
+        s['present'][0].pop('brief', None)
+        self.assertIn('field.range', errors(d))   # not brief
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'bench': 'front', 'brief': True, 'size': 'About a hundred people', 'ref': {'sec': 'V', 'q': q}})
+        self.assertEqual(errors(d), [])
+        s['speaker_out'] = {'sec': 'V', 'q': '"I\'m going now!" answered Kameniev, and left the platform.'}
+        self.assertIn('field.range', errors(d))   # someone walking out past them
+
+    def test_a_halls_ref_is_its_shape_and_names_it(self):
+        d = good(); *_, h = self.add(d); h['hall']['ref'] = {'sec': 'V', 'q': 'So we came into the great meeting-hall'}
+        self.assertIn('field.range', errors(d))   # rows take no ref
+        d = good(); *_, h = self.add(d); h['hall']['plan'] = 'amphitheatre'; h['hall']['ref'] = {'sec': 'V', 'q': 'a glass dome and forty amphitheatrical columns'}
+        self.assertIn('quote.not-found', errors(d))
+        d = good(); *_, h = self.add(d); h['reed'] = ['the Nicolai Hall']; h['hall']['plan'] = 'amphitheatre'
+        h['hall']['ref'] = {'sec': 'V', 'q': 'In the high, amphitheatrical hall the galleries were thronged with workers.'}
+        h['hall']['features'] = []
+        self.assertIn('presence.unnamed', errors(d))
