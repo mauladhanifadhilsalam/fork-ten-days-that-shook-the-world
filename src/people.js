@@ -81,15 +81,18 @@ var PEOPLE = (function (THREE) {
   //    (standing, the rifle at the shoulder), 'kneel' (kneeling to fire), 'charge' (running, bayonet
   //    first), 'prone' (flat on the face) or 'fallen' (on the back, the rifle dropped beside); and in a
   //    meeting-hall 'seat' (on a bench), 'seatvote' (seated, a card held up), 'vote' (standing, a card held
-  //    up), 'cheer' (both arms up), 'jeer' (a fist up), 'speak' (an arm out, at the tribune) and 'embrace' (both
-  //    arms forward round another facing it: "the two embracing")
+  //    up), 'cheer' (both arms up), 'jeer' (a fist up), 'laugh' and 'seatlaugh' (leaning back, the head thrown
+  //    back, the hands at the belly), 'speak' (an arm out, at the tribune) and 'embrace' (both arms forward
+  //    round another facing it: "the two embracing")
   function person(o) {
     var pose = o.pose || 'stand';
     if (pose === 'fallen' || pose === 'prone') return lieDown(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), pose === 'fallen', o.rifle);
     if (pose === 'limp') return lean(person(Object.assign({}, o, { pose: 'stand', rifle: false, cane: false })), 0.2, 0.14);   // wounded, held up between two ("supported by two comrades")
     var m = new Model(), coat = o.coat, legs = o.legs || coat, boots = o.boots || C.boots, skin = o.skin || C.skin;
     var squat = pose === 'squat' && !o.skirt;   // on the heels by a fire, the forearms on the knees ("squatting around fires")
-    var seat = pose === 'seat' || pose === 'seatvote';   // on a bench in a meeting-hall, the hands on the knees
+    var seat = pose === 'seat' || pose === 'seatvote' || pose === 'seatlaugh';   // on a bench in a meeting-hall, the hands on the knees
+    var laugh = pose === 'laugh' || pose === 'seatlaugh';   // "a great burst of laughter": leaning back, the head thrown back, the hands at the belly
+    var lb = laugh ? -0.3 : 0;   // the lean back, radians about the hips
     var kneel = pose === 'kneel' && !o.skirt && o.rifle, aim = (pose === 'aim' || pose === 'kneel') && o.rifle, charge = pose === 'charge' && o.rifle;
     var dy = squat ? -0.41 : kneel ? -0.38 : seat ? -0.42 : 0;   // down, everything above the hips comes down
     // legs swing about the hip at y = 0.86 (parts 1, 2)
@@ -119,7 +122,7 @@ var PEOPLE = (function (THREE) {
       });
     }
     // body
-    m.box(coat, 0, 1.13 + dy, 0, 0.44, 0.56, 0.26);
+    m.box(coat, 0, 1.13 + dy, laugh ? -0.06 : 0, 0.44, 0.56, 0.26, lb);
     if (seat) { if (o.len !== 'short' && !o.skirt) m.box(coat, 0, 0.5, 0.13, 0.46, 0.08, 0.38); }   // the coat's skirts over the lap
     else if (o.len === 'long') m.taper(coat, 0, 0.66 + dy, 0, 0.44, 0.27, 0.56, 0.36, 0.5);
     else if (o.len === 'mid') m.taper(coat, 0, 0.78 + dy, 0, 0.44, 0.27, 0.5, 0.32, 0.26);
@@ -144,6 +147,8 @@ var PEOPLE = (function (THREE) {
     } else if (squat) {   // the left forearm on the left knee
       m.box(coat, -0.25, 0.86, 0.2, 0.12, 0.5, 0.14, -0.95, 0, 0, 0); m.box(skin, -0.24, 0.6, 0.42, 0.09, 0.1, 0.1);
       if (o.armband) m.box(o.armband, -0.26, 0.96, 0.1, 0.135, 0.08, 0.155, -0.95, 0, 0, 0);
+    } else if (laugh) {   // the left hand on the belly
+      m.box(coat, -0.26, 1.16 + dy, 0.0, 0.12, 0.36, 0.14, -0.35); m.box(coat, -0.13, 0.98 + dy, 0.13, 0.26, 0.12, 0.13, 0, 0.5); m.box(skin, -0.02, 0.98 + dy, 0.18, 0.09, 0.1, 0.1);
     } else if (seat) {   // the left hand on the left knee
       m.box(coat, -0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, -0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, -0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
     } else if (pose === 'cheer') {   // both arms flung up
@@ -172,6 +177,8 @@ var PEOPLE = (function (THREE) {
       m.box(coat, 0.145, 1.434, 0.276, 0.12, 0.6, 0.14, 1.39, -0.364, 0); m.box(skin, 0.033, 1.49, 0.57, 0.09, 0.1, 0.1);
     } else if (pose === 'speak') {   // at the tribune, the right arm out over the hall
       m.box(coat, 0.25, 1.535, 0.29, 0.12, 0.6, 0.14, 1.31, 0, 0); m.box(skin, 0.25, 1.54, 0.6, 0.09, 0.1, 0.1);
+    } else if (laugh) {   // the right hand on the belly too
+      m.box(coat, 0.26, 1.16 + dy, 0.0, 0.12, 0.36, 0.14, -0.35); m.box(coat, 0.13, 0.98 + dy, 0.13, 0.26, 0.12, 0.13, 0, -0.5); m.box(skin, 0.02, 0.98 + dy, 0.18, 0.09, 0.1, 0.1);
     } else if (seat) {   // the right hand on the right knee
       m.box(coat, 0.27, 0.8, 0.04, 0.12, 0.34, 0.14); m.box(coat, 0.23, 0.62, 0.2, 0.12, 0.12, 0.32); m.box(skin, 0.22, 0.62, 0.39, 0.09, 0.1, 0.1);
     } else {
@@ -188,7 +195,13 @@ var PEOPLE = (function (THREE) {
     if (o.beard) head.box(o.beard, 0, 1.52, 0.08, 0.2, 0.14, 0.1);
     hat(head, o, coat);
     if (o.scarfNeck) head.box(o.scarfNeck, 0, 1.4, 0.02, 0.3, 0.07, 0.3);
-    for (var hi = 0; hi < head.p.length; hi += 3) { m.p.push(head.p[hi], head.p[hi + 1] + dy, head.p[hi + 2] + (aim ? 0.04 : 0)); m.n.push(head.n[hi], head.n[hi + 1], head.n[hi + 2]); }
+    // laughing, the head goes back with the lean and tips up: turned about the neck, then moved back
+    var hc = Math.cos(laugh ? -0.45 : 0), hs = Math.sin(laugh ? -0.45 : 0);
+    for (var hi = 0; hi < head.p.length; hi += 3) {
+      var hy0 = head.p[hi + 1] - 1.45, hz0 = head.p[hi + 2], ny0 = head.n[hi + 1], nz0 = head.n[hi + 2];
+      m.p.push(head.p[hi], 1.45 + hy0 * hc - hz0 * hs + dy - (laugh ? 0.02 : 0), hy0 * hs + hz0 * hc + (aim ? 0.04 : 0) + (laugh ? -0.13 : 0));
+      m.n.push(head.n[hi], ny0 * hc - nz0 * hs, ny0 * hs + nz0 * hc);
+    }
     m.c.push.apply(m.c, head.c); m.a.push.apply(m.a, head.a);
     return m;
   }
@@ -266,7 +279,7 @@ var PEOPLE = (function (THREE) {
   Object.keys(FIG_OPTS).forEach(function (k) { FIG[k] = person(FIG_OPTS[k]); });
   // where a rifle's muzzle is, in each firing pose (model metres, facing +z)
   var MUZZLE = { aim: [0.12, 1.42, 1.15], kneel: [0.12, 1.04, 1.15], charge: [0.09, 1.5, 1.02] };
-  var POSED = {}, HALL_POSES = ['seat', 'seatvote', 'vote', 'cheer', 'jeer', 'speak', 'embrace'];
+  var POSED = {}, HALL_POSES = ['seat', 'seatvote', 'vote', 'cheer', 'jeer', 'laugh', 'seatlaugh', 'speak', 'embrace'];
   // a figure type in a pose, built the first time it is asked for: 'soldier.aim', 'redguard.fallen'
   function posed(key) {
     if (POSED[key]) return POSED[key];
@@ -555,7 +568,7 @@ var PEOPLE = (function (THREE) {
 
   // The shared material: Lambert with vertex colours, plus a vertex hook. Per instance, aAnim is
   // (phase, walk amount, idle amount): legs and arms swing when walking, a crowd turns its heads a
-  // little, flags wave whatever happens.
+  // little, flags wave whatever happens. A negative idle amount is laughter: the body shakes.
   function material(uniforms) {
     var mat = new THREE.MeshLambertMaterial({ vertexColors: true });
     mat.onBeforeCompile = function (sh) {
@@ -569,7 +582,9 @@ var PEOPLE = (function (THREE) {
           'else if (aPart > 2.5 && aPart < 4.5) { float a = (aPart < 3.5 ? -sw : sw) * 0.5; float yy = transformed.y - 1.38;',
           '  transformed.y = 1.38 + yy * cos(a) - transformed.z * sin(a); transformed.z = yy * sin(a) + transformed.z * cos(a); }',
           'else if (aPart > 4.5) { transformed.z += sin(uTime * 4.0 + transformed.x * 3.5 + aAnim.x) * 0.09 * (0.2 + abs(transformed.x)); }',
-          'if (aPart < 4.5) { float t = sin(uTime * 0.6 + aAnim.x * 1.7) * 0.35 * aAnim.z; float cx = cos(t), sx = sin(t);',
+          'if (aAnim.z < 0.0) { float q = abs(sin(uTime * 13.0 + aAnim.x)) * -aAnim.z, up = max(0.0, transformed.y - 0.4);',   // laughing: the body above the hips shakes, up and back
+          '  transformed.y += q * 0.035 * up; transformed.z -= q * 0.05 * up; }',
+          'if (aPart < 4.5) { float t = sin(uTime * 0.6 + aAnim.x * 1.7) * 0.35 * max(aAnim.z, 0.0); float cx = cos(t), sx = sin(t);',
           '  transformed.xz = vec2(transformed.x * cx + transformed.z * sx, -transformed.x * sx + transformed.z * cx); }',
           'transformed.y += abs(sw) * 0.04;'
         ].join('\n'));

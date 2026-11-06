@@ -818,12 +818,30 @@ class Checker:
         if per is not None:
             names = [L.norm(n) for n in [per.get('name')] + list(per.get('names') or []) if isinstance(n, str)]
             names += [n.split()[-1] for n in names if ' ' in n]
-            if not any(re.search(r'\b' + re.escape(n) + r'\b', L.norm(ref['q']), re.I) for n in names if n):
-                F.err('presence.unnamed', ww, f'speaker_out: the quote does not name the speaker ({e.get("speaker")})')
+            if not any(re.search(r'\b' + re.escape(n) + r'\b', L.norm(ref['q']), re.I) for n in names if n) and not self.last_named(ref, at, per):
+                F.err('presence.unnamed', ww, f'speaker_out: the quote does not name the speaker ({e.get("speaker")}), nor says "he" or "she" of the last of the Faction Map\'s people Reed names in the 800 characters before it')
         if any(isinstance(r, dict) and r.get('walkin') for r in e.get('present', [])):
             F.err('field.range', ww, 'speaker_out: in a scene where a body walks in, the speaker comes in with it; it cannot also leave')
         if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
             F.err('phrase.not-near', ww, "speaker_out: Reed's words for it are not within 1,500 characters of the scene's own passages")
+
+    def last_named(self, ref, at, per):
+        """a quote that says "he" or "she" ("and realising the situation, he left the platform and the room"), of the
+        person Reed names last of the Faction Map's people in the 800 characters before it"""
+        if not re.search(r'\b(he|she)\b', ref['q'], re.I):
+            return False
+        before, last = self.book.secs.get(ref['sec'], '')[max(0, at - 800): at], None
+        for p in self.people:
+            if not isinstance(p, dict):
+                continue
+            for n in [p.get('name')] + list(p.get('names') or []):
+                if not isinstance(n, str):
+                    continue
+                for nm in {L.norm(n), L.norm(n).split()[-1]}:
+                    for m in re.finditer(r'\b' + re.escape(nm) + r'\b', before):
+                        if last is None or m.start() > last[0]:
+                            last = (m.start(), p.get('id'))
+        return last is not None and last[1] == per.get('id')
 
     def house(self, e, w):
         """the whole hall's response in a scene: a hall pose, with Reed's words for it"""

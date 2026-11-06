@@ -1,23 +1,77 @@
 {
-  "_": "Who answers the house (or stands, votes, cheers or hoots by its own record) in each hall scene, as who@bench: pinned, so that a change to the rule shows here. Smolny's as drawn before the Duma's halls (the side of the rising); the Duma's from Reed: 'imprecations from the right'; the Bolsheviki 'followed by cries'; Zinoviev 'hooted down' when 'most of the delegates were hostile', so all but the Bolsheviki, the gallery and those walking out.",
+  "_": "Who answers the house (or stands, votes, cheers or hoots by its own record) in each hall scene, as who@bench: pinned, so that a change to the rule shows here. Smolny's as drawn before the Duma's halls (the side of the rising); the Duma's from Reed: 'imprecations from the right'; the Bolsheviki 'followed by cries'; the Bolshevik benches' 'ironic laughter'; Zinoviev 'hooted down' when 'most of the delegates were hostile', so all but the Bolsheviki, the gallery and those walking out. At Fontanka 6 the hall laughs at Tchernov ('a great burst of laughter') and rises for the Smolny delegation ('a rising ovation'), the delegation walking in. Tchernov's return to the Alexander Hall: the Bolsheviki 'on their feet all at once, shaking their fists'.",
   "trotzky-oct30": [],
   "smolny-night-nov6": [],
-  "dan-after-midnight": ["bolsheviki@left", "workers@centre"],
+  "dan-after-midnight": [
+    "bolsheviki@left",
+    "workers@centre"
+  ],
   "bolsheviki-leave-old-cec": [],
   "congress-opens": [],
-  "bund-leaves-congress": ["bolsheviki@left", "congress@aisles", "left-srs@centre"],
+  "bund-leaves-congress": [
+    "bolsheviki@left",
+    "congress@aisles",
+    "left-srs@centre"
+  ],
   "salvation-formed": [],
-  "internationalists-leave": ["bolsheviki@left", "congress@aisles", "left-srs@centre"],
-  "krylenko-telegram": ["bolsheviki@left", "congress@aisles", "left-srs@centre"],
-  "duma-in-permanence": ["duma@right"],
-  "lenin-enters": ["bolsheviki@left", "congress@aisles", "left-srs@centre"],
-  "peace-carried": ["bolsheviki@left", "congress@aisles", "left-srs@centre", "menshevik-internationalists@centre"],
-  "land-decree": ["bolsheviki@left", "congress@aisles", "left-srs@centre"],
+  "internationalists-leave": [
+    "bolsheviki@left",
+    "congress@aisles",
+    "left-srs@centre"
+  ],
+  "krylenko-telegram": [
+    "bolsheviki@left",
+    "congress@aisles",
+    "left-srs@centre"
+  ],
+  "duma-in-permanence": [
+    "duma@right"
+  ],
+  "lenin-enters": [
+    "bolsheviki@left",
+    "congress@aisles",
+    "left-srs@centre"
+  ],
+  "peace-carried": [
+    "bolsheviki@left",
+    "congress@aisles",
+    "left-srs@centre",
+    "menshevik-internationalists@centre"
+  ],
+  "land-decree": [
+    "bolsheviki@left",
+    "congress@aisles",
+    "left-srs@centre"
+  ],
   "sovnarkom-formed": [],
-  "schreider-neutral": ["duma@right"],
-  "trotzky-report-nov12": ["petrograd-soviet@centre"],
+  "schreider-neutral": [
+    "bolsheviki@left",
+    "duma@right"
+  ],
+  "trotzky-report-nov12": [
+    "petrograd-soviet@centre"
+  ],
   "holtzman-telegram": [],
-  "press-decree-night": ["bolsheviki@left", "left-srs@centre"],
-  "peasants-first-session": ["left-srs@left", "peasants-congress@centre", "srs@right"],
-  "banners-intertwined": ["petrograd-soviet@left", "tsay-ee-kah@left"]
+  "press-decree-night": [
+    "bolsheviki@left",
+    "left-srs@centre"
+  ],
+  "peasants-first-session": [
+    "left-srs@left",
+    "peasants-congress@centre",
+    "srs@right"
+  ],
+  "tchernov-outrage": [
+    "bolsheviki@left"
+  ],
+  "banners-intertwined": [
+    "petrograd-soviet@left",
+    "tsay-ee-kah@left"
+  ],
+  "tchernov-leaves": [
+    "peasants-congress@centre"
+  ],
+  "peasants-extraordinary-session": [
+    "peasants-congress@centre"
+  ]
 }

@@ -36,7 +36,9 @@ SECTIONS = {
           'In the high, amphitheatrical hall the galleries were thronged with workers. About a hundred people were grouped '
           'around the platform, where Kameniev was speaking, and from the right came imprecations. Others cried, "Down with the traitors!" '
           'Whereupon the Sailors left the chamber. It was evident that most of the delegates were hostile, and Kameniev was hooted down; '
-          'the Red Guards held a bare fifth of the seats.'],
+          'the Red Guards held a bare fifth of the seats.',
+          'Then Kameniev demanded the floor once more. He was interrupted by a great burst of laughter; and he left the room. '
+          'At the end came the arrival of the Sailors, greeted with a rising ovation.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.'],
@@ -918,4 +920,31 @@ class Hall(unittest.TestCase):
         d = good(); *_, h = self.add(d); h['reed'] = ['the Nicolai Hall']; h['hall']['plan'] = 'amphitheatre'
         h['hall']['ref'] = {'sec': 'V', 'q': 'In the high, amphitheatrical hall the galleries were thronged with workers.'}
         h['hall']['features'] = []
+        self.assertIn('presence.unnamed', errors(d))
+
+    # phase 4: laughter, an arrival, a speaker who leaves as "he"
+    def test_laughter_needs_its_word(self):
+        q = 'He was interrupted by a great burst of laughter'
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'laugh', 'ref': {'sec': 'V', 'q': q}}
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['present'][0].update({'pose': 'laugh', 'ref': {'sec': 'V', 'q': q}})
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'laugh', 'ref': {'sec': 'V', 'q': 'from the right came imprecations'}}
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); self.add(d); ev(d, 'reed-walks')['present'][0].update({'pose': 'laugh', 'ref': {'sec': 'V', 'q': q}})
+        self.assertIn('hall.none', errors(d))
+
+    def test_an_arrival_is_a_walk_in(self):
+        q = 'At the end came the arrival of the Sailors, greeted with a rising ovation.'
+        d = good(); s, *_ = self.add(d); s['present'][1].update({'walkin': True, 'ref': {'sec': 'V', 'q': q}}); del s['present'][1]['bench']
+        self.assertNotIn('phrase.not-in-text', errors(d))
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'stand', 'ref': {'sec': 'V', 'q': q}}
+        self.assertEqual(errors(d), [])
+
+    def test_the_speaker_leaving_may_be_he(self):
+        q = 'He was interrupted by a great burst of laughter; and he left the room.'
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': q}   # Kameniev, named last before it
+        self.assertEqual(errors(d), [])
+        d = good(); s, *_ = self.add(d); s['speaker'] = 'holtzman-p'; s['also'] = [{'sec': 'IX', 'q': 'The hall rose, thundering.'}]
+        s['speaker_out'] = {'sec': 'V', 'q': q}   # "he" is Kameniev, not Holtzman
         self.assertIn('presence.unnamed', errors(d))

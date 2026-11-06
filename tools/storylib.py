@@ -95,7 +95,7 @@ ENUM = {
     'move.rc': {'stated', 'inferred', 'none'},
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
-    'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer', 'embrace'},
+    'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer', 'laugh', 'embrace'},
     'bench': {'left', 'centre', 'right', 'platform', 'aisles', 'front', 'gallery'},
     'hall.plan': {'rows', 'amphitheatre'},
     'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits', 'frame'},
@@ -132,10 +132,11 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
               'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|exultation|pandemonium|embracing',
               'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with',
+              'laugh': r'laugh',
               # two bodies in each other's arms ("the two embracing")
               'embrace': r'embrac|in (their|each other.s) arms'}
-HALL_POSES = ('stand', 'vote', 'cheer', 'jeer', 'embrace')   # drawn in a meeting-hall only
-HOUSE_POSES = ('stand', 'vote', 'cheer', 'jeer')               # a whole hall's response (it does not embrace)
+HALL_POSES = ('stand', 'vote', 'cheer', 'jeer', 'laugh', 'embrace')   # drawn in a meeting-hall only
+HOUSE_POSES = ('stand', 'vote', 'cheer', 'jeer', 'laugh')      # a whole hall's response (it does not embrace)
 # where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
 # left, centre and right are the map's arrangement unless he says whose the benches were
 BENCH_WORDS = {'platform': r'platform|tribune', 'front': r'(round|around|about|before|in front of) the (platform|tribune)', 'gallery': r'galler', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
@@ -144,7 +145,7 @@ BENCH_WORDS = {'platform': r'platform|tribune', 'front': r'(round|around|about|b
 PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b'
 # a body leaving the hall, or coming into it, in the scene that says so
 WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall|Congress|room)|walk(ed|s)? out|pushed their way out|got up and (left|went)|withdr[ae]w'
-WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession'
+WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession|\barrival\b'
 # a hall's shape, where Reed gives it ("the high, amphitheatrical Nicolai Hall")
 PLAN_WORDS = {'rows': r'', 'amphitheatre': r'amphithea'}
 # the hall's response by all of it, not one side's: Reed's word that it was most or all of the hall
