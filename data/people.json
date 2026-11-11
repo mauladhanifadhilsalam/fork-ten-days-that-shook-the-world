@@ -98,7 +98,7 @@
  "bio": {"source": "wikipedia", "url": "https://en.wikipedia.org/wiki/Vladimir_Karelin", "en": "One of the founders of the Left SR party and a member of its central committee, he was People’s Commissar of State Properties in the Soviet government from December 1917 to March 1918, when the Left SRs left it over the peace of Brest-Litovsk."}},
 {"id": "kerensky", "born": 1881, "died": 1970, "factions": ["srs", "provisional-government"], "actor": "kerensky", "pic": "kerensky", "wp": "Alexander_Kerensky",
  "name": "Alexander Kerensky",
- "names": ["Kerensky"],
+ "names": ["Kerensky", "Minister-President"],
  "ru": "Александр Фёдорович Керенский",
  "role": "Minister-President of the Provisional Government",
  "def": {"sec": "Notes", "q": "Kerensky was the leader of the Trudoviki in the Imperial Duma when the Revolution of March, 1917, broke out."},

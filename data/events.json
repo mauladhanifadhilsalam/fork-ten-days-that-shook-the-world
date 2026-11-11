@@ -44,12 +44,19 @@
  "title": "The Day of the Petrograd Soviet",
  "sum": "Sunday 4 Nov is the Day of the Petrograd Soviet, with mass meetings all over the city; the Cossacks’ rival procession is called off.",
  "q": "Sunday, November 4th, was designated as the Day of the Petrograd Soviet, with immense meetings planned all over the city"},
-{"id": "council-of-republic-nov5", "t": "1917-11-05T11:00", "tq": "approx", "tr": ["1917-11-05T08:00", "1917-11-05T12:30"], "tp": "Monday morning", "cal": "NS", "dp": "Monday morning, the 5th", "sec": "III", "p": 80, "loc": "mariinsky-palace", "witness": "seen", "actors": ["council-of-republic"],
+{"id": "council-of-republic-nov5", "t": "1917-11-05T11:00", "tq": "approx", "tr": ["1917-11-05T08:00", "1917-11-05T12:30"], "tp": "Monday morning", "cal": "NS", "dp": "Monday morning, the 5th", "sec": "III", "p": 80, "loc": "mariinsky-hall", "witness": "seen", "speaker": "karelin", "actors": ["council-of-republic", "cadets", "left-srs"],
  "title": "The Council of the Republic",
  "sum": "Reed drops in on the Council of the Russian Republic, in bitter debate on Terestchenko’s foreign policy.",
  "q": "Monday morning, the 5th, I dropped in at the Marinsky Palace, to see what was happening in the Council of the Russian Republic.",
+ "also": [
+  {"sec": "III", "q": "As I came in, the Left Socialist Revolutionary Karelin was reading aloud an editorial from the London Times which said, \"The remedy for Bolshevism is bullets!\""}],
  "moves": [
-  {"who": "reed", "from": "reed-lodging", "to": "mariinsky-palace", "mode": "unknown", "rc": "none", "gap": true}]},
+  {"who": "reed", "from": "reed-lodging", "to": "mariinsky-palace", "mode": "unknown", "rc": "none", "gap": true}],
+ "present": [
+  {"who": "bolsheviki", "place": "mariinsky-hall", "size": "the rows of Bolshevik seats", "n": 9, "bench": "left", "empty": true, "brief": true, "ref": {"sec": "III", "q": "There stretched the rows of Bolshevik seats--empty since that first day when they left the Council, carrying with them so much life."}},
+  {"who": "left-srs", "place": "mariinsky-hall", "size": "the truculent Left", "n": 12, "bench": "left", "brief": true, "ref": {"sec": "III", "q": "Tumult, and over the stubborn opposition of the truculent Left, the Council of the Republic passed to the simple order of the day."}},
+  {"who": "council-of-republic", "place": "mariinsky-hall", "size": "the Council of the Russian Republic", "n": 40, "bench": "centre", "brief": true, "ref": {"sec": "III", "q": "Monday morning, the 5th, I dropped in at the Marinsky Palace, to see what was happening in the Council of the Russian Republic."}},
+  {"who": "cadets", "place": "mariinsky-hall", "size": "the Cadets", "n": 14, "bench": "right", "brief": true, "ref": {"sec": "III", "q": "Turning to the Cadets he cried, \"That's what you think, too!\" Voices from the Right, \"Yes! Yes!\""}}]},
 {"id": "up-the-morskaya-nov5", "t": "1917-11-05T16:30", "tq": "approx", "tr": ["1917-11-05T15:30", "1917-11-05T17:30"], "tp": "in the sour twilight", "cal": "none", "sec": "III", "p": 81, "loc": "morskaya-nevsky", "witness": "seen", "actors": ["yunkers"],
  "title": "Yunkers on the Morskaya",
  "sum": "Outside, two companies of yunkers march up the Morskaya singing; at the corner of the Nevsky Reed buys Lenin’s pamphlet. Up the Nevsky crowds battle for the latest papers, soldiers and students argue on the corners, and an armoured car goes slowly up and down.",
@@ -109,13 +116,23 @@
   {"who": "yunkers", "size": "several batteries of yunker artillery", "n": 24, "from": "red-arch", "to": "winter-palace", "mode": "cavalry", "rc": "stated", "stay": true, "kit": ["gun"]}],
  "present": [
   {"who": "military-staff", "place": "general-staff", "size": "motors full of officers", "n": 10, "kit": ["armoured", "car"], "brief": true, "ref": {"sec": "III", "q": "several armoured automobiles ranked before the door, and motors full of officers were coming and going"}}]},
-{"id": "kerensky-council-nov6", "t": "1917-11-06T11:45", "tq": "inferred", "tr": ["1917-11-06T10:30", "1917-11-06T13:30"], "cal": "none", "sec": "III", "p": 84, "loc": "mariinsky-palace", "witness": "seen", "actors": ["kerensky", "council-of-republic"],
+{"id": "kerensky-council-nov6", "t": "1917-11-06T11:45", "tq": "inferred", "tr": ["1917-11-06T10:30", "1917-11-06T13:30"], "cal": "none", "sec": "III", "p": 84, "loc": "mariinsky-hall", "witness": "seen", "speaker": "kerensky", "speaker_out": {"sec": "III", "q": "When the Minister-President had stepped down, pale-faced and wet with perspiration, and strode out with his suite of officers"}, "actors": ["kerensky", "council-of-republic"],
+ "house": {"pose": "jeer", "ref": {"sec": "III", "q": "Uproar from the Left."}},
  "title": "Kerensky’s last speech",
  "why": "The censor says Kerensky “had just gone” to the Council.",
  "sum": "Reed reaches the Council of the Republic at the end of Kerensky’s long speech of self-justification.",
  "q": "I hurried down to the Marinsky Palace, arriving at the end of that passionate and almost incoherent speech of Kerensky’s, full of self-justification and bitter denunciation of his enemies.",
+ "also": [
+  {"sec": "III", "q": "I place myself at the point of view of the Right, and I propose immediately to proceed to an investigation and make the necessary arrests."},
+  {"sec": "III", "q": "All through this speech, the hall rang with deafening clamour."}],
  "moves": [
-  {"who": "reed", "from": "palace-square", "via": ["foreign-ministry"], "to": "mariinsky-palace", "mode": "unknown", "rc": "none"}]},
+  {"who": "reed", "from": "palace-square", "via": ["foreign-ministry"], "to": "mariinsky-palace", "mode": "unknown", "rc": "none"}],
+ "present": [
+  {"who": "bolsheviki", "place": "mariinsky-hall", "size": "the rows of Bolshevik seats", "n": 9, "bench": "left", "empty": true, "brief": true, "ref": {"sec": "III", "q": "There stretched the rows of Bolshevik seats--empty since that first day when they left the Council, carrying with them so much life."}},
+  {"who": "kerensky-suite", "place": "mariinsky-hall", "size": "his suite of officers", "n": 5, "walkout": true, "suite": true, "ref": {"sec": "III", "q": "When the Minister-President had stepped down, pale-faced and wet with perspiration, and strode out with his suite of officers"}},
+  {"who": "left-srs", "place": "mariinsky-hall", "size": "the truculent Left", "n": 12, "bench": "left", "brief": true, "ref": {"sec": "III", "q": "Tumult, and over the stubborn opposition of the truculent Left, the Council of the Republic passed to the simple order of the day."}},
+  {"who": "council-of-republic", "place": "mariinsky-hall", "size": "the Council of the Republic", "n": 40, "bench": "centre", "brief": true, "ref": {"sec": "III", "q": "Kerensky, he said, had just gone to the Council of the Republic to offer his resignation."}},
+  {"who": "cadets", "place": "mariinsky-hall", "size": "the Cadets", "n": 14, "bench": "right", "brief": true, "ref": {"sec": "III", "q": "Turning to the Cadets he cried, \"That's what you think, too!\" Voices from the Right, \"Yes! Yes!\""}}]},
 {"id": "cars-stopped-nov6", "t": "1917-11-06T15:00", "tq": "inferred", "tr": ["1917-11-06T12:30", "1917-11-06T17:30"], "cal": "none", "sec": "III", "p": 88, "loc": "morskaya-nevsky", "witness": "seen", "actors": ["unknown-soldiers"],
  "title": "Cars turned out",
  "why": "After the Council’s vote, before nightfall at Smolny.",

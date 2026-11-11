@@ -39,7 +39,9 @@ SECTIONS = {
           'the Red Guards held a bare fifth of the seats.',
           'Then Kameniev demanded the floor once more. He was interrupted by a great burst of laughter; and he left the room. '
           'At the end Kameniev announced the arrival of the Sailors, greeted with a rising ovation. Upon his arrival the Sailor was arrested. '
-          'They went to slaughter and be slaughtered.'],
+          'They went to slaughter and be slaughtered.',
+          'There stretched the rows of Red Guard seats--empty since they had gone. Uproar from the Left. '
+          'When Kameniev had stepped down he strode out with his suite of officers.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.',
@@ -972,3 +974,30 @@ class Hall(unittest.TestCase):
         self.assertIn('phrase.not-in-text', errors(d))
         d = good(); s, *_ = self.add(d); s['present'][1].update({'walkin': True, 'ref': {'sec': 'V', 'q': 'Upon his arrival the Sailor was arrested.'}}); del s['present'][1]['bench']
         self.assertIn('phrase.not-in-text', errors(d))
+
+    # phase 5: seats kept empty, a suite walking out behind the speaker, "strode out", "uproar"
+    def test_empty_seats(self):
+        q = 'There stretched the rows of Red Guard seats--empty since they had gone.'
+        def empty(**kw):
+            d = good(); s, *_ = self.add(d); s['present'][0].update(dict({'empty': True, 'brief': True, 'ref': {'sec': 'V', 'q': q}}, **kw))
+            return errors(d)
+        self.assertEqual(empty(), [])
+        self.assertIn('phrase.not-in-text', empty(ref={'sec': 'V', 'q': 'So we came into the great meeting-hall'}))
+        self.assertIn('field.range', empty(brief=False))
+        self.assertIn('field.range', empty(pose='jeer'))
+        self.assertIn('field.missing', empty(bench='platform'))
+
+    def test_a_suite_follows_the_speaker_out(self):
+        q = 'When Kameniev had stepped down he strode out with his suite of officers.'
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': q}
+        s['present'][1].update({'walkout': True, 'suite': True, 'ref': {'sec': 'V', 'q': q}}); del s['present'][1]['bench']
+        self.assertEqual(errors(d), [])
+        del s['speaker_out']
+        self.assertIn('field.range', errors(d))   # no speaker leaving to follow
+        d = good(); s, *_ = self.add(d); s['speaker_out'] = {'sec': 'V', 'q': q}
+        s['present'][1].update({'walkout': True, 'suite': True, 'ref': {'sec': 'V', 'q': 'Fifty delegates got up and pushed their way out'}}); del s['present'][1]['bench']
+        self.assertIn('phrase.not-in-text', errors(d))   # no word for a suite
+
+    def test_uproar_is_hooting(self):
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'jeer', 'ref': {'sec': 'V', 'q': 'Uproar from the Left.'}}
+        self.assertEqual(errors(d), [])

@@ -1962,7 +1962,15 @@ function stageHall(H, gs, e) {
     g.members = []; g.props = []; g.fires = []; g.inside = true; g.hall = H; g.bench = bench;
     g.walkout = !!g.p.walkout && g.p.from === ix; g.walkin = !!g.p.walkin && g.p.from === ix;
     var hp = (g.pose !== 'embrace' && g.pose) || (answers(g, bench) ? house : null);
-    if (bench === 'platform') {
+    if (g.p.suite && e.speaker_out) {
+      // "strode out with his suite": standing at the foot of the platform in the speaker's side aisle, facing him
+      var sd = sideOf(H, H.tribune[1]);
+      for (var js = 0; js < n; js++) {
+        var su = H.uf - 0.2 - js * 1.3, sv = sd * (H.W / 2 - 0.5), ps = H.at(su, sv);   // clear of the platform's steps
+        stood.push({ st: { u: su, v: sv, hy: H.tier(su) }, from: 'suite' });
+        g.members.push({ k: figs[js], x: ps[0], y: ps[1], yaw: H.yawF, idle: 0.4, pose: null, hy: H.tier(su), hs: HS, home: { u: su, v: sv, hy: H.tier(su), pose: null, yaw: H.yawF } });
+      }
+    } else if (bench === 'platform') {
       var mine = 0;
       slots.forEach(function (sg, k) {
         if (sg !== g) return;
@@ -1984,7 +1992,10 @@ function stageHall(H, gs, e) {
       // seated, a faction together (seatsFor); a body given no bench that will not fit the middle block (the whole
       // Congress, with no factions named) fills the hall from the front, row by row across the blocks
       var spread = !g.p.bench && H.blocks.centre != null && n > seatList('centre').length;
-      (spread ? Object.keys(H.blocks).reduce(function (a, b) { return a.concat(seatList(b)); }, []).sort(function (a, b) { return a.row - b.row || Math.abs(a.v) - Math.abs(b.v); }) : seatsFor(bench)).slice(0, n).forEach(function (s, k) {
+      var mine = (spread ? Object.keys(H.blocks).reduce(function (a, b) { return a.concat(seatList(b)); }, []).sort(function (a, b) { return a.row - b.row || Math.abs(a.v) - Math.abs(b.v); }) : seatsFor(bench)).slice(0, n);
+      // seats kept for a body that is not there ("the rows of Bolshevik seats--empty"): taken, nobody in them, labelled
+      if (g.p.empty) { var eu = 0, ev = 0; mine.forEach(function (s) { take(s); eu += s.u; ev += s.v; }); g.emptyAt = mine.length ? H.at(eu / mine.length, ev / mine.length) : H.c; g.label = g.label + ': their seats, empty'; mine = []; }
+      mine.forEach(function (s, k) {
         take(s); var p = H.at(s.u, s.v);
         g.members.push({ k: figs[k], x: p[0], y: p[1], yaw: H.yawF, idle: 0.3, pose: 'seat', hy: s.hy, hs: HS, seat: s, home: { u: s.u, v: s.v, hy: s.hy, pose: 'seat', yaw: H.yawF } });
       });
@@ -1997,7 +2008,7 @@ function stageHall(H, gs, e) {
       if (hp === 'vote' && m.home.sill) m.react.pose = 'seatvote';
     });
     var sx = 0, sy = 0; g.members.forEach(function (m) { sx += m.x; sy += m.y; });
-    g.cx = g.members.length ? sx / g.members.length : H.c[0]; g.cy = g.members.length ? sy / g.members.length : H.c[1]; g.r = 6;
+    g.cx = g.members.length ? sx / g.members.length : (g.emptyAt || H.c)[0]; g.cy = g.members.length ? sy / g.members.length : (g.emptyAt || H.c)[1]; g.r = 6;
   });
   // walking out: rising row by row, the nearest the door first, down the nearest aisle and out at the back;
   // walking in: at the door, along the aisle, to the seats (on the platform, up its steps and behind its benches)
@@ -2028,8 +2039,10 @@ function stageHall(H, gs, e) {
   inq.forEach(function (m, i) { m.walkAt = 1.0 + i * 0.5; });
   // all who walk out in the scene, of whatever body, in one queue: the back rows first, each setting off
   // 0.4 s after the one before and later still if that would bring two to the door within half a second
-  var queue = []; gs.forEach(function (g) { if (g.walkout) g.members.forEach(function (m) { if (m.leave) queue.push(m); }); });
+  var queue = [], suite = []; gs.forEach(function (g) { if (g.walkout) g.members.forEach(function (m) { if (m.leave) (g.p.suite && e.speaker_out ? suite : queue).push(m); }); });
   queue.sort(function (a, b) { return a.qkey - b.qkey; });
+  // "strode out with his suite of officers": they set off just after the speaker, one behind another
+  suite.sort(function (a, b) { return b.home.u - a.home.u; });   // the nearest the platform first
   var lastDoor = -1e9, lastAt = 1.6;
   queue.forEach(function (m) {
     var P = m.walkPath.pts, toDoor = P[P.length - 2].s, at = lastAt + 0.4;
@@ -2044,6 +2057,16 @@ function stageHall(H, gs, e) {
     if (wi) { sm.walkPath = hallPath(H, [[-H.L / 2 - 3.5, H.door[1], 0]].concat(hallWay(H, sm))); sm.walkAt = 1.0 + inq.length * 0.5 + 0.8; sm.enter = true; }
     else if (e.speaker_out) {   // "answered Trotzky, and left the platform ... passed down the side of the room ... and hurried out"
       sm.walkPath = hallPath(H, hallWay(H, sm).reverse().concat([[-H.L / 2 - 3.5, H.door[1], 0]])); sm.walkAt = 6.0; sm.leave = true;
+      // the suite: each steps onto the speaker's line once the speaker, and the one before, have gone by, and follows
+      // in file down the aisle and out (along the line he walks, not the one they stood on)
+      var foot = null; sm.walkPath.pts.forEach(function (q) { if (foot == null && q.h < 0.05 && H.uv(q.x, q.y)[0] < H.L / 2 - H.Dp) foot = { s: q.s, u: H.uv(q.x, q.y)[0] }; });
+      var ahead = foot ? { at: sm.walkAt + 0.6 + foot.s / HALL_WALK, u: foot.u } : { at: 7, u: H.uf };   // where and when the one ahead is on the floor
+      suite.forEach(function (m) {
+        var hm = m.home, wv = sideOf(H, H.tribune[1]) * H.walkSide, pass = ahead.at + Math.max(0, ahead.u - hm.u) / HALL_WALK;   // the one ahead passes this one
+        m.walkPath = hallPath(H, [[hm.u, hm.v, 0], [hm.u - 0.4, wv, 0], [H.ub - 1.0, wv, 0], [-H.L / 2 + 1.0, H.door[1], 0], [-H.L / 2 - 3.5, H.door[1], 0]]);
+        m.walkAt = pass + 0.45 - 0.6; m.suite = true;
+        ahead = { at: m.walkAt + 0.6 + 0.4 / HALL_WALK, u: hm.u - 0.4 };
+      });
     }
     GROUPS.push({ members: [sm], props: [], fires: [], bloc: 'neutral', label: ((PEO[who] || {}).name || who).replace(/ \(.*\)$/, ''), place: H.id, seed: 5, cx: tp[0], cy: tp[1], r: 3, inside: true, hall: H, speaker: who });
   }
@@ -2236,10 +2259,10 @@ function hallCam(H, e, t0) {
     if (m.walkPath && m.enter) { comers.push(m); if (onPlat(H, m.home)) { var ar = m.walkAt + 0.6 + m.walkPath.len / HALL_WALK; up = up == null ? ar : Math.min(up, ar); } }
   }); });
   function way(list) { var w = []; list.forEach(function (m) { m.walkPath.pts.forEach(function (p, k) { if (k % 2 === 0) w.push([p.x, p.y]); }); }); return w; }
-  var bodiesOut = walkers.filter(function (m) { return m !== spk; });
-  if (spk && !bodiesOut.length) {   // the speaker speaks, then is followed down from the platform and out ("I'm going now!")
+  var bodiesOut = walkers.filter(function (m) { return m !== spk && !m.suite; });
+  if (spk && !bodiesOut.length) {   // the speaker speaks, then is followed down from the platform and out ("I'm going now!"), with any suite behind
     steps.push({ at: H.t0 + 1.2, fr: hallFrame(H, 'front'), kind: 'front' });
-    steps.push({ at: H.t0 + spk.walkAt + 0.3, fr: hallFrame(H, 'walk', [-H.L / 4, 0], way([spk])), kind: 'walk' });
+    steps.push({ at: H.t0 + spk.walkAt + 0.3, fr: hallFrame(H, 'walk', [-H.L / 4, 0], way([spk].concat(walkers.filter(function (m) { return m.suite; })))), kind: 'walk' });
   } else if (walkers.length) {
     var su = 0, sv = 0; walkers.forEach(function (m) { su += m.home.u; sv += m.home.v; }); su /= walkers.length; sv /= walkers.length;
     steps.push({ at: H.t0 + 1.6, fr: hallFrame(H, 'walk', [(su - H.L / 2) / 2, sv / 2], way(walkers)), kind: 'walk' });

@@ -696,7 +696,7 @@ for sp in spans:
         words = [L.norm(x) for x in L.segments(e0.get('q', ''))] + [L.norm(r['q']) for r in e0.get('also', [])]
         rec.update(formation(sp, ' '.join(words)))
     if in_tour[sp['start']]:   # the fighting, too, is drawn in its own scene only
-        for k in ('face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkin'):
+        for k in ('face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkin', 'empty', 'suite'):
             if k in sp:
                 rec[k] = sp[k]
     presence.append(rec)

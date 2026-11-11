@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'house': DICT, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
+    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'empty': BOOL, 'suite': BOOL, 'house': DICT, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
     'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
@@ -673,7 +673,7 @@ class Checker:
                     if 'say' in r:
                         self.say(r, near, where_, rw)
                     # the word checks read only fields of the right type (a wrong type is reported above)
-                    if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'prop')):
+                    if any(k in r and not typed(r, k) for k in ('form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'empty', 'suite', 'prop')):
                         continue
                     here = r.get('place', e.get('loc'))
                     if 'form' in r or 'march' in r:
@@ -684,7 +684,7 @@ class Checker:
                         self.facing(r, sup[2], rw, here)
                     if r.get('inside'):
                         self.indoors(r, sup[2], rw, here)
-                    if any(k in r for k in ('bench', 'walkout', 'walkin', 'part', 'prop')) or r.get('pose') in L.HALL_POSES:
+                    if any(k in r for k in ('bench', 'walkout', 'walkin', 'part', 'empty', 'suite', 'prop')) or r.get('pose') in L.HALL_POSES:
                         self.in_hall(r, e, sup, rw)
         if 'shooting' in e.get('tags', []) and pos is not None and not re.search(L.SHOOTING_WORDS, self.scene_text(e), re.I):
             F.err('tag.shooting', w, 'tagged shooting, but the quotes say nothing of firing')
@@ -785,6 +785,18 @@ class Checker:
             F.err('phrase.not-in-text', where, f'part: only some of a body walking out, in Reed\'s words ({L.PART_WORDS})')
         if r.get('part') and 'n' not in r:
             F.err('field.missing', where, 'part: how many of them walk out (n, with size), so the rest can be drawn fewer by them')
+        if r.get('empty'):   # "the rows of Bolshevik seats--empty": their seats, kept, with nobody in them
+            if not re.search(L.EMPTY_WORDS, text, re.I):
+                F.err('phrase.not-in-text', where, f'empty: the passage has no word for it ({L.EMPTY_WORDS})')
+            if 'n' not in r or r.get('bench') not in ('left', 'centre', 'right'):
+                F.err('field.missing', where, 'empty: how many seats (n) and in which block (bench left, centre or right)')
+            if r.get('walkout') or r.get('walkin') or r.get('pose') or not r.get('brief'):
+                F.err('field.range', where, 'empty: nobody is there, so nobody walks or answers; and it is for its own scene (brief)')
+        if r.get('suite'):   # "strode out with his suite of officers": walking out behind the speaker
+            if not re.search(L.SUITE_WORDS, text, re.I):
+                F.err('phrase.not-in-text', where, f'suite: the passage has no word for it ({L.SUITE_WORDS})')
+            if not r.get('walkout') or not e.get('speaker_out'):
+                F.err('field.range', where, 'suite: a body walking out (walkout) behind the speaker, in a scene where the speaker leaves (speaker_out)')
         if 'prop' in r:
             if not re.search(r'\d|\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|fifteen|twenty|thirty|forty|fifty|hundred|half|third|quarter|fifth)\b', r.get('size') or '', re.I):
                 F.err('field.missing', where, 'prop: the size phrase is a count that sets the proportion ("14 Bolsheviki")')

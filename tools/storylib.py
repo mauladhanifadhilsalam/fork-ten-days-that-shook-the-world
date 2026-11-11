@@ -40,7 +40,7 @@ FIELDS = {
     'move': ['who', 'with', 'size', 'n', 'from', 'via', 'to', 'mode', 'rc', 't0', 'gap', 'stay', 'kit', 'say', 'run', 'ack', 'outside', 'done'],
     'outside': ['source', 'q', 'en'],
     'ctl': ['place', 'state', 'holder', 'by'],
-    'presence': ['who', 'place', 'size', 'n', 'prop', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'brief', 'ref', 'outside'],
+    'presence': ['who', 'place', 'size', 'n', 'prop', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'empty', 'suite', 'brief', 'ref', 'outside'],
     'gone': ['who', 'place', 'all', 'ref'],
     # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words;
     # `all`: by everyone in the hall but the speaker's party, where Reed says most or all of it
@@ -131,7 +131,7 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|presidium|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
               'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|exultation|pandemonium|embracing',
-              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with',
+              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with|\buproar',
               'laugh': r'\blaugh',
               # two bodies in each other's arms ("the two embracing")
               'embrace': r'embrac|in (their|each other.s) arms'}
@@ -143,8 +143,11 @@ BENCH_WORDS = {'platform': r'platform|tribune', 'front': r'(round|around|about|b
                'left': r'', 'centre': r'', 'right': r''}
 # only some of a body walking out ("only part of the Mensheviki Internationalists left the Congress")
 PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b'
+# seats kept for a body that is not there ("the rows of Bolshevik seats--empty"); a body walking out behind the speaker
+EMPTY_WORDS = r'\bempty\b'
+SUITE_WORDS = r'with (his|her) (suite|staff|escort|aides)'
 # a body leaving the hall, or coming into it, in the scene that says so
-WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall|Congress|room)|walk(ed|s)? out|pushed their way out|got up and (left|went)|withdr[ae]w'
+WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall|Congress|room)|walk(ed|s)? out|strode out|pushed their way out|got up and (left|went)|withdr[ae]w'
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession|announced the arrival'
 # a hall's shape, where Reed gives it ("the high, amphitheatrical Nicolai Hall")
 PLAN_WORDS = {'rows': r'', 'amphitheatre': r'amphithea'}
@@ -596,7 +599,7 @@ def presence_spans(events, actors, places):
         return sp
 
     def formation(sp, rec):
-        for k in ('form', 'march', 'face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkout', 'walkin', 'part'):
+        for k in ('form', 'march', 'face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkout', 'walkin', 'part', 'empty', 'suite'):
             if k in rec:
                 sp[k] = rec[k]
 
