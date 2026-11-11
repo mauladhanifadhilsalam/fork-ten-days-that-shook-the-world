@@ -88,6 +88,14 @@ desktop, 172 on a phone (as before, the Morskaya yunkers among them); `vehicles.
 overlapping 0.0%, held 13.1%; `motion.js` 0.7% in a wall, 0.2% through; `camera.js` a median 128 m (129 of 131
 within 250 m), 4 of 889 close-shot samples under 70%; on a phone (every other scene) a median 211 m, 12 of 430.
 
+After the Mariinsky's Council hall and the Riding School (phase 5): `hall.js` 26 scenes, no finding on desktop or
+phone (the Riding School's crossing to the left: 6 of 3,479 walking samples within 0.5 m of another walker); smoke
+132 scenes, no error; frames 38 of 4,144 on a desktop, 121 on a phone (the Morskaya yunkers' 45 among them);
+`vehicles.js` someone inside 0.0%, overlapping 0.0%, held 6.5%; `motion.js` 0.4% in a wall, 0.1% through;
+`camera.js` a median 126 m (129 of 131 within 250 m), 0 of 863 close-shot samples under 70%; on a phone (every
+other scene) a median 209 m, 12 of 414. The new records moved the layout seeds once more, so the vehicle and frame
+numbers moved with them, not because anything outside the halls was fixed.
+
 `shot.js --film ID` takes a scene as it plays (at 2, 6, 10, 14 and 18 s): the way to look at a fight.
 
 These numbers say where to look, not that a scene is right: a body can pass every test and still stand
