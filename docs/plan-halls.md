@@ -1,6 +1,6 @@
 # Plan: the congress and meeting halls, and the walkouts
 
-Status: phases 1 to 4 done (Smolny's great hall: the Second Congress, and the other sessions there, from the Petrograd Soviet of 30 October to the Peasants' Congress coming in on 29 November; the City Duma's Alexander and Nicolai Halls; Fontanka 6); phase 5, optional, not started. Scope, as asked: the scenes of the congresses and meetings, so that the
+Status: phases 1 to 5 done (Smolny's great hall: the Second Congress, and the other sessions there, from the Petrograd Soviet of 30 October to the Peasants' Congress coming in on 29 November; the City Duma's Alexander and Nicolai Halls; Fontanka 6; the Mariinsky Palace and the Riding School), but for the Cirque Moderne, whose site is not known. Scope, as asked: the scenes of the congresses and meetings, so that the
 walkouts can be shown. Not the Winter Palace's rooms, the Military Revolutionary Committee's offices or the
 State Bank.
 
@@ -113,6 +113,12 @@ scene briefly, as now.
 - The chairman's place: Dan "ringing the bell" and Kameniev "reading" stand at the reading stand; the map has no separate place for the chair.
 - A walk-in to the benches is used by the Peasants' Congress coming in; a body walking out from the platform is drawn but no scene uses it yet.
 - Phase 2: Gotz "took the chair" and Sverdlov greeted the peasants, but there is one speaker per scene and no chairman, so neither is drawn; nor is Holtzman running down the corridor with the telegram (he is not in the Faction Map), nor the music that "blared down the corridor", nor Larin, whose resolution the press-decree scene's hooting and applause answer (he is not in the Faction Map either, so the scene has no speaker). Which two banners crossed on the wall Reed does not say; the map gives one to each presidium.
+
+## Left from phase 5
+
+- The Cirque Moderne: not drawn inside, its site unverified (the pin is a guess within 300 m; searches in Russian and English found no address). With a source for the site it would need a circus of its own: a ring, a steep stepped bowl round it with a gap for the entrance, "five tiny lights hanging from a thin wire", and a speaker in the ring (a soldier not in the Faction Map, so a body of one).
+- The Council of the Republic: the hall's shape is not in Reed and is drawn in rows; the diplomats are not drawn; "the truculent Left" is drawn as the Left Socialist Revolutionaries alone.
+- The Riding School: only Krylenko speaks (Khanjunov, the soldier from the Rumanian front, the Menshevik and the workman from Vasili Ostrov are not in the Faction Map); the claque and its rout are not drawn; the crossing to the left is three seconds where Reed's "faster and faster" was longer.
 
 ## Left from phase 4
 
