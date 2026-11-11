@@ -118,7 +118,7 @@ scene briefly, as now.
 
 - The Cirque Moderne: not drawn inside, its site unverified (the pin is a guess within 300 m; searches in Russian and English found no address). With a source for the site it would need a circus of its own: a ring, a steep stepped bowl round it with a gap for the entrance, "five tiny lights hanging from a thin wire", and a speaker in the ring (a soldier not in the Faction Map, so a body of one).
 - The Council of the Republic: the hall's shape is not in Reed and is drawn in rows; the diplomats are not drawn; "the truculent Left" is drawn as the Left Socialist Revolutionaries alone.
-- The Riding School: only Krylenko speaks (Khanjunov, the soldier from the Rumanian front, the Menshevik and the workman from Vasili Ostrov are not in the Faction Map); the claque and its rout are not drawn; the crossing to the left is three seconds where Reed's "faster and faster" was longer.
+- The Riding School: only Krylenko speaks (Khanjunov, the soldier from the Rumanian front, the Menshevik and the workman from Vasili Ostrov are not in the Faction Map); the claque and its rout are not drawn; the crossing to the left sets off over three seconds and is over some ten seconds in, where Reed's "faster and faster" was surely longer.
 
 ## Left from phase 4
 

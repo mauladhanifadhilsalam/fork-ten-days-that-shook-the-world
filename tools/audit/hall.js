@@ -42,6 +42,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       const td = window.__td, H = td.hall(), out = { seat: [], stand: [], platform: [], speaker: [], walkEnd: 0 };
       const uv = (x, y) => { const dx = x - H.c[0], dy = y - H.c[1]; return [dx * H.f[0] + dy * H.f[1], dx * H.lf[0] + dy * H.lf[1]]; };
       const floor = (x, y, hy) => td.hallFloor(x, y, hy + 1);   // what is drawn under one, from the hall's own meshes
+      const inCar = (cu, cv, pad) => H.floor && [{ u: H.car.u, v: H.car.v }].concat(H.wallCars || []).some(c => Math.abs(cu - c.u) < H.carA + pad && Math.abs(cv - c.v) < H.carB + pad);   // a car's outline, padded
       const onBench = (u, v) => { for (let r = 0; r < H.rows; r++) { const ur = H.uf - r * H.rp; if (u > ur - 0.45 && u < ur + 0.56) for (const b in H.blocks) if (Math.abs(v - H.blocks[b]) < H.bw / 2) return true; } return false; };
       const gs = td.groups().filter(g => g.hall), still = [];
       gs.forEach(g => g.members.forEach(m => {
@@ -50,9 +51,10 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
         if (m.enter) return;   // not in the hall yet
         still.push([u, v, g.label]);
         const hx = H.c[0] + H.f[0] * m.home.u + H.lf[0] * m.home.v, hyy = H.c[1] + H.f[1] * m.home.u + H.lf[1] * m.home.v, fl = floor(hx, hyy, m.home.hy);
-        if (H.floor && (m.home.car || g.speaker)) {   // on the car in the Riding School, which is not one of the hall's meshes: its roof, or its bonnet
-          if (Math.abs(m.home.hy - (g.speaker ? H.Hp : H.carTop)) > 0.01) out.stand.push(g.label + ' not on the car');
-        } else if (fl == null || Math.abs(m.home.hy - fl) > 0.1) out.stand.push(g.label + ` at ${m.home.hy.toFixed(2)} m over a floor at ${fl == null ? 'none' : fl.toFixed(2)}`);
+        if (H.floor && (m.home.car || g.speaker)) {   // on the car in the Riding School, which is not one of the hall's meshes: within its outline, up on it
+          if (Math.abs(u - H.car.u) > H.carA || Math.abs(v - H.car.v) > H.carB || m.home.hy < 1) out.stand.push(g.label + ' not on the car');
+        } else if (H.floor && [m.home, m.spot0].some(q => q && inCar(q.u, q.v, 0.6))) out.stand.push(g.label + ' standing in a car');
+        else if (fl == null || Math.abs(m.home.hy - fl) > 0.1) out.stand.push(g.label + ` at ${m.home.hy.toFixed(2)} m over a floor at ${fl == null ? 'none' : fl.toFixed(2)}`);
         if (g.speaker) { if (Math.hypot(u - (H.tribune[0] + 0.7), v - H.tribune[1]) > 0.3 || Math.abs(m.home.hy - H.Hp) > 0.01) out.speaker.push(g.label); return; }
         if (g.bench === 'platform') { if (u < H.L / 2 - H.Dp || Math.abs(v) > H.W / 2 - 1.6 || Math.abs(m.home.hy - H.Hp) > 0.01) out.platform.push(g.label); return; }
         if (m.seat) {
@@ -75,7 +77,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       const box = W < 700 ? [8, W - 8, 60, pr.top - 8] : [20, W - pr.width - 30, 90, Hh - 110];
       const at = (u, v) => [H.c[0] + H.f[0] * u + H.lf[0] * v, H.c[1] + H.f[1] * u + H.lf[1] * v];
       const gs = td.groups().filter(g => g.hall), walkers = [], speaker = gs.filter(g => g.speaker)[0];
-      gs.forEach(g => g.members.forEach(m => { if (m.walkPath) m.walkPath.pts.forEach(p => { if (p.x != null) walkers.push([p.x, p.y, p.h || 0]); }); }));   // out or in, at the height of the floor they are on
+      gs.forEach(g => g.members.forEach(m => { if (m.walkPath && (m.leave || m.enter)) m.walkPath.pts.forEach(p => { if (p.x != null) walkers.push([p.x, p.y, p.h || 0]); }); }));   // out or in (not a vote's crossing), at the height of the floor they are on
       const bad = [];
       bc.steps.forEach((s, i) => {
         cam.position.copy(s.fr.pos); cam.lookAt(s.fr.target); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
@@ -108,6 +110,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
           if ((w.m.hy || 0) > H.Hp - 0.1 && Math.abs(u - H.tribune[0]) < 0.5 + 0.3 && Math.abs(v - H.tribune[1]) < 0.72 + 0.3) { V.bench++; V.who[w.g.label + ' stand'] = (V.who[w.g.label + ' stand'] || 0) + 1; }
           const fl = td.hallFloor(w.m.dx, w.m.dy, (w.m.hy || 0) + 1);
           if (fl == null || Math.abs((w.m.hy || 0) - fl) > 0.6) { V.float++; V.who[w.g.label + ' float'] = (V.who[w.g.label + ' float'] || 0) + 1; }
+          if (H.floor && (w.m.hy || 0) < H.carTop - 0.5 && [{ u: H.car.u, v: H.car.v }].concat(H.wallCars || []).some(c => Math.abs(u - c.u) < H.carA + 0.3 && Math.abs(v - c.v) < H.carB + 0.3)) { V.bench++; V.who[w.g.label + ' car'] = (V.who[w.g.label + ' car'] || 0) + 1; }   // through an armoured car
           if (fl != null && (w.m.hy || 0) - fl < 0.2 && !own) for (let r = 0; r < H.rows; r++) { const ur = H.uf - r * H.rp; if (u > ur - 0.45 && u < ur + 0.56) for (const b in H.blocks) if (Math.abs(v - H.blocks[b]) < H.bw / 2 - 0.1) { V.bench++; V.who[w.g.label + ' bench'] = (V.who[w.g.label + ' bench'] || 0) + 1; r = H.rows; break; } }
           const inHall = Math.abs(u) < H.L / 2 && Math.abs(v) < H.W / 2, atDoor = Math.abs(v) < 1.3 && u < -H.L / 2 + 0.6;
           if (!inHall && !atDoor) { V.wall++; V.who[w.g.label + ' wall'] = (V.who[w.g.label + ' wall'] || 0) + 1; }
@@ -121,10 +124,11 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
         });
       });
     }
+    const ix = S.events.findIndex(x => x.id === id), walks = S.presence.filter(p => p.from === ix && (p.walkout || p.walkin) && (S.places[p.place] || {}).hall).map(p => ({ who: p.who, out: !!p.walkout }));
     // who answers: the bodies with anyone rising, voting, cheering or hooting, against those pinned for the scene in
     // hall-react.json (so a change to who answers shows as a finding until the pin is changed with it); and no one
     // walking out or in cheering or hooting
-    const v = await page.evaluate((pin) => {
+    const v = await page.evaluate(({ pin, walks }) => {
       const td = window.__td, H = td.hall(), out = window.__hv; out.exit = []; out.react = []; out.table = out.table || 0;
       const got = new Set();
       td.groups().filter(g => g.hall).forEach(g => g.members.forEach(m => {
@@ -133,13 +137,14 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
         if ((m.pose === 'cheer' || m.pose === 'jeer') && (m.leave || m.enter || m.walk)) out.react.push(g.label + ' ' + m.pose + 's walking');   // a vote's walk over, cheering is fine
         if (m.enter && (m.gone || m.walk || Math.hypot(m.x - (H.c[0] + H.f[0] * m.home.u + H.lf[0] * m.home.v), m.y - (H.c[1] + H.f[1] * m.home.u + H.lf[1] * m.home.v)) > 0.1)) out.exit.push(g.label + ' not in its seat');
       }));
+      walks.forEach(k => { if (!td.groups().some(g => g.hall && g.who === k.who && (k.out ? g.walkout : g.walkin))) out.exit.push(k.who + (k.out ? ' walks out' : ' walks in') + ' in the data, but is not drawn'); });   // every walk of the scene's is staged
       if (!pin) out.react.push('no pinned response in hall-react.json');
       else {
         [...got].filter(k => !pin.includes(k)).forEach(k => out.react.push(k + ' answers, not pinned'));
         pin.filter(k => !got.has(k)).forEach(k => out.react.push(k + ' pinned, does not answer'));
       }
       return out;
-    }, REACT[id] || null);
+    }, { pin: REACT[id] || null, walks });
     ['samples', 'bench', 'wall', 'through', 'squeeze', 'crowd', 'float'].forEach(k => { T[k] += v[k]; });
     hard.react += v.react.length; hard.table += v.table ? 1 : 0;
     hard.seat += st.seat.length; hard.stand += st.stand.length; hard.platform += st.platform.length; hard.speaker += st.speaker.length; hard.exit += v.exit.length; hard.frame += frBad.filter(x => !/^short/.test(x)).length; hard.short += frBad.filter(x => /^short/.test(x)).length;

@@ -774,6 +774,10 @@ class Checker:
                 F.err('field.range', where, 'bench "gallery": the hall has no gallery among its features')
             if r['bench'] in ('gallery', 'front') and (r.get('walkout') or r.get('walkin')):
                 F.err('field.range', where, f'bench {r["bench"]!r}: those up in the galleries or grouped before the platform are not drawn walking out or in')
+            if r['bench'] == 'car' and (r.get('walkout') or r.get('walkin')):
+                F.err('field.range', where, 'bench "car": those on the car are not drawn climbing down and walking out or in')
+            if r['bench'] == 'car' and r.get('n', 0) > 6:
+                F.err('field.range', where, 'bench "car": the car\'s roof holds six figures (n at most 6)')
             if r['bench'] == 'front' and not r.get('brief'):
                 F.err('field.range', where, 'bench "front": a crowd round the platform is drawn for its own scene only (brief)')
             if r['bench'] == 'front' and (e.get('speaker_out') or any(isinstance(o, dict) and (o.get('walkout') or o.get('walkin')) for o in e.get('present', []))):
@@ -796,6 +800,10 @@ class Checker:
                 F.err('field.missing', where, 'empty: how many seats (n) and in which block (bench left, centre or right)')
             if r.get('walkout') or r.get('walkin') or r.get('pose') or not r.get('brief'):
                 F.err('field.range', where, 'empty: nobody is there, so nobody walks or answers; and it is for its own scene (brief)')
+        if hall.get('plan') == 'floor' and r.get('suite'):
+            F.err('field.range', where, 'suite: not on a floor, where the speaker stands on the car and does not walk out')
+        if hall.get('plan') == 'floor' and r.get('n', 0) > 200:
+            F.err('field.range', where, 'on a floor a body is at most 200 figures (the room round the car, and on one side of it for a vote)')
         if r.get('suite'):   # "strode out with his suite of officers": walking out behind the speaker
             if not re.search(L.SUITE_WORDS, text, re.I):
                 F.err('phrase.not-in-text', where, f'suite: the passage has no word for it ({L.SUITE_WORDS})')
@@ -820,6 +828,8 @@ class Checker:
 
     def speaker_out(self, e, w):
         """the speaker leaving the platform and the hall in the scene ("answered Trotzky, and left the platform")"""
+        if ((self.P.get(e.get('loc')) or {}).get('hall') or {}).get('plan') == 'floor':
+            self.F.err('field.range', w + '.speaker_out', 'speaker_out: not on a floor, where the speaker stands on the car')
         F, ref, ww = self.F, e['speaker_out'], w + '.speaker_out'
         if not isinstance(ref, dict) or not fields(F, ref, 'ref', ww) or not isinstance(ref.get('q'), str):
             return
@@ -885,8 +895,10 @@ class Checker:
         m = re.search(L.DIVIDE_WORDS, ref['q'], re.I)
         if not m:
             F.err('phrase.not-in-text', dw, f'divide: the quote has no word for it ({L.DIVIDE_WORDS})')
-        elif d.get('to') in L.ENUM['divide.to'] and not re.search(r'(surge|rush|went|go|move|ran|stream)\w*[^.]{0,80}to the ' + d['to'], ref['q'], re.I):
+        elif d.get('to') in L.ENUM['divide.to'] and not re.search(r'\b(surg|rush|stream|ran\b|poured|crossed|moved)\w*[^.;]{0,80}to the ' + d['to'], ref['q'], re.I):   # where they went, not the call ("should go to the right")
             F.err('phrase.not-in-text', dw, f'divide: the quote does not have them go to the {d["to"]}')
+        if not any(isinstance(r, dict) and r.get('place', e.get('loc')) == e.get('loc') and r.get('bench', 'floor') == 'floor' and not r.get('walkout') for r in e.get('present', [])):
+            F.err('field.missing', dw, 'divide: nobody to cross; the scene needs a body standing on the floor that is not walking out')
         if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
             F.err('phrase.not-near', dw, "divide: Reed's words for it are not within 1,500 characters of the scene's own passages")
 
