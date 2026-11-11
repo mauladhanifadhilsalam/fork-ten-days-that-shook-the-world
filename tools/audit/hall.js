@@ -50,7 +50,9 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
         if (m.enter) return;   // not in the hall yet
         still.push([u, v, g.label]);
         const hx = H.c[0] + H.f[0] * m.home.u + H.lf[0] * m.home.v, hyy = H.c[1] + H.f[1] * m.home.u + H.lf[1] * m.home.v, fl = floor(hx, hyy, m.home.hy);
-        if (fl == null || Math.abs(m.home.hy - fl) > 0.1) out.stand.push(g.label + ` at ${m.home.hy.toFixed(2)} m over a floor at ${fl == null ? 'none' : fl.toFixed(2)}`);
+        if (H.floor && (m.home.car || g.speaker)) {   // on the car in the Riding School, which is not one of the hall's meshes: its roof, or its bonnet
+          if (Math.abs(m.home.hy - (g.speaker ? H.Hp : H.carTop)) > 0.01) out.stand.push(g.label + ' not on the car');
+        } else if (fl == null || Math.abs(m.home.hy - fl) > 0.1) out.stand.push(g.label + ` at ${m.home.hy.toFixed(2)} m over a floor at ${fl == null ? 'none' : fl.toFixed(2)}`);
         if (g.speaker) { if (Math.hypot(u - (H.tribune[0] + 0.7), v - H.tribune[1]) > 0.3 || Math.abs(m.home.hy - H.Hp) > 0.01) out.speaker.push(g.label); return; }
         if (g.bench === 'platform') { if (u < H.L / 2 - H.Dp || Math.abs(v) > H.W / 2 - 1.6 || Math.abs(m.home.hy - H.Hp) > 0.01) out.platform.push(g.label); return; }
         if (m.seat) {
@@ -78,11 +80,12 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       bc.steps.forEach((s, i) => {
         cam.position.copy(s.fr.pos); cam.lookAt(s.fr.target); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
         const kind = s.kind; if (kind === 'outside') return;   // the scene's own outside the hall: frames.js measures that
-        const pts = kind === 'over' ? [at(-H.L / 2, H.W / 2), at(-H.L / 2, -H.W / 2), at(H.L / 2, H.W / 2), at(H.L / 2, -H.W / 2)]
+        const folk = []; gs.forEach(g => g.members.forEach(m => { if (!m.enter) folk.push([m.x, m.y, m.hy || 0]); }));
+        const pts = kind === 'over' ? (H.floor ? folk : [at(-H.L / 2, H.W / 2), at(-H.L / 2, -H.W / 2), at(H.L / 2, H.W / 2), at(H.L / 2, -H.W / 2)])   // a floor: the people, not its far ends
           : kind === 'walk' ? walkers.filter((p, k) => k % 2 === 0) : speaker ? [[speaker.members[0].x, speaker.members[0].y]] : [];
         let off = 0;
         pts.forEach(p => { const v = new td.camera.position.constructor(p[0], (p[2] || 0) + 1.5, -p[1]).project(cam), x = (v.x + 1) / 2 * W, y = (1 - v.y) / 2 * Hh; if (v.z > 1 || x < box[0] || x > box[1] || y < box[2] || y > box[3]) off++; });
-        if (off > (kind === 'walk' ? pts.length * 0.1 : 0)) bad.push(`${kind}: ${off} of ${pts.length} off`);
+        if (off > (kind === 'walk' || (kind === 'over' && H.floor) ? pts.length * 0.1 : 0)) bad.push(`${kind}: ${off} of ${pts.length} off`);
       });
       return { bad, start: bc.start, lastAt: bc.steps[bc.steps.length - 1].at };
     });
@@ -127,7 +130,7 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       td.groups().filter(g => g.hall).forEach(g => g.members.forEach(m => {
         if (m.leave && !m.gone) out.exit.push(g.label + ' still in the hall');
         if (m.react) got.add(g.who + '@' + (g.bench || ''));
-        if ((m.pose === 'cheer' || m.pose === 'jeer') && m.walkPath) out.react.push(g.label + ' ' + m.pose + 's walking');
+        if ((m.pose === 'cheer' || m.pose === 'jeer') && (m.leave || m.enter || m.walk)) out.react.push(g.label + ' ' + m.pose + 's walking');   // a vote's walk over, cheering is fine
         if (m.enter && (m.gone || m.walk || Math.hypot(m.x - (H.c[0] + H.f[0] * m.home.u + H.lf[0] * m.home.v), m.y - (H.c[1] + H.f[1] * m.home.u + H.lf[1] * m.home.v)) > 0.1)) out.exit.push(g.label + ' not in its seat');
       }));
       if (!pin) out.react.push('no pinned response in hall-react.json');

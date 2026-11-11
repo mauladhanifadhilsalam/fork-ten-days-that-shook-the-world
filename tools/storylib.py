@@ -33,7 +33,7 @@ FIELDS = {
     'hall': ['ll', 'dims', 'axis', 'plan', 'features', 'ref', 'note'],
     'feature': ['k', 'ref'],
     'ctl0': ['state', 'holder', 'by', 'as_of', 'ev', 'ref'],
-    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'speaker_out', 'house', 'actors', 'tags',
+    'event': ['id', 't', 'tq', 'tr', 'tp', 'cal', 'dp', 'sec', 'p', 'loc', 'witness', 'by', 'speaker', 'speaker_out', 'house', 'divide', 'actors', 'tags',
               'title', 'why', 'sum', 'q', 'also', 'doc', 'moves', 'ctl', 'present', 'gone', 'raised'],
     'ref': ['sec', 'q'],
     'doc': ['at', 't', 'tp', 'cal', 'dp', 'q'],
@@ -45,6 +45,8 @@ FIELDS = {
     # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words;
     # `all`: by everyone in the hall but the speaker's party, where Reed says most or all of it
     'house': ['pose', 'all', 'ref'],
+    # a vote taken by walking to one side of a hall with no benches ("those opposed, to the left")
+    'divide': ['to', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
     # the who's who: the parties, soviets, committees and forces Reed names, and their people
     'faction': ['id', 'kind', 'group', 'order', 'side', 'part_of', 'actors', 'members', 'see', 'pic', 'name', 'names', 'ru', 'sum', 'def', 'also', 'background', 'note'],
@@ -96,9 +98,10 @@ ENUM = {
     'kit': {'fire', 'barricade', 'mg', 'gun', 'armoured', 'truck', 'car', 'banner', 'flag', 'whiteflag', 'redcross', 'band', 'trench', 'torch', 'bicycle', 'leaflets', 'rifles'},
     'form': {'column', 'line', 'ranks', 'ring', 'lane'},
     'pose': {'fallen', 'prone', 'stand', 'vote', 'cheer', 'jeer', 'laugh', 'embrace'},
-    'bench': {'left', 'centre', 'right', 'platform', 'aisles', 'front', 'gallery'},
-    'hall.plan': {'rows', 'amphitheatre'},
-    'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits', 'frame'},
+    'bench': {'left', 'centre', 'right', 'platform', 'aisles', 'front', 'gallery', 'floor', 'car'},
+    'hall.plan': {'rows', 'amphitheatre', 'floor'},
+    'hall.feature': {'chandeliers', 'columns', 'gallery', 'portraits', 'frame', 'cars', 'arclight'},
+    'divide.to': {'left', 'right'},
     'assault': {'repulsed', 'carried'},
     'picture.kind': {'facsimile', 'photo', 'portrait', 'building', 'document', 'equipment'},
     'picture.from': {'reed-1919', 'commons', 'awm'},
@@ -130,7 +133,7 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               # in a meeting-hall: the house on its feet, a vote by show of cards, cheering, hooting
               'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|presidium|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
-              'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|exultation|pandemonium|embracing',
+              'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|victorious roar|exultation|pandemonium|embracing',
               'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with|\buproar',
               'laugh': r'\blaugh',
               # two bodies in each other's arms ("the two embracing")
@@ -140,9 +143,12 @@ HOUSE_POSES = ('stand', 'vote', 'cheer', 'jeer', 'laugh')      # a whole hall's 
 # where a body sits in a meeting-hall: the platform, the press table and the aisles only where Reed says so;
 # left, centre and right are the map's arrangement unless he says whose the benches were
 BENCH_WORDS = {'platform': r'platform|tribune', 'front': r'(round|around|about|before|in front of) the (platform|tribune)', 'gallery': r'galler', 'aisles': r'aisles?|window-sills?|on the sides|edges of the room',
-               'left': r'', 'centre': r'', 'right': r''}
+               'left': r'', 'centre': r'', 'right': r'', 'floor': r'', 'car': r'on top of the (car|automobile)|perched on top'}
+# the benches of a hall with no benches ("rushing across the dirt floor"), and those only of one with them
+FLOOR_BENCHES = ('floor', 'car')
+DIVIDE_WORDS = r'to the (left|right)'
 # only some of a body walking out ("only part of the Mensheviki Internationalists left the Congress")
-PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b'
+PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b|\bwere left stranded\b'
 # seats kept for a body that is not there ("the rows of Bolshevik seats--empty"); a body walking out behind the speaker
 EMPTY_WORDS = r'\bempty\b'
 SUITE_WORDS = r'with (his|her) (suite|staff|escort|aides)'
@@ -150,12 +156,13 @@ SUITE_WORDS = r'with (his|her) (suite|staff|escort|aides)'
 WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall|Congress|room)|walk(ed|s)? out|strode out|pushed their way out|got up and (left|went)|withdr[ae]w'
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession|announced the arrival'
 # a hall's shape, where Reed gives it ("the high, amphitheatrical Nicolai Hall")
-PLAN_WORDS = {'rows': r'', 'amphitheatre': r'amphithea'}
+PLAN_WORDS = {'rows': r'', 'amphitheatre': r'amphithea', 'floor': r'\bfloor\b'}
 # the hall's response by all of it, not one side's: Reed's word that it was most or all of the hall
 HOUSE_ALL_WORDS = r'most of the delegates|all the delegates|the whole (hall|house|assembly|Congress)|the entire (hall|house|assembly|Congress)'
 # a meeting over: everyone at the place goes (`gone` with `all`)
 DISPERSE_WORDS = r'dissolved|dispersed|adjourn|broke up|emptied|went home|to their homes'
-FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait', 'frame': r'\bframe\b'}
+FEATURE_WORDS = {'chandeliers': r'chandelier', 'columns': r'column', 'gallery': r'galler', 'portraits': r'portrait', 'frame': r'\bframe\b',
+                 'cars': r'armoured (cars|automobiles)', 'arclight': r'arc-light'}
 RUN_WORDS = r'rush|\bran\b|running|charg|dash|storm|poured|swept'
 # an assault "repulsed" needs words for the attack and for its failing; one "carried" into the building, for going in
 ATTACK_WORDS = r'assault|charg|attack|\brush|storm|waves? of'

@@ -804,15 +804,19 @@
  "present": [
   {"who": "cyclists", "size": "a long double file of cyclists", "n": 30, "kit": ["bicycle"], "form": "column", "brief": true},
   {"who": "crowd", "brief": true, "ref": {"sec": "VI", "q": "They halted, and the crowd pressed in and deluged them with questions."}}]},
-{"id": "riding-school", "t": "1917-11-09T19:00", "tq": "inferred", "tr": ["1917-11-09T17:30", "1917-11-09T21:30"], "cal": "none", "sec": "VI", "p": 165, "loc": "mikhailovsky-manege", "witness": "seen", "actors": ["krylenko", "armoured-cars"],
+{"id": "riding-school", "t": "1917-11-09T19:00", "tq": "inferred", "tr": ["1917-11-09T17:30", "1917-11-09T21:30"], "cal": "none", "sec": "VI", "p": 165, "loc": "manege-hall", "witness": "seen", "speaker": "krylenko", "divide": {"to": "left", "ref": {"sec": "VI", "q": "All those in favour should go to the right; those opposed, to the left. There was a moment of hesitation, a still expectancy, and then the crowd began to surge faster and faster, stumbling over one another, to the left"}}, "actors": ["krylenko", "armoured-cars"],
  "title": "“Will you give it back?”",
  "why": "After the cyclists at dusk, before Reed returns to the Duma.",
- "sum": "In the dim Mikhailovsky Riding School Krylenko, close to collapse, talks the two thousand armoured-car men out of neutrality.",
+ "sum": "In the dim Mikhailovsky Riding School Krylenko, close to collapse, talks the two thousand armoured-car men out of neutrality; they vote by crossing to the left, and some fifty walk out.",
  "q": "The Government is in your hands. You are the masters. Great Russia belongs to you. Will you give it back?",
+ "also": [
+  {"sec": "VI", "q": "in the midst of which the People's Commissar for Military Affairs clambered up the side of the car, helped by hands before and behind, pushed and pulled from below and above. Rising he stood for a moment, and then walked out on the radiator"}],
  "moves": [
   {"who": "reed", "from": "nevsky", "via": ["mikhailovskaya"], "to": "mikhailovsky-manege", "mode": "foot", "rc": "stated"}],
  "present": [
-  {"who": "armoured-cars", "size": "some two thousand dun-colored soldiers", "kit": ["armoured"], "inside": true, "brief": true, "ref": {"sec": "VI", "q": "Inside only a single arc-light burned dimly, high up near the roof of the enormous hall, whose lofty pilasters and rows of windows vanished in the gloom. Around dimly squatted the monstrous shapes of the armoured cars."}}]},
+  {"who": "armoured-cars", "place": "manege-hall", "size": "hundreds of big soldiers", "n": 100, "pose": "cheer", "brief": true, "ref": {"sec": "VI", "q": "the crowd began to surge faster and faster, stumbling over one another, to the left, hundreds of big soldiers in a solid mass rushing across the dirt floor in the faint light.... Near us about fifty men were left stranded, stubbornly in favour, and even as the high roof shook under the shock of victorious roaring"}},
+  {"who": "armoured-cars", "place": "manege-hall", "size": "about fifty men", "n": 3, "walkout": true, "part": true, "ref": {"sec": "VI", "q": "Near us about fifty men were left stranded, stubbornly in favour, and even as the high roof shook under the shock of victorious roaring, they turned and rapidly walked out of the building"}},
+  {"who": "brunnoviki-committee", "place": "manege-hall", "size": "A dozen men, officers, chairmen of the Soldiers' Committees and speakers", "n": 6, "bench": "car", "brief": true, "ref": {"sec": "VI", "q": "A dozen men, officers, chairmen of the Soldiers' Committees and speakers, were perched on top of the car"}}]},
 {"id": "duma-commissions", "t": "1917-11-09T23:00", "tq": "inferred", "tr": ["1917-11-09T21:00", "1917-11-09T23:45"], "cal": "none", "sec": "VI", "p": 168, "loc": "city-duma", "witness": "seen", "actors": ["duma", "schreider"],
  "title": "Two commissions",
  "why": "Just before Reed reaches Peter-Paul at midnight.",

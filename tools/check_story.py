@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'empty': BOOL, 'suite': BOOL, 'house': DICT, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
+    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'empty': BOOL, 'suite': BOOL, 'house': DICT, 'divide': DICT, 'to': STR, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
     'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
@@ -545,6 +545,8 @@ class Checker:
             self.speaker(e, pos, w)
         if 'house' in e:
             self.house(e, w)
+        if 'divide' in e:
+            self.divide(e, w)
         if 'speaker_out' in e:
             self.speaker_out(e, w)
         emb = [r for r in e.get('present', []) if isinstance(r, dict) and r.get('pose') == 'embrace']
@@ -716,8 +718,8 @@ class Checker:
         elif ll and L.dist_m(ll, c) > 400:
             F.err('geo.stage', hw, f'the hall is {L.dist_m(ll, c):.0f} m from its pin; keep it within 400 m')
         d = h.get('dims')
-        if not (isinstance(d, list) and len(d) == 2 and all(isinstance(x, (int, float)) and 4 <= x <= 120 for x in d)):
-            F.err('field.range', hw, 'dims is [length, width] in metres, each 4 to 120')
+        if not (isinstance(d, list) and len(d) == 2 and all(isinstance(x, (int, float)) and 4 <= x <= 200 for x in d)):
+            F.err('field.range', hw, 'dims is [length, width] in metres, each 4 to 200')
         if 'axis' in h and not (isinstance(h['axis'], int) and 0 <= h['axis'] < 360):
             F.err('field.range', hw, 'axis is the bearing from the back of the hall to its platform, 0 to 359 degrees')
         if 'plan' in h and (not isinstance(h['plan'], str) or h['plan'] not in L.ENUM['hall.plan']):
@@ -766,6 +768,8 @@ class Checker:
                 F.err('field.enum', where, f'bench {r["bench"]!r} is not one of {sorted(L.ENUM["bench"])}')
             elif L.BENCH_WORDS[r['bench']] and not re.search(L.BENCH_WORDS[r['bench']], text, re.I):
                 F.err('phrase.not-in-text', where, f'bench {r["bench"]!r}: the passage has no word for it ({L.BENCH_WORDS[r["bench"]]})')
+            elif (r['bench'] in L.FLOOR_BENCHES) != (hall.get('plan') == 'floor'):
+                F.err('field.range', where, f'bench {r["bench"]!r}: ' + ('a hall with no benches takes floor or car' if hall.get('plan') == 'floor' else 'floor and car are for a hall with no benches (plan floor)'))
             elif r['bench'] == 'gallery' and not any(isinstance(f, dict) and f.get('k') == 'gallery' for f in hall.get('features', [])):
                 F.err('field.range', where, 'bench "gallery": the hall has no gallery among its features')
             if r['bench'] in ('gallery', 'front') and (r.get('walkout') or r.get('walkin')):
@@ -860,6 +864,31 @@ class Checker:
                         if last is None or m.start() > last[0]:
                             last = (m.start(), p.get('id'))
         return last is not None and last[1] == per.get('id')
+
+    def divide(self, e, w):
+        """a vote taken by walking to one side of a hall with no benches: which side, and Reed's words for it"""
+        F, d, dw = self.F, e['divide'], w + '.divide'
+        if not isinstance(d, dict) or not fields(F, d, 'divide', dw):
+            return
+        hall = (self.P.get(e.get('loc')) or {}).get('hall')
+        if not hall or hall.get('plan') != 'floor':
+            F.err('hall.none', dw, 'divide: the scene is not in a hall with no benches (plan floor)')
+        if d.get('to') not in L.ENUM['divide.to']:
+            F.err('field.enum', dw, f'to {d.get("to")!r} is not one of {sorted(L.ENUM["divide.to"])}')
+        ref = d.get('ref')
+        if not isinstance(ref, dict) or not isinstance(ref.get('q'), str):
+            F.err('field.missing', dw, "ref: Reed's words for it")
+            return
+        at = self.quote_ok(ref.get('sec'), ref['q'], dw + '.ref')
+        if at is None:
+            return
+        m = re.search(L.DIVIDE_WORDS, ref['q'], re.I)
+        if not m:
+            F.err('phrase.not-in-text', dw, f'divide: the quote has no word for it ({L.DIVIDE_WORDS})')
+        elif d.get('to') in L.ENUM['divide.to'] and not re.search(r'(surge|rush|went|go|move|ran|stream)\w*[^.]{0,80}to the ' + d['to'], ref['q'], re.I):
+            F.err('phrase.not-in-text', dw, f'divide: the quote does not have them go to the {d["to"]}')
+        if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
+            F.err('phrase.not-near', dw, "divide: Reed's words for it are not within 1,500 characters of the scene's own passages")
 
     def house(self, e, w):
         """the whole hall's response in a scene: a hall pose, with Reed's words for it"""

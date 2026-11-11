@@ -710,6 +710,8 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['house'] = {'pose': e['house']['pose'], 'q': L.norm(e['house']['ref']['q'])}
         if e['house'].get('all'):   # by all the hall but the speaker's party, not one side
             rec['house']['all'] = True
+    if e.get('divide'):   # a vote by walking to one side of a hall with no benches
+        rec['divide'] = {'to': e['divide']['to'], 'q': L.norm(e['divide']['ref']['q'])}
     rec['q'] = ' … '.join(L.segments(e['q']))
     if e.get('also'):
         rec['also'] = [{'sec': a['sec'], 'q': ' … '.join(L.segments(a['q']))} for a in e['also']]

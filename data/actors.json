@@ -130,6 +130,10 @@
  "ru": "эсеры",
  "stance": [
   {"from": "1917-09-01", "s": "oppose", "ref": {"sec": "Notes", "q": "adopted the political attitude of the Mensheviki, and worked together with them"}}]},
+{"id": "brunnoviki-committee", "kind": "organ", "bloc": "neutral",
+ "name": "The armoured-car men’s committee and speakers",
+ "reed": ["Soldiers' Committees"],
+ "note": "“A dozen men, officers, chairmen of the Soldiers’ Committees and speakers”, perched on top of the armoured car in the middle of the Riding School on 9 November."},
 {"id": "committee-for-salvation", "kind": "organ", "bloc": "opposition", "seat": "city-duma",
  "name": "Committee for Salvation of Country and Revolution",
  "reed": ["Committee for Salvation"],

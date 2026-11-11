@@ -41,7 +41,9 @@ SECTIONS = {
           'At the end Kameniev announced the arrival of the Sailors, greeted with a rising ovation. Upon his arrival the Sailor was arrested. '
           'They went to slaughter and be slaughtered.',
           'There stretched the rows of Red Guard seats--empty since they had gone. Uproar from the Left. '
-          'When Kameniev had stepped down he strode out with his suite of officers.'],
+          'When Kameniev had stepped down he strode out with his suite of officers.',
+          'A dozen men were perched on top of the car. Those opposed should go to the left; and the crowd began to surge, '
+          'stumbling, to the left, rushing across the dirt floor. Near us a few were left stranded, and they walked out.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.',
@@ -1001,3 +1003,44 @@ class Hall(unittest.TestCase):
     def test_uproar_is_hooting(self):
         d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'jeer', 'ref': {'sec': 'V', 'q': 'Uproar from the Left.'}}
         self.assertEqual(errors(d), [])
+
+    # phase 5: a hall with no benches, the car, a vote by walking
+    def floor(self, d):
+        *_, h = self.add(d)
+        h['hall'].update({'plan': 'floor', 'dims': [160, 36], 'ref': {'sec': 'V', 'q': 'rushing across the dirt floor'}, 'features': []})
+        h['reed'] = ['great meeting-hall', 'dirt floor']   # named near the floor's own words
+        ev(d, 'session')['also'] = [{'sec': 'V', 'q': 'A dozen men were perched on top of the car.'}]
+        return h
+
+    def test_a_floor_hall(self):
+        d = good(); self.floor(d)
+        s = ev(d, 'session'); s['present'][0].pop('bench'); s['present'][1]['bench'] = 'car'
+        s['present'][1]['ref'] = {'sec': 'V', 'q': 'A dozen men were perched on top of the car.'}
+        self.assertEqual(errors(d), [])
+        s['present'][0]['bench'] = 'left'   # benches only where there are benches
+        self.assertIn('field.range', errors(d))
+        d = good(); s, *_ = self.add(d); s['present'][0]['bench'] = 'floor'   # and the floor only where there are none
+        self.assertIn('field.range', errors(d))
+        d = good(); h = self.floor(d); h['hall']['dims'] = [210, 36]
+        self.assertIn('field.range', errors(d))
+
+    def test_a_vote_by_walking(self):
+        q = 'Those opposed should go to the left; and the crowd began to surge, stumbling, to the left'
+        def vote(to='left', quote=q, floor=True):
+            d = good()
+            if floor: self.floor(d)
+            else: self.add(d)
+            s = ev(d, 'session'); s['present'][0].pop('bench'); s['present'][1].pop('bench', None)
+            s['present'][1]['ref'] = {'sec': 'V', 'q': 'A dozen men were perched on top of the car.'}
+            s['divide'] = {'to': to, 'ref': {'sec': 'V', 'q': quote}}
+            return errors(d)
+        self.assertEqual(vote(), [])
+        self.assertIn('phrase.not-in-text', vote(to='right'))   # they surge to the left
+        self.assertIn('phrase.not-in-text', vote(quote='rushing across the dirt floor'))
+        self.assertIn('field.enum', vote(to='up'))
+        self.assertIn('hall.none', vote(floor=False))
+
+    def test_left_stranded_is_part(self):
+        d = good(); self.floor(d); s = ev(d, 'session'); s['present'][0].pop('bench'); s['present'][1].pop('bench')
+        s['present'][1].update({'walkout': True, 'part': True, 'n': 2, 'size': 'a few', 'ref': {'sec': 'V', 'q': 'Near us a few were left stranded, and they walked out.'}})
+        self.assertNotIn('phrase.not-in-text', errors(d))
