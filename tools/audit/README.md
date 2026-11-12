@@ -64,10 +64,11 @@ samples of people moving in a wall, 0.3% through another body.
 After the halls (phases 1 and 2): frames 38 of 4,145 on a desktop, 93 on a phone; `vehicles.js` someone inside
 0.7%, overlapping 0.0%, held 13.2%; `motion.js` 0.6% in a wall, 0.1% through; `camera.js` a median 133 m (128 of
 130 within 250 m), 4 of 951 close-shot samples under 70%; on a phone a median 211 m, 12 of 438; `hall.js` 16
-scenes, no finding on desktop or phone. The held vehicles rose because the hall's new records shift the layout
-seeds of the bodies after them in the data (a body's seed is its index there), so other scenes' crowds are laid
-out afresh: the truck ride's and the Kirochnaya lunch's cars are held longer now. Seeds that do not depend on
-the order of the data would stop an edit in one scene reshuffling another. `camera.js`: the camera ends a median 136 m
+scenes, no finding on desktop or phone. The held vehicles rose because the hall's new records shifted the layout
+seeds of the bodies after them in the data (a body's seed was then its index there), so other scenes' crowds were
+laid out afresh: the truck ride's and the Kirochnaya lunch's cars were held longer. Every phase after did the same
+until the seeds stopped depending on the order of the data (*Stable seeds*, below), which is why the frame, vehicle
+and motion numbers in the next paragraphs move in scenes no phase touched. `camera.js`: the camera ends a median 136 m
 off (128 of 130 scenes within 250 m; the other two are rides that leave the drawn city), every close shot
 with at least 70% of its people on screen in all but 4 of 1,128 samples; on a phone (every other scene) a
 median 215 m, 12 of 534 samples under 70%, the wide bodies seen in part.
@@ -95,6 +96,60 @@ phone (the Riding School's crossing to the left: 6 of 3,479 walking samples with
 `camera.js` a median 126 m (129 of 131 within 250 m), 0 of 863 close-shot samples under 70%; on a phone (every
 other scene) a median 209 m, 12 of 414. The new records moved the layout seeds once more, so the vehicle and frame
 numbers moved with them, not because anything outside the halls was fixed.
+
+## Stable seeds
+
+A body's seed (where its members stand and which figures they are, when its patrol sets off, the timing of its
+fight, who in a hall cheers and who only rises) is a hash of who it is, its place and the id of the scene it comes
+in, taken once as the page loads (`keySeed` in `src/app.html`). The few records that share all three (a body and
+the part of it that walks out, or takes a pose of its own, in that scene) are told apart by their order among
+themselves. Nothing else in staging draws on where a record falls in the data: what is sorted by it (who keeps
+their ground first, the order on the benches) keeps its order whatever is added elsewhere.
+
+To check it, a brief record (eight onlookers at the gate) was added to `smolny-by-streetcar`, the third scene, and
+the story and the page rebuilt. It moves 2,263 of the 2,265 bodies staged in the other scenes (a body counts once
+in each scene it stands in) one place down the data; every one of them kept its seed and stood where it had, with
+the same figures (each scene staged in turn: positions to the centimetre, headings, figures and props). With the
+index seed, the same record (tried on phase 5's data) laid out 1,887 of 2,262 afresh, in 128 of the other 130
+scenes. The record was then taken out again.
+
+The change laid out every scene afresh, once. Just before it (after the records for parts of bodies, which had
+moved the index seeds again) `crowds.js` failed, 484 of 6,010 figures hidden (8.1%), and `motion.js` had 0.8% in a
+wall. After it: smoke 132 scenes, no error; `crowds.js` 22 run together, 16 in a wall, 446 hidden (7.4%), none in
+another body, none drawn short; frames 38 of 4,144 on a desktop, 148 on a phone (the Morskaya yunkers' 45, and 30
+yunkers at the Telegraph Agency in `yunkers-take-hotel-agency`); `vehicles.js` someone inside 0.0%, overlapping
+0.7%, held 8.1%; `motion.js` 0.3% in a wall, 0.0% through; `hall.js` 26 scenes, no finding on desktop or phone;
+`camera.js` a median 125 m (129 of 131 within 250 m), 0 of 862 close-shot samples under 70%; on a phone (every
+other scene) a median 199 m, 66 of 66 within 360 m, 0 of 413. These are what this layout happens to give, no better
+in kind than the old: hidden is 34 figures from its limit. What has changed is that they now move only with an edit
+to the scene they are in.
+
+Then two fixes, one for what the new layout showed and one for an older fault. The overlapping was Reed's car
+leaving Smolny through the Red Guards' fire at its gates (`sailors-train-moscow`): nothing kept a fire off a
+vehicle's route, so it lay wherever the seed put it. A fire is now lit 6 m off the line of every route a vehicle
+drives in its scene, as people lying flat already keep. The older fault is the Morskaya yunkers.
+`up-the-morskaya-nov5`'s close frame looks down the Nevsky (the scene's place lies in a street), and the yunkers
+stand 480 m up the Morskaya, across the line of sight. On the audits' 390 × 844 phone the clear part runs 9.8°
+above the point the camera aims at and 7.5° below it. The first fitting pass only slides the target toward whoever
+is left out and draws back; sliding drops the near crowd under the map's buttons, so it kept the first frame. In
+this build that frame was the same whichever way the camera came (the street's axis fixed its heading) and left the
+yunkers out every time; in earlier builds it varied with the scenes staged before. Now a frame that still leaves
+one of the scene's own out turns to look toward it over the place, and searches where to aim, how far back and how
+steeply for the nearest view that takes in the most of them. It is kept only if it leaves fewer out, and it does
+not depend on the way the camera came. The Morskaya view is from 900 m, up the street, the column small near the
+top of the picture; staged on its own, the scene now leaves none of its 125 out.
+
+After both: smoke 132 scenes, no error; `crowds.js` as above; frames 38 of 4,144 on a desktop, 70 on a phone (the
+Morskaya and Telegraph Agency yunkers in; the truck ride's sailors, the Red Guards on the Nevsky in
+`broken-stucco`, the sailors retaking the Telegraph Agency and 8 of the storming's 60 still out); `vehicles.js`
+someone inside 0.5%, overlapping 0.0%, held 7.5%; `motion.js` 0.3% in a wall, 0.0% through; `hall.js` 26 scenes, no
+finding on desktop or phone; `camera.js` a median 125 m (129 of 131 within 250 m), 0 of 863 close-shot samples
+under 70%; on a phone (every other scene) a median 202 m, 66 of 66 within 360 m, 0 of 413.
+
+On one build the numbers still differ a little from run to run, since the audits sample the page's own clock: on
+phase 5's build `vehicles.js` gave held 6.5% in one run and 7.3% in another, someone inside 0.0% and 0.4%. And in
+an assault (`assault` in the data) who runs, where to and when are drawn from `Math.random`, not from a seed, so
+`motion.js` differs between runs of the same build even along the same path.
 
 `shot.js --film ID` takes a scene as it plays (at 2, 6, 10, 14 and 18 s): the way to look at a fight.
 
