@@ -1505,8 +1505,16 @@ function layoutPlace(id, groups, t, loc, scene) {
       g.props.push({ k: 'mg', x: mx, y: my, yaw: my2 });
       if (fi < figs.length) g.members.push({ k: figs[fi++], x: mx, y: my, ox: -Math.sin(my2) * 0.8, oy: Math.cos(my2) * 0.8, yaw: my2, idle: 0.2 });
     }
+    // a fire is not lit in the way of a vehicle that drives through in this scene (Reed's car out of the Smolny
+    // gates, past the Red Guards' fires): 6 m off the line of its route, as people lying flat keep
+    var vLanes = nFire ? movers.filter(function (mv) { return mv.veh && !mv.arc && mv.o && mv.o.pts && mv.o.pts.length > 1; }) : [];
+    function offLanes(kk) {
+      var x = cellX(G, kk), y = cellY(G, kk);
+      return vLanes.every(function (mv) { var P = mv.o.pts; for (var q = 1; q < P.length; q++) if (segDist(x, y, P[q - 1].x, -P[q - 1].z, P[q].x, -P[q].z) < 6) return false; return true; });
+    }
     for (i = 0; i < nFire; i++) {
-      ix = pick(cur + 6 + i * 40, 3.2); if (ix < 0) break; k = G.order[ix]; take(k, 3.2);
+      ix = pick(cur + 6 + i * 40, 3.2); while (ix >= 0 && !offLanes(G.order[ix])) ix = pick(ix + 1, 3.2);
+      if (ix < 0) break; k = G.order[ix]; take(k, 3.2);
       var fx = cellX(G, k), fy = cellY(G, k); g.fires.push([fx, fy]); g.props.push({ k: 'logs', x: fx, y: fy, yaw: 0 });
       for (var a = 0; a < 7 && fi < figs.length; a++) {
         var an = a / 7 * Math.PI * 2 + hash(seed + a) * 0.4, ox = Math.cos(an) * 1.25, oy = Math.sin(an) * 1.25;
