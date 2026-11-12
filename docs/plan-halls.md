@@ -109,7 +109,6 @@ scene briefly, as now.
 - The press table Reed sat at ("as we sat at the press table in the big hall"): not drawn, so `press` is not a bench yet.
 - The Front group's walk-out ("The Front group will leave the Congress"), and Kutchin going "down the aisle in the midst of a deafening noise, people surged in upon him": the Front group is not a body in the data, and a single man walking out is not drawn.
 - The "foul blue cloud of cigarette smoke" over the rows.
-- land-decree: Reed's joy is "the peasant delegates'", but the house's cheering is drawn on the whole side of the rising.
 - The chairman's place: Dan "ringing the bell" and Kameniev "reading" stand at the reading stand; the map has no separate place for the chair.
 - A walk-in to the benches is used by the Peasants' Congress coming in; a body walking out from the platform is drawn but no scene uses it yet.
 - Phase 2: Gotz "took the chair" and Sverdlov greeted the peasants, but there is one speaker per scene and no chairman, so neither is drawn; nor is Holtzman running down the corridor with the telegram (he is not in the Faction Map), nor the music that "blared down the corridor", nor Larin, whose resolution the press-decree scene's hooting and applause answer (he is not in the Faction Map either, so the scene has no speaker). Which two banners crossed on the wall Reed does not say; the map gives one to each presidium.
@@ -126,7 +125,7 @@ scene briefly, as now.
 - The old Executive Committee's "rump convention ... in another room of the same building", where Tchernov first spoke, is not drawn; nor is the agreement Ustinov announced "received by the delegates with the wildest joy" before Tchernov came in.
 - Tchernov's return to the Alexander Hall (25 Nov): his walk in, "welcomed with great applause by the majority", and Zinoviev's heckling are not drawn, only the uproar and his leaving; nor is the Executive Committee he brought back (the checker does not take "the Executive Committee" alone for its name).
 - The laughter is a pose with a six-second shake: from far off it reads less than a raised fist. No scene has the speaker's own party in the hall while it laughs, so that part of the rule is untested.
-- Tchernov's return: "some of the Left Socialist Revolutionaries" on their feet with the Bolsheviki, and "the rest of the assembly tried to yell them down", are not drawn: a pose is a whole body's.
+- Tchernov's return: "the rest of the assembly tried to yell them down" is not drawn (the hooting rule keeps the speaker's own party quiet, and here his party is among those yelling). "Some of the Left Socialist Revolutionaries" on their feet with the Bolsheviki are drawn since phase 5, as a part of the body with a pose of its own.
 - The speaker leaving as "he": the checker takes the last of the Faction Map's people named before the pronoun, within 600 characters; it does not see people outside the Faction Map, nor whether a name is inside someone's speech.
 
 ## Left from phase 3

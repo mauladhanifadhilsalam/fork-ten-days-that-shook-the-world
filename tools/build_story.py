@@ -668,8 +668,8 @@ def to_tour(i):
     return None
 
 
-presence = []
-for sp in spans:
+presence, rec_of = [], {}   # rec_of: span index -> its record, for a part to find its body's
+for si, sp in enumerate(spans):
     pl = T_places.get(sp['place'], {})
     if pl.get('zone') != 'city' or not pl.get('ll'):
         continue
@@ -691,6 +691,8 @@ for sp in spans:
         rec['walkout'] = True   # leaving the hall in this scene
         if sp.get('part'):
             rec['part'] = True   # some of the body; the rest stays in its seats
+    elif sp.get('part') and in_tour[sp['start']]:   # some of the body with a pose of their own, for this scene: the page draws the rest fewer by them
+        rec['part'] = True
     if sp.get('form') and in_tour[sp['start']]:   # drawn in its own scene only
         e0 = events_all[sp['start']]
         words = [L.norm(x) for x in L.segments(e0.get('q', ''))] + [L.norm(r['q']) for r in e0.get('also', [])]
@@ -699,7 +701,12 @@ for sp in spans:
         for k in ('face', 'fire', 'at', 'pose', 'assault', 'patrol', 'walkin', 'empty', 'suite'):
             if k in sp:
                 rec[k] = sp[k]
+    rec_of[si] = rec
     presence.append(rec)
+for si, sp in enumerate(spans):   # a part with a pose Reed gives no kind of its own is dressed as the rest of its body
+    rec, body = rec_of.get(si), rec_of.get(sp.get('of'))
+    if rec and rec.get('part') and not rec.get('walkout') and body and 'fig' in body and figures(sp['who'], sp.get('size'))[0] == figures(sp['who'])[0]:
+        rec['fig'] = body['fig']
 
 events = []
 for e in [e for e, ok in zip(events_all, in_tour) if ok]:

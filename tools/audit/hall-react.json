@@ -1,5 +1,5 @@
 {
-  "_": "Who answers the house (or stands, votes, cheers or hoots by its own record) in each hall scene, as who@bench: pinned, so that a change to the rule shows here. Smolny's as drawn before the Duma's halls (the side of the rising); the Duma's from Reed: 'imprecations from the right'; the Bolsheviki 'followed by cries'; the Bolshevik benches' 'ironic laughter'; Zinoviev 'hooted down' when 'most of the delegates were hostile', so all but the Bolsheviki, the gallery and those walking out. At Fontanka 6 the hall laughs at Tchernov ('a great burst of laughter') and rises for the Smolny delegation ('a rising ovation'), the delegation walking in. Tchernov's return to the Alexander Hall: the Bolsheviki 'on their feet all at once, shaking their fists'. The Council of the Republic: nobody answers on 5 November; on 6 November the Left's 'Uproar' at Kerensky; the Bolshevik seats empty. The Riding School: the armoured-car men cheering as they reach the left ('victorious roaring'); those 'left stranded' walk out, the committee on the car does not answer.",
+  "_": "Who answers the house (or stands, votes, cheers or hoots by its own record) in each hall scene, as who@bench: pinned, so that a change to the rule shows here. Smolny's as drawn before the Duma's halls (the side of the rising); the Duma's from Reed: 'imprecations from the right'; the Bolsheviki 'followed by cries'; the Bolshevik benches' 'ironic laughter'; Zinoviev 'hooted down' when 'most of the delegates were hostile', so all but the Bolsheviki, the gallery and those walking out. At Fontanka 6 the hall laughs at Tchernov ('a great burst of laughter') and rises for the Smolny delegation ('a rising ovation'), the delegation walking in. Tchernov's return to the Alexander Hall: the Bolsheviki 'on their feet all at once, shaking their fists'. The Council of the Republic: nobody answers on 5 November; on 6 November the Left's 'Uproar' at Kerensky; the Bolshevik seats empty. The Riding School: the armoured-car men cheering as they reach the left ('victorious roaring'); those 'left stranded' walk out, the committee on the car does not answer. Some of a body with a pose of their own are pinned as who@bench:part: at the Land Decree the hall votes ('put to vote, with only one against') and the Congress's 'Peasants' Deputies' cheer ('the peasant delegates wild with joy'); at the press decree 'a part of the Bolsheviki' applauds with the Left Socialist Revolutionaries while the rest hoot Larin; at Tchernov's return 'some of the Left Socialist Revolutionaries' are on their feet with the Bolsheviki.",
   "council-of-republic-nov5": [],
   "kerensky-council-nov6": [
     "left-srs@left"
@@ -45,7 +45,9 @@
   "land-decree": [
     "bolsheviki@left",
     "congress@aisles",
-    "left-srs@centre"
+    "congress@aisles:part",
+    "left-srs@centre",
+    "menshevik-internationalists@centre"
   ],
   "sovnarkom-formed": [],
   "schreider-neutral": [
@@ -58,6 +60,7 @@
   "holtzman-telegram": [],
   "press-decree-night": [
     "bolsheviki@left",
+    "bolsheviki@left:part",
     "left-srs@centre"
   ],
   "peasants-first-session": [
@@ -66,7 +69,8 @@
     "srs@right"
   ],
   "tchernov-outrage": [
-    "bolsheviki@left"
+    "bolsheviki@left",
+    "left-srs@left:part"
   ],
   "banners-intertwined": [
     "petrograd-soviet@left",

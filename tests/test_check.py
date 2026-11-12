@@ -44,7 +44,9 @@ SECTIONS = {
           'When Kameniev had stepped down he strode out with his suite of officers.',
           'A dozen men were perched on top of the car. All those in favour should go to the right; those opposed, to the left. '
           'And the crowd began to surge, stumbling, to the left, rushing across the dirt floor. Near us a few were left stranded, and they walked out. '
-          'Inside all was uproar.'],
+          'Inside all was uproar.',
+          'This was met by a thunder of applause, not only from the Sailors, but also from a part of the Red Guards. '
+          'The Land Decree was put to vote, with the peasant delegates wild with joy.'],
     'IX': ['Pulkovo. Staff. 2.10 A.M. The night of October 30th to 31st will go down in history.',
            "It was almost three o'clock in the morning when Holtzman came running.",
            'The hall rose, thundering.',
@@ -678,9 +680,9 @@ class Hall(unittest.TestCase):
         d = good(); _, l, *_ = self.add(d); l['present'][0]['ref']['q'] = 'the rest were going to stay.'
         self.assertIn('phrase.not-in-text', errors(d))
 
-    def test_part_only_for_a_walkout(self):
+    def test_part_only_for_a_walkout_or_a_pose(self):
         d = good(); s, *_ = self.add(d); s['present'][0]['part'] = True
-        self.assertIn('phrase.not-in-text', errors(d))
+        self.assertIn('field.range', errors(d))
 
     def test_the_house_needs_its_word(self):
         d = good(); s, *_ = self.add(d); s['house']['pose'] = 'cheer'
@@ -1074,3 +1076,56 @@ class Hall(unittest.TestCase):
         d = good(); self.floor(d); s = ev(d, 'session'); s['present'][0].pop('bench'); s['present'][1].pop('bench')
         s['present'][1].update({'walkout': True, 'part': True, 'n': 2, 'size': 'a few', 'ref': {'sec': 'V', 'q': 'Near us a few were left stranded, and they walked out.'}})
         self.assertEqual(errors(d), [])
+
+    # some of a body with a pose of their own ("also from a part of the Bolsheviki")
+    def part_pose(self, d):
+        s = ev(d, 'session')
+        s['present'].append({'who': 'red-guards', 'size': 'a part of the Red Guards', 'n': 4, 'pose': 'cheer', 'part': True, 'brief': True,
+                             'ref': {'sec': 'V', 'q': 'This was met by a thunder of applause, not only from the Sailors, but also from a part of the Red Guards.'}})
+        return s, s['present'][-1]
+
+    def test_a_part_of_a_body_takes_a_pose(self):
+        d = good(); self.add(d); self.part_pose(d)
+        self.assertEqual(errors(d), [])
+
+    def test_a_part_with_a_pose_needs_its_words(self):
+        d = good(); self.add(d); _, p = self.part_pose(d); p['ref']['q'] = 'This was met by a thunder of applause, not only from the Sailors'; p['size'] = 'the Red Guards'
+        self.assertIn('phrase.not-in-text', errors(d))
+        d = good(); self.add(d); _, p = self.part_pose(d); p['pose'] = 'fallen'   # not a pose of the hall's
+        self.assertIn('field.range', errors(d))
+        d = good(); self.add(d); _, p = self.part_pose(d); del p['n']
+        self.assertIn('field.missing', errors(d))
+
+    def test_a_part_with_a_pose_is_brief_fewer_and_beside_its_body(self):
+        d = good(); self.add(d); _, p = self.part_pose(d); del p['brief']
+        self.assertIn('field.range', errors(d))
+        d = good(); self.add(d); _, p = self.part_pose(d); p['n'] = 20   # the body is twenty
+        self.assertIn('field.range', errors(d))
+        d = good(); self.add(d); s, _ = self.part_pose(d); s['present'].pop(0)   # no body there to be part of
+        self.assertIn('presence.not-there', errors(d))
+        d = good(); self.add(d); _, p = self.part_pose(d); p['walkin'] = True
+        self.assertIn('field.range', errors(d))
+
+    def test_a_part_with_a_pose_sits_with_its_body_for_its_scene(self):
+        acts = [{'id': 'g', 'kind': 'party', 'bloc': 'soviet'}]
+        pls = [{'id': 'hall', 'kind': 'room'}]
+        evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 10, 'bench': 'left'}]},
+               {'id': 'b', 'loc': 'hall', 'present': [{'who': 'g', 'n': 3, 'pose': 'cheer', 'part': True, 'brief': True}]},
+               {'id': 'c', 'loc': 'hall'}]
+        sp = L.presence_spans(evs, acts, pls)[0]
+        at = lambda i: sorted((s.get('n'), s.get('pose') or '', s.get('bench')) for s in sp if s['start'] <= i and (s['end'] is None or i < s['end']))
+        self.assertEqual(at(1), [(3, 'cheer', 'left'), (10, '', 'left')])   # on its body's bench; the page draws the rest fewer by them
+        self.assertEqual(at(2), [(10, '', 'left')])                          # the scene's only
+        part = [s for s in sp if s.get('part')][0]
+        self.assertIs(sp[part['of']], [s for s in sp if not s.get('part')][0])
+        # listed before a brief body in the same scene, it still finds it, and does not merge with it
+        evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 3, 'pose': 'cheer', 'part': True, 'brief': True}, {'who': 'g', 'n': 10, 'bench': 'right', 'brief': True}]}]
+        sp = L.presence_spans(evs, acts, pls)[0]
+        self.assertEqual(sorted((s.get('n'), s.get('bench')) for s in sp), [(3, 'right'), (10, 'right')])
+
+    def test_put_to_vote_is_a_vote(self):
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'vote', 'ref': {'sec': 'V', 'q': 'The Land Decree was put to vote, with the peasant delegates wild with joy.'}}
+        s['q'] = 'The Land Decree was put to vote'   # near the scene's own passage
+        self.assertEqual(errors(d), [])
+        s['house']['ref']['q'] = 'the peasant delegates wild with joy.'
+        self.assertIn('phrase.not-in-text', errors(d))

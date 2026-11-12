@@ -132,7 +132,7 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               'prone': r'\bflat\b|lay down|lying down|threw themselves|on their faces|on the ground|falling down|lying still|piled in the gutters',
               # in a meeting-hall: the house on its feet, a vote by show of cards, cheering, hooting
               'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|presidium|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
-              'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b',
+              'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b|put to (the )?vote',
               'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|victorious roar|exultation|pandemonium|embracing',
               'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with|Uproar from the (Left|Right)',
               'laugh': r'\blaugh',
@@ -147,8 +147,12 @@ BENCH_WORDS = {'platform': r'platform|tribune', 'front': r'(round|around|about|b
 # the benches of a hall with no benches ("rushing across the dirt floor"), and those only of one with them
 FLOOR_BENCHES = ('floor', 'car')
 DIVIDE_WORDS = r'to the (left|right)'
-# only some of a body walking out ("only part of the Mensheviki Internationalists left the Congress")
-PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b|\bwere left stranded\b'
+# only some of a body walking out ("only part of the Mensheviki Internationalists left the Congress"), or
+# taking a pose of their own ("a thunder of applause ... also from a part of the Bolsheviki"; the Congress
+# "including some Peasants' Deputies")
+PART_WORDS = r'\bpart of\b|\bsome of\b|\ba few of\b|\bseveral of\b|\bhalf of\b|\bmost of\b|\bwere left stranded\b|\bincluding some\b'
+# the poses a part of a body may take apart from the rest of it
+PART_POSES = ('stand', 'vote', 'cheer', 'jeer', 'laugh')
 # seats kept for a body that is not there ("the rows of Bolshevik seats--empty"); a body walking out behind the speaker
 EMPTY_WORDS = r'\bempty\b'
 SUITE_WORDS = r'with (his|her) (suite|staff|escort|aides)'
@@ -569,7 +573,9 @@ def presence_spans(events, actors, places):
     that states them, its first. Being indoors (`inside`) and where a body sits in a hall (`bench`) are
     the body's, and hold until Reed says otherwise. A body that walks out of a hall (`walkout`) is there
     for that scene and gone after it; if only part of it leaves (`part`), the leavers are a body of their
-    own for that scene and the rest stays. A `gone` entry with `all` ends every body at its place (a
+    own for that scene and the rest stays. A `part` that does not walk out takes a pose of its own (`pose`)
+    in its scene: a body of its own for that scene, beside the rest (`of`, the index of the body's span, which the page
+    draws fewer by them), sitting where the body sits. A `gone` entry with `all` ends every body at its place (a
     meeting dissolved). Two brief entries for one body at one place in one scene are one body (unless it
     marches past).
 
@@ -635,6 +641,7 @@ def presence_spans(events, actors, places):
         if not isinstance(e, dict):
             continue
         loc, eid = e.get('loc'), e.get('id')
+        parts = []
         for r in e.get('present', []):
             if not isinstance(r, dict):
                 continue
@@ -654,6 +661,10 @@ def presence_spans(events, actors, places):
                             r = dict(r, n=left)
                 sp = begin(key, i, r, eid, 'present', old=old)
                 sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'walkout', eid
+            elif r.get('part'):   # some of the body take a pose of their own, for this scene: a body of their own beside the rest
+                sp = begin(key, i, r, eid, 'present')
+                sp['end'], sp['end_by'], sp['end_ev'] = i + 1, 'brief', eid
+                parts.append(sp)
             elif r.get('brief') and not r.get('march') and (key, i) in briefs:   # a second word on the same body in the same scene adds to it
                 merge(briefs[(key, i)], r)
                 formation(briefs[(key, i)], r)
@@ -666,6 +677,12 @@ def presence_spans(events, actors, places):
                 update(key, i, r, eid, 'present')
             else:
                 live[key] = begin(key, i, r, eid, 'present')
+        for sp in parts:   # a part sits where its body sits, and is drawn in its clothes unless Reed says otherwise
+            body = briefs.get(((sp['who'], sp['place']), i)) or live.get((sp['who'], sp['place']))
+            sp['of'] = next((j for j, x in enumerate(spans) if x is body), None)   # the index of the body's span
+            for k in ('bench', 'inside', 'outside'):
+                if body is not None and k in body and k not in sp:
+                    sp[k] = body[k]
         for r in e.get('gone', []):
             if not isinstance(r, dict):
                 continue

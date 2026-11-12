@@ -13,7 +13,8 @@
 //             made way), not counting those still waiting to walk or done walking
 //   crowd     a sample of two people walking within 0.5 m of each other
 //   react     the bodies with anyone rising, voting, cheering or hooting, not those pinned for the scene in
-//             hall-react.json; or one walking out or in cheering or hooting
+//             hall-react.json (some of a body with a pose of their own as who@bench:part); one walking out or in
+//             cheering or hooting; one of such a part not in its pose, or a part with no body beside it
 //   float     a sample of someone walking more than 0.6 m above or below what is drawn under them
 //   table     a sample of two in each other's arms standing in the presidium table
 //   short     the scene ending (its last shot held four seconds) before the hall's walks are done
@@ -133,10 +134,12 @@ const args = process.argv.slice(2), opt = (k, d) => { const i = args.indexOf(k);
       const got = new Set();
       td.groups().filter(g => g.hall).forEach(g => g.members.forEach(m => {
         if (m.leave && !m.gone) out.exit.push(g.label + ' still in the hall');
-        if (m.react) got.add(g.who + '@' + (g.bench || ''));
+        if (m.react) got.add(g.who + '@' + (g.bench || '') + (g.posePart ? ':part' : ''));   // some of a body with a pose of their own
+        if (g.posePart && !(m.react && m.react.pose === (g.pose === 'stand' ? null : g.pose === 'vote' ? (m.seat || m.home.sill ? 'seatvote' : 'vote') : g.pose === 'laugh' ? (m.seat || m.home.sill ? 'seatlaugh' : 'laugh') : g.pose))) out.react.push(g.label + ': one of the part not in its pose');
         if ((m.pose === 'cheer' || m.pose === 'jeer') && (m.leave || m.enter || m.walk)) out.react.push(g.label + ' ' + m.pose + 's walking');   // a vote's walk over, cheering is fine
         if (m.enter && (m.gone || m.walk || Math.hypot(m.x - (H.c[0] + H.f[0] * m.home.u + H.lf[0] * m.home.v), m.y - (H.c[1] + H.f[1] * m.home.u + H.lf[1] * m.home.v)) > 0.1)) out.exit.push(g.label + ' not in its seat');
       }));
+      td.groups().filter(g => g.hall && g.posePart && !td.groups().some(h => h !== g && h.hall && h.who === g.who && !h.posePart)).forEach(g => out.react.push(g.label + ': a part with no body beside it'));
       walks.forEach(k => { if (!td.groups().some(g => g.hall && g.who === k.who && (k.out ? g.walkout : g.walkin))) out.exit.push(k.who + (k.out ? ' walks out' : ' walks in') + ' in the data, but is not drawn'); });   // every walk of the scene's is staged
       if (!pin) out.react.push('no pinned response in hall-react.json');
       else {

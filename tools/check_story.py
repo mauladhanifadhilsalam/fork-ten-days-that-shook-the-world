@@ -789,10 +789,17 @@ class Checker:
             F.err('field.range', where, 'a body walks out or walks in, not both')
         if r.get('walkout') and r.get('brief'):
             F.err('field.range', where, 'walkout already ends the body after its scene; drop brief')
-        if 'part' in r and not (r.get('walkout') and re.search(L.PART_WORDS, text, re.I)):
-            F.err('phrase.not-in-text', where, f'part: only some of a body walking out, in Reed\'s words ({L.PART_WORDS})')
+        if 'part' in r and not (r.get('walkout') or r.get('pose') in L.PART_POSES):
+            F.err('field.range', where, f'part: only some of a body walking out, or taking a pose of its own ({", ".join(L.PART_POSES)})')
+        elif 'part' in r and not re.search(L.PART_WORDS, text + ' ' + (r.get('size') or ''), re.I):
+            F.err('phrase.not-in-text', where, f'part: only some of the body, in Reed\'s words ({L.PART_WORDS})')
         if r.get('part') and 'n' not in r:
-            F.err('field.missing', where, 'part: how many of them walk out (n, with size), so the rest can be drawn fewer by them')
+            F.err('field.missing', where, 'part: how many of them walk out or take the pose (n, with size), so the rest can be drawn fewer by them')
+        if r.get('part') and not r.get('walkout'):   # a part with a pose of its own: the scene's, beside the rest of its body
+            if not r.get('brief'):
+                F.err('field.range', where, 'part with a pose: a pose is the scene\'s, so the part is too (brief)')
+            if any(r.get(k) for k in ('walkin', 'empty', 'suite')) or r.get('bench') in ('platform', 'car'):
+                F.err('field.range', where, 'part with a pose: some of a body seated or standing in the hall, not walking in, on the platform or the car, nor empty seats or a suite')
         if r.get('empty'):   # "the rows of Bolshevik seats--empty": their seats, kept, with nobody in them
             if not re.search(L.EMPTY_WORDS, text, re.I):
                 F.err('phrase.not-in-text', where, f'empty: the passage has no word for it ({L.EMPTY_WORDS})')
@@ -1228,6 +1235,12 @@ class Checker:
         for eid, who, pid in misses:
             self.F.err('presence.not-there', f'events/{eid}', f'gone: {who} is not at {pid} at this point')
         for sp in spans:
+            if sp.get('part') and not sp.get('walkout'):   # some of a body taking a pose: the body must be there, and more of them
+                body = spans[sp['of']] if sp.get('of') is not None else None
+                if body is None:
+                    self.F.err('presence.not-there', f'events/{sp["ev"]}', f'part: {sp["who"]} is not at {sp["place"]} in this scene, so no part of it can take a pose')
+                elif isinstance(sp.get('n'), int) and isinstance(body.get('n'), int) and sp['n'] >= body['n']:
+                    self.F.err('field.range', f'events/{sp["ev"]}', f'part: {sp["n"]} of {sp["who"]} take the pose, but the body is only {body["n"]}; a part is fewer than the whole')
             if sp.get('inside') and (any(sp.get(k) for k in ('form', 'march', 'assault', 'patrol')) or sp.get('fire') is True):
                 self.F.err('field.range', f'events/{sp["ev"]}', f'{sp["who"]} at {sp["place"]} is inside (from an earlier entry): it does not form up, march, assault, patrol or fire in the open')
 
