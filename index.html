@@ -5108,6 +5108,9 @@ function frameAt(x, y, d, pol, dx, dy) {
 function frameFor(e) {
   var box = new THREE.Box3(), l = PL[rootOf(e.loc)] || PL[e.loc];
   if (l && l.p && !l.far) { var c = new THREE.Vector3(l.p[0], 0, -l.p[1]); box.set(c.clone().addScalar(-300), c.clone().addScalar(300)); }
+  // and the bodies it brings in, wherever they stand ("Peter-Paul Fortress has just come over to us", told at Smolny)
+  var ix = seq.indexOf(e);
+  GROUPS.forEach(function (g) { if (g.cx != null && !g.ship && g.p && g.p.from === ix) box.expandByPoint(new THREE.Vector3(g.cx, 0, -g.cy)); });
   // the tour is Petrograd's: a route that leaves the city is framed only as far as the city's edge
   MOVES.forEach(function (o) {
     if (o.e === e && o.line.visible) o.pts.forEach(function (p) {
@@ -5154,10 +5157,12 @@ function closeFrame(e) {
     var w = g.reed ? 12 : Math.min(60, (g.members || []).length + (g.props || []).length * 3 + 1);   // Reed counts as his walk's end does
     if (g.p && g.p.from === seq.indexOf(e) && (g.pose || g.fire || g.assault || g.brief)) w *= 3;   // what happens in this scene before who stands by
     sx += g.cx * w; sy += g.cy * w; sw += w; must.push([g.cx, g.cy, g.label + '@' + g.place, !!(g.reed || (g.p && g.p.from === idx0))]);
-    // a body of the scene's own spread wide (a ring round a building) is in view to its edges, not just its middle
-    if (g.p && g.p.from === idx0 && g.members && g.members.length > 3 && extent(g) > 20) {
-      var ex = [g.members[0], g.members[0], g.members[0], g.members[0]];
-      g.members.forEach(function (m) { if (m.x < ex[0].x) ex[0] = m; if (m.x > ex[1].x) ex[1] = m; if (m.y < ex[2].y) ex[2] = m; if (m.y > ex[3].y) ex[3] = m; });
+    // a body of the scene's own is in view to its edges, not just its middle: spread wide (a ring round a building), or
+    // packed in a mass that, its figures drawn large, is a third of a phone's width
+    if (g.p && g.p.from === idx0 && g.members && g.members.length > 3) {
+      // (and along the diagonals: from a heading at an angle the one furthest out on the screen is often neither)
+      var ex = [], dv = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]];
+      dv.forEach(function (d, k) { g.members.forEach(function (m) { if (!ex[k] || m.x * d[0] + m.y * d[1] > ex[k].x * d[0] + ex[k].y * d[1]) ex[k] = m; }); });
       ex.forEach(function (m) { must.push([m.ax != null ? m.ax : m.x, m.ay != null ? m.ay : m.y, g.label + ' edge', true]); });
     }
   });
@@ -5348,18 +5353,26 @@ function closeFrame(e) {
     }
     target = best1.t; dist = best1.d; pos = camAt(target, dist);
     // 2. its own in the middle of the clear part of the screen, not hugging its edges
-    for (var ci = 0; ci < 3 && !PHONE; ci++) {
+    for (var ci = 0; ci < 3; ci++) {
       var sh = centreShift(pos, target, own); if (!sh) break;
       var t2 = target.clone().add(sh); if (offClear(camAt(t2, dist), t2, own) > best1.n) break;
       target = t2; pos = camAt(target, dist);
     }
+    // 2b. none of its own hard against the edge of that clear part, a label cut off by the screen's edge: back a step at
+    // a time (up to eight), the best kept
+    var EDGE = 24, eN = offClear(pos, target, own, null, EDGE), eBest = { n: eN, d: dist };
+    for (var e2 = 0; eN && e2 < 8 && dist < fitCap; e2++) {
+      dist = Math.min(fitCap, dist * 1.07); eN = offClear(camAt(target, dist), target, own, null, EDGE);
+      if (eN < eBest.n) eBest = { n: eN, d: dist };
+    }
+    dist = eBest.d; pos = camAt(target, dist);
     // 3. back from that middle, a step at a time, and a little toward the rest, until they are in too (or the
     // limit is reached); never so far toward them that one of its own leaves the picture
     var ownOff = offClear(pos, target, own, null, 90), offs3 = [], n3 = offClear(pos, target, must, offs3), t3 = target.clone(), d3 = dist, best3 = { n: n3, t: t3.clone(), d: d3 };
     for (var s3 = 0; n3 && s3 < 16; s3++) {
       var dN = Math.min(fitCap, d3 * 1.07), tN = t3.clone();
       if (offs3.length) { var qx = 0, qy = 0; offs3.forEach(function (q) { qx += q[0]; qy += q[1]; }); qx /= offs3.length; qy /= offs3.length; tN.set(t3.x + (qx - t3.x) * 0.1, 0, t3.z + (-qy - t3.z) * 0.1); }
-      if (offClear(camAt(tN, dN), tN, own, null, 90) > ownOff) tN = t3.clone();   // that far toward them takes one of its own near the edge: only back
+      if (offClear(camAt(tN, dN), tN, own, null, 90) > ownOff || offClear(camAt(tN, dN), tN, own, null, EDGE) > eBest.n) tN = t3.clone();   // that far toward them takes one of its own near the edge: only back
       if (dN === d3 && tN.equals(t3)) break;
       t3 = tN; d3 = dN; fitSteps++;
       offs3 = []; n3 = offClear(camAt(t3, d3), t3, must, offs3);
@@ -6011,6 +6024,7 @@ if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, sce
   hall: function () { return hallOn && { id: hallOn.id, t0: hallOn.t0, L: hallOn.L, W: hallOn.W, Hc: hallOn.Hc, Hp: hallOn.Hp, Dp: hallOn.Dp, ub: hallOn.ub, uf: hallOn.uf, rows: hallOn.rows, rp: hallOn.rp, bw: hallOn.bw, blocks: hallOn.blocks, aisles: hallOn.aisles, tribune: hallOn.tribune, tableU: hallOn.tableU, chairU: hallOn.chairU, view: hallOn.view, viewH: hallOn.viewH, f: hallOn.f, lf: hallOn.lf, c: hallOn.c, rise: hallOn.rise, land: hallOn.land, gal: hallOn.gal, Hg: hallOn.Hg, Dg: hallOn.Dg, floor: hallOn.floor, carTop: hallOn.carTop, car: hallOn.car, carA: hallOn.carA, carB: hallOn.carB, wallCars: hallOn.wallCars }; },
   hallFloor: function (x, y, top) { if (!hallOn || !hallOn.shell) return null; hallOn.shell.updateMatrixWorld(true); var hit = new THREE.Raycaster(new THREE.Vector3(x, top, -y), new THREE.Vector3(0, -1, 0)).intersectObjects(hallOn.shell.children, false)[0]; return hit ? hit.point.y : null; },   // the height of what is drawn under a point, below `top`
   hallShots: function () { if (!hallOn || !cur) return null; var keep = hallOn.t0; hallCam(hallOn, cur, performance.now() / 1000); var start = hallOn.t0; hallOn.t0 = keep; var b = bcam; bcam = null; if (b) b.start = start; return b; },
+  clearBox: function () { return clearBox(canvas.clientWidth, canvas.clientHeight); },   // the clear part of the screen the frames fit to, [x0, x1, y0, y1]
   hallGo: function (secs) { if (hallOn) hallOn.t0 = performance.now() / 1000 - secs; },   // the hall's clock, as if the camera came down `secs` ago
   finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, seen: c.seen, hidOwn: c.hidOwn, hall: !!c.hall, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; camAfterWalk = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,

@@ -23,7 +23,7 @@ every audit below this way on each push, the audits side by side.
 |---|---|---|
 | `node tools/audit/smoke.js` | every scene, chosen from the timeline as a reader would: page errors, failed requests, figures or a camera with a coordinate that is not a number | 1 on any |
 | `node tools/audit/crowds.js` | how the people stand in every scene, seen from its own close frame (below), but for the scenes framed down into a hall | 1 past the limits |
-| `node tools/audit/frames.js [--phone]` | each scene's own bodies (those it brings in, and Reed) on screen in its close frame: left of the card on a desktop, above the sheet on a phone | 1 if more than 2% are off (5% on a phone) |
+| `node tools/audit/frames.js [--phone]` | each scene's own bodies (those it brings in, and Reed) in the clear part of the screen the page fits its close frame to (`td.clearBox()`: left of the card, between the title and the timeline, on a desktop; between the title and the map's buttons above the sheet on a phone), and how many more stand within 24 px of its edge | 1 if more than 2% are off (5% on a phone) |
 | `node tools/audit/vehicles.js` | every scene with a vehicle moving, played at its own pace: someone inside a moving vehicle's outline, the vehicle overlapping a gun, barricade or other vehicle, the vehicle held up, a vehicle still short of its end after its walk | 1 past 2.5%, 1%, 15% of samples, or any vehicle left behind |
 | `node tools/audit/motion.js` | every scene where a fight is acted out, played: people on the move (coming up, running off, a sortie, stepping out of a car's way) standing in a building or walking through another body | 1 past 1%, 3% of samples |
 | `node tools/audit/camera.js [--phone] [--step N]` | every scene played: how close the camera ends and how much of the time it is close; in each close shot, the share of its people on screen; close shots the scene's time would cut short in Play | 1 if under 90% end close, over 5% of close-shot samples leave people off, or any scene cuts its shots |
@@ -181,6 +181,26 @@ out afresh, and in `duma-besieged-crowd` 49 of the crowd's 240 are hidden where 
 finding; `vehicles.js` someone inside 0.0%, overlapping 0.0%, held 8.1%; `motion.js` 0.3% in a wall, 0.0% through;
 `camera.js` a median 127 m (129 of 131 within 250 m), 0 of 861 close-shot samples under 70%; on a phone a median
 208 m, 0 of 413.
+
+Then the frames' edges. Every body of a scene's own was on the screen, but on a phone many stood hard against its
+edge, their labels cut by it: the page skipped centring the scene's own in the clear part on a phone, fitted a body
+narrower than 20 m by its middle alone (the storming's Red Guards, packed round the column's pedestal, are 17 m
+across and a third of a phone's width), took its edges along the streets' axes only (from a heading at an angle the
+one furthest out on the screen is often a diagonal one), and let its last pass, drawing toward the bodies still
+standing from earlier scenes, push the scene's own to the edge; and a scene with no close frame (Peter-Paul coming
+over, told at Smolny) opened on a view that did not take in the body it brings in at all. Now the scene's own are
+centred on a phone too, every body of more than three is fitted by its middle and its eight furthest members, the
+camera draws back a step at a time (as far as its limit) until none of them is within 24 px of the clear part's
+edge, the last pass may not bring one there, and the opening view takes in the bodies the scene brings in.
+`frames.js` now measures against the clear part the page fits to (`td.clearBox()`, below the title and above the
+timeline or the buttons, where it had counted the whole height of the screen) and counts those within 24 px of its
+edge. Measured that way, before and after, in tour order: on a phone 44 of the scenes' own members outside it and 299
+at its edge, now 0 and 92; on a desktop 16 and 107, now 0 and 53. Those still at the edge are the scenes whose own
+span more than the camera's limit takes in (the guns at Smolny's door with its gates and street-corner, at 900 m on a
+phone; the Morskaya yunkers, up the street from the corner) and Peter-Paul's opening view, 19 km out, where everything
+is a speck. The rest of the suite: smoke 132 scenes, no error; `crowds.js` 270 of 5,613 hidden; `hall.js` 26 scenes,
+no finding; `vehicles.js` someone inside 0.0%, overlapping 0.0%, held 9.1%; `motion.js` 0.3% in a wall, 0.0%
+through; `camera.js` a median 127 m (129 of 131 within 250 m), 0 of 862 close-shot samples under 70%; on a phone a median 208 m, 0 of 413.
 
 On one build the numbers still differ a little from run to run, since the audits sample the page's own clock: on
 phase 5's build `vehicles.js` gave held 6.5% in one run and 7.3% in another, someone inside 0.0% and 0.4%. And in
