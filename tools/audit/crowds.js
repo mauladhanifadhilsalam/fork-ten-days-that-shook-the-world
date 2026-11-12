@@ -7,8 +7,11 @@
 //   hid     members whose head the buildings hide from the camera
 //   cross   members within 1 m of a member of another body
 //   short   bodies drawn with fewer than 90% of the figures they are given (cars' crews aside)
-// Gun and machine-gun crews, placed round their gun, are left out. Prints the totals and the bodies that
-// stand badly, and exits 1 if the totals pass the limits below (see tools/audit/README.md).
+// Gun and machine-gun crews, placed round their gun, are left out; so, in a scene whose frame looks down into a
+// hall, are the bodies outside it (behind the hall's own walls by design: hall.js audits the inside, and each
+// body outside is measured in the scenes that show it). Prints the totals, how many were left out that way,
+// and the bodies that stand badly, and exits 1 if the totals pass the limits below (see
+// tools/audit/README.md).
 'use strict';
 const fs = require('fs');
 const { open, stage, sceneIds } = require('./page');
@@ -38,7 +41,8 @@ const args = process.argv.slice(2), opt = (k) => { const i = args.indexOf(k); re
         for (let d = 1.2; d < Math.min(L, 220); d += 1.5) { const t = d / L, bh = heightAt(x + (cx - x) * t, y + (cy - y) * t); if (bh && h + (cz - h) * t < bh) return false; }
         return true;
       }
-      const near = td.groups().filter(g => g.members && g.members.length && !g.inside && !g.reed && !g.ship && g.cx != null && Math.hypot(g.cx - fr.x, g.cy - fr.y) < 320);
+      const near0 = td.groups().filter(g => g.members && g.members.length && !g.inside && !g.reed && !g.ship && g.cx != null && Math.hypot(g.cx - fr.x, g.cy - fr.y) < 320);
+      const near = fr.hall ? [] : near0, outHall = fr.hall ? near0.reduce((a, g) => a + g.members.filter(m => !m.gone && !m.away && m.ox == null).length, 0) : 0;
       const bodies = near.map(g => {
         const M = g.members.filter(m => !m.gone && !m.away && m.ox == null), out = { who: g.who, place: g.place, form: g.form || g.assault || '', n: M.length, given: g.n || 0, close: 0, over: 0, wall: 0, hid: 0, cross: 0, nn: 0 };
         if (!M.length) return out;
@@ -56,13 +60,14 @@ const args = process.argv.slice(2), opt = (k) => { const i = args.indexOf(k); re
       });
       const short = td.groups().filter(g => g.n && !g.inside && !g.ship && g.members && g.members.length < g.n * 0.9 && !(g.props || []).some(p => p.k === 'armoured'))
         .map(g => `${g.who}@${g.place} ${g.members.length}/${g.n}`);
-      return { camD: Math.round(camD), FS: +FS.toFixed(1), bodies, short };
+      return { camD: Math.round(camD), FS: +FS.toFixed(1), hall: !!fr.hall, outHall, bodies, short };
     });
     if (shots) await page.screenshot({ path: `${shots}/${id}.png` });
   }
   await close();
-  const tot = { figures: 0, close: 0, over: 0, wall: 0, hid: 0, cross: 0, short: 0 }, flagged = [];
+  const tot = { figures: 0, close: 0, over: 0, wall: 0, hid: 0, cross: 0, short: 0, halls: 0, outHall: 0 }, flagged = [];
   for (const [id, r] of Object.entries(res)) {
+    if (r.hall) { tot.halls++; tot.outHall += r.outHall; }
     tot.short += r.short.length; r.short.forEach(s => flagged.push(`${id}: drawn short ${s}`));
     for (const b of r.bodies) {
       tot.figures += b.n; ['close', 'over', 'wall', 'hid', 'cross'].forEach(k => { tot[k] += b[k]; });
@@ -80,6 +85,7 @@ const args = process.argv.slice(2), opt = (k) => { const i = args.indexOf(k); re
   ['over', 'wall', 'hid'].forEach(k => { if (frac(k) > LIMITS[k]) fails.push(`${k} ${(100 * frac(k)).toFixed(1)}% > ${100 * LIMITS[k]}%`); });
   if (errors.length) fails.push(`${errors.length} page errors`);
   console.log(`${ids.length} scenes, ${tot.figures} figures: ${tot.close} closer than 1.3 m, ${tot.over} run together, ${tot.wall} in a wall, ${tot.hid} hidden, ${tot.cross} in another body; ${tot.short} bodies drawn short`);
+  console.log(`${tot.halls} scenes framed down into a hall: ${tot.outHall} figures outside it left out`);
   if (flagged.length) console.log('bodies that stand badly:\n  ' + flagged.join('\n  '));
   if (errors.length) console.log('page errors:\n  ' + errors.slice(0, 20).join('\n  '));
   console.log(fails.length ? 'FAIL: ' + fails.join('; ') : 'ok');

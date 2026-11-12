@@ -2999,7 +2999,7 @@ function hallFrame(H, kind, at, along, far) {
     d *= 1.1;
   }
   if (kind === 'front') T.y = 3;   // the eye on the wall behind the platform, not its floor
-  return { target: T, pos: pos };
+  return { target: T, pos: pos, hall: true };
 }
 // a hall scene that brings in bodies outside the building too ("at the outer gate the Red Guards had built
 // themselves a bon-fire"): they are seen first, then the camera goes into the hall
@@ -5247,95 +5247,127 @@ function closeFrame(e) {
   // most of them are not hidden behind buildings, turning as little as will do
   // (each body counts the same, however many it is, and the scene's own twice: a street of sailors hidden
   // behind the houses is not made up for by a square of soldiers in full view)
-  var FSc = Math.max(2, Math.min(7, dist / 85)), pts = [], wSum = 0;
+  // (and none of the scene's own mostly hidden, however many others show: eight bodies in full view do not make
+  // up for the sailors the scene is about, behind the hotel they have just retaken)
+  var FSc = Math.max(2, Math.min(7, dist / 85)), pts = [], wSum = 0, nOwn = 0;
   GROUPS.forEach(function (g) {
     if (g.cx == null || g.inside || Math.hypot(g.cx - tx, g.cy - ty) > 260) return;
     var m = g.members || [], st = Math.max(1, Math.floor(m.length / 5)), q = [], own = (g.p && g.p.from === idx0) || rootOf(g.place) === rootOf(e.loc) || !!g.sortie;
-    for (var i = 0; i < m.length; i += st) q.push(m[i].esort ? [m[i].esort.gx, m[i].esort.gy, 1.3 * FSc] : [m[i].x, m[i].y, 1.3 * FSc]);
-    (g.props || []).forEach(function (pr) { if (!pr.ship) q.push([pr.x, pr.y, 1.0 * FSc]); });
-    q.forEach(function (p) { p[3] = (own ? 2 : 1) / q.length; pts.push(p); });
+    // each at the size it is drawn: a man in a packed crowd is drawn smaller, his head lower behind the block
+    for (var i = 0; i < m.length; i += st) q.push(m[i].esort ? [m[i].esort.gx, m[i].esort.gy, 1.3] : [m[i].x, m[i].y, 1.3, 0, 0, m[i].ox == null ? m[i].room : 0]);
+    (g.props || []).forEach(function (pr) { if (!pr.ship) q.push([pr.x, pr.y, 1.0]); });
+    var b = own && q.length ? nOwn++ : -1;
+    q.forEach(function (p) { p[3] = (own ? 2 : 1) / q.length; p[4] = b; pts.push(p); });
   });
-  ends.forEach(function (q) { pts.push([q[0], q[1], 1.3 * FSc, 0.5]); });
+  ends.forEach(function (q) { pts.push([q[0], q[1], 1.3, 0.5, -1]); });
   pts.forEach(function (q) { wSum += q[3]; });
+  // the share of the people seen from (cx, cy, hh), and how many of the scene's own bodies are more than half hidden
+  function seenFrom(cx, cy, hh, F) {
+    var s = 0, ob = []; for (var i = 0; i < nOwn; i++) ob.push([0, 0]);
+    pts.forEach(function (q) { var v = !hiddenBy(cx, cy, hh, q[0], q[1], q[2] * (q[5] ? figScale({ room: q[5] }, F) : F)); if (v) s += q[3]; if (q[4] >= 0) { ob[q[4]][1]++; if (v) ob[q[4]][0]++; } });
+    return { s: wSum ? s / wSum : 1, bad: ob.filter(function (o) { return o[0] < o[1] / 2; }).length };
+  }
+  var cands = [];
   if (pts.length) {
-    var base = Math.atan2(dir.x, dir.z), best = null, tries = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6];
+    var base = Math.atan2(dir.x, dir.z), tries = [0, 1, -1, 2, -2, 3, -3, 4, -4, 5, -5, 6];
     // and from the open side if there is one, not over a roof that fills the near half of the picture
-    for (var ti = 0; ti < tries.length && !(best && best.good); ti++) {
+    for (var ti = 0; ti < tries.length; ti++) {
       var th = base + tries[ti] * Math.PI / 6, roofs = builtFrac(target.x, -target.z, Math.sin(th), -Math.cos(th), Math.min(100, Math.sin(pol) * dist));
       [pol, Math.min(pol, 0.62)].forEach(function (pp, pj) {
-        if (best && best.good) return;
-        var hh = Math.cos(pp) * dist, rr = Math.sin(pp) * dist, cx = target.x + Math.sin(th) * rr, cy = -(target.z + Math.cos(th) * rr);
-        var seen = 0; pts.forEach(function (q) { if (!hiddenBy(cx, cy, hh, q[0], q[1], q[2])) seen += q[3]; }); seen /= wSum;
-        var sc = seen - Math.abs(tries[ti]) * 0.03 - pj * 0.04 - roofs * 0.3;
-        if (!best || sc > best.sc) best = { sc: sc, th: th, pp: pp, seen: seen, good: seen >= 0.85 && roofs < 0.25 };
+        if (pj && pp === pol) return;
+        var hh = Math.cos(pp) * dist, rr = Math.sin(pp) * dist, v = seenFrom(target.x + Math.sin(th) * rr, -(target.z + Math.cos(th) * rr), hh, FSc);
+        var pen = Math.abs(tries[ti]) * 0.03 + pj * 0.04 + roofs * 0.3;
+        cands.push({ sc: v.s - pen - 0.1 * v.bad, pen: pen, th: th, pp: pp, seen: v.s, roofs: roofs, good: v.s >= 0.85 && !v.bad && roofs < 0.25 });
       });
     }
-    dir.set(Math.sin(best.th), 0, Math.cos(best.th)); pol = best.pp;
   }
-  var pos = target.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * dist)); pos.y = Math.cos(pol) * dist;
+  // what shows from where the camera ends, once it is fitted (further back, the target moved): the
+  // figures drawn as large as they are from there
+  function seenAt(p, d) { return seenFrom(p.x, -p.z, p.y, Math.max(2, Math.min(7, d / 85))); }
   // and every body it counts in the clear part of the screen, left of the card, between the title and the
   // timeline: further back, a step at a time, until they are (as far as the limit allows)
   // Three passes, so the scene's own (its place, the bodies it brings in, Reed, where its moves set out and
   // arrive) are in view and in the middle, and the bodies still standing from before come in as far as the
   // limit allows, round them:
-  var fitCap = Math.max(capD * 1.15, PHONE ? 900 : 620), fitSteps = 0, own = must.filter(function (q) { return q[3]; });
+  var fitCap = Math.max(capD * 1.15, PHONE ? 900 : 620), fitSteps = 0, own = must.filter(function (q) { return q[3]; }), target0 = target.clone(), dist0 = dist, pos, out0;
   function camAt(t, d) { var p = t.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * d)); p.y = Math.cos(pol) * d; return p; }
-  // 1. its own in view: a fifth of the way toward those left out, and further back; the best try is kept
-  var offs = [], out0 = offClear(pos, target, own, offs), best1 = { n: out0, t: target.clone(), d: dist }, t0 = target.clone(), d0 = dist;
-  while (out0 && fitSteps < 14) {
-    var ox = 0, oy = 0; offs.forEach(function (q) { ox += q[0]; oy += q[1]; }); ox /= offs.length; oy /= offs.length;
-    target.set(target.x + (ox - target.x) * 0.2, 0, target.z + (-oy - target.z) * 0.2);
-    dist = Math.min(fitCap, dist * 1.1); fitSteps++;
-    offs = []; out0 = offClear(camAt(target, dist), target, own, offs);
-    if (out0 < best1.n) best1 = { n: out0, t: target.clone(), d: dist };
-  }
-  // 1b. one of its own still left out, far off to the side of the way the camera looks ("Two companies of yunkers
-  // passed swinging up the Morskaya", the camera down the Nevsky; a phone's frame is too narrow to take in both
-  // across it): turn to look toward it over the place, so that the place and it lie one beyond the other up the
-  // picture, and find the nearest view, from where the camera is aimed between them, that takes in the most of its
-  // own (and those well inside the edges). Kept only if it leaves fewer out; it does not depend on the way the camera came
-  if (best1.n >= 10) {
-    var offs1 = [], lx = 0, ly = 0; offClear(camAt(best1.t, best1.d), best1.t, own, offs1);
-    offs1.forEach(function (q) { lx += q[0]; ly += q[1]; }); lx /= offs1.length; ly /= offs1.length;
-    var turned = new THREE.Vector3(t0.x - lx, 0, t0.z + ly);
-    if (turned.lengthSq() > 100) {
-      var dir1 = dir.clone(), pol1 = pol, tb = null;
-      dir.copy(turned.normalize());
-      [pol, 0.95, 1.05].forEach(function (pp) {
-        pol = pp;
-        for (var f = 0; f <= 0.5001; f += 0.05) for (var d = d0; ; d = Math.min(fitCap, d * 1.1)) {
-          var t = new THREE.Vector3(t0.x + (lx - t0.x) * f, 0, t0.z + (-ly - t0.z) * f), p = camAt(t, d);
-          var n = offClear(p, t, own), n2 = offClear(p, t, own, null, 30);
-          if (!tb || n < tb.n || (n === tb.n && (n2 < tb.n2 || (n2 === tb.n2 && d < tb.d - 1)))) tb = { n: n, n2: n2, t: t, d: d, pol: pp };
-          if (d >= fitCap) break;
-        }
-      });
-      if (tb && tb.n < best1.n) { best1 = { n: tb.n, t: tb.t, d: tb.d }; pol = tb.pol; fitSteps++; }
-      else { dir.copy(dir1); pol = pol1; }
+  function fitNow() {
+    target = target0.clone(); dist = dist0; fitSteps = 0; pos = camAt(target, dist);
+    // 1. its own in view: a fifth of the way toward those left out, and further back; the best try is kept
+    var offs = [], best1 = { n: 0, t: target.clone(), d: dist }; out0 = offClear(pos, target, own, offs); best1.n = out0;
+    while (out0 && fitSteps < 14) {
+      var ox = 0, oy = 0; offs.forEach(function (q) { ox += q[0]; oy += q[1]; }); ox /= offs.length; oy /= offs.length;
+      target.set(target.x + (ox - target.x) * 0.2, 0, target.z + (-oy - target.z) * 0.2);
+      dist = Math.min(fitCap, dist * 1.1); fitSteps++;
+      offs = []; out0 = offClear(camAt(target, dist), target, own, offs);
+      if (out0 < best1.n) best1 = { n: out0, t: target.clone(), d: dist };
     }
+    // 1b. one of its own still left out, far off to the side of the way the camera looks ("Two companies of yunkers
+    // passed swinging up the Morskaya", the camera down the Nevsky; a phone's frame is too narrow to take in both
+    // across it): turn to look toward it over the place, so that the place and it lie one beyond the other up the
+    // picture, and find the nearest view, from where the camera is aimed between them, that takes in the most of its
+    // own (and those well inside the edges). Kept only if it leaves fewer out; it does not depend on the way the camera came
+    if (best1.n >= 10) {
+      var offs1 = [], lx = 0, ly = 0, t0 = target0, d0 = dist0; offClear(camAt(best1.t, best1.d), best1.t, own, offs1);
+      offs1.forEach(function (q) { lx += q[0]; ly += q[1]; }); lx /= offs1.length; ly /= offs1.length;
+      var turned = new THREE.Vector3(t0.x - lx, 0, t0.z + ly);
+      if (turned.lengthSq() > 100) {
+        var dir1 = dir.clone(), pol1 = pol, tb = null;
+        dir.copy(turned.normalize());
+        [pol, 0.95, 1.05].forEach(function (pp) {
+          pol = pp;
+          for (var f = 0; f <= 0.5001; f += 0.05) for (var d = d0; ; d = Math.min(fitCap, d * 1.1)) {
+            var t = new THREE.Vector3(t0.x + (lx - t0.x) * f, 0, t0.z + (-ly - t0.z) * f), p = camAt(t, d);
+            var n = offClear(p, t, own), n2 = offClear(p, t, own, null, 30);
+            if (!tb || n < tb.n || (n === tb.n && (n2 < tb.n2 || (n2 === tb.n2 && d < tb.d - 1)))) tb = { n: n, n2: n2, t: t, d: d, pol: pp };
+            if (d >= fitCap) break;
+          }
+        });
+        if (tb && tb.n < best1.n) { best1 = { n: tb.n, t: tb.t, d: tb.d }; pol = tb.pol; fitSteps++; }
+        else { dir.copy(dir1); pol = pol1; }
+      }
+    }
+    target = best1.t; dist = best1.d; pos = camAt(target, dist);
+    // 2. its own in the middle of the clear part of the screen, not hugging its edges
+    for (var ci = 0; ci < 3 && !PHONE; ci++) {
+      var sh = centreShift(pos, target, own); if (!sh) break;
+      var t2 = target.clone().add(sh); if (offClear(camAt(t2, dist), t2, own) > best1.n) break;
+      target = t2; pos = camAt(target, dist);
+    }
+    // 3. back from that middle, a step at a time, and a little toward the rest, until they are in too (or the
+    // limit is reached); never so far toward them that one of its own leaves the picture
+    var ownOff = offClear(pos, target, own, null, 90), offs3 = [], n3 = offClear(pos, target, must, offs3), t3 = target.clone(), d3 = dist, best3 = { n: n3, t: t3.clone(), d: d3 };
+    for (var s3 = 0; n3 && s3 < 16; s3++) {
+      var dN = Math.min(fitCap, d3 * 1.07), tN = t3.clone();
+      if (offs3.length) { var qx = 0, qy = 0; offs3.forEach(function (q) { qx += q[0]; qy += q[1]; }); qx /= offs3.length; qy /= offs3.length; tN.set(t3.x + (qx - t3.x) * 0.1, 0, t3.z + (-qy - t3.z) * 0.1); }
+      if (offClear(camAt(tN, dN), tN, own, null, 90) > ownOff) tN = t3.clone();   // that far toward them takes one of its own near the edge: only back
+      if (dN === d3 && tN.equals(t3)) break;
+      t3 = tN; d3 = dN; fitSteps++;
+      offs3 = []; n3 = offClear(camAt(t3, d3), t3, must, offs3);
+      if (n3 < best3.n) best3 = { n: n3, t: t3.clone(), d: d3 };
+    }
+    target = best3.t; dist = best3.d; pos = camAt(target, dist);
   }
-  target = best1.t; dist = best1.d; pos = camAt(target, dist);
-  // 2. its own in the middle of the clear part of the screen, not hugging its edges
-  for (var ci = 0; ci < 3 && !PHONE; ci++) {
-    var sh = centreShift(pos, target, own); if (!sh) break;
-    var t2 = target.clone().add(sh); if (offClear(camAt(t2, dist), t2, own) > best1.n) break;
-    target = t2; pos = camAt(target, dist);
+  // the headings in the order the search takes them, turning as little as will do, those from which most of
+  // the people show first; each judged where its fitting leaves the camera (turned, if 1b turned it), not where the
+  // search began (a heading clear from 200 m can look over a block at its sailors once it has drawn back to 680 m),
+  // and by whether the scene's own are then on the screen at all
+  if (!cands.length) fitNow();
+  else {
+    var order = cands.filter(function (c) { return c.good; }).concat(cands.filter(function (c) { return !c.good; }).sort(function (a, b) { return b.sc - a.sc; }));
+    var pick = null;
+    for (var ki = 0; ki < order.length; ki++) {
+      var c = order[ki]; dir.set(Math.sin(c.th), 0, Math.cos(c.th)); pol = c.pp; fitNow();
+      var v1 = seenAt(pos, target.distanceTo(pos)), o1 = offClear(pos, target, own);
+      var r1 = { c: c, s1: v1.s, bad: v1.bad, sc1: v1.s - c.pen - 0.1 * v1.bad - 0.05 * o1, t: target.clone(), d: dist, steps: fitSteps, dir: dir.clone(), pol: pol };
+      if (!pick || r1.sc1 > pick.sc1) pick = r1;
+      if (v1.s >= 0.85 && !v1.bad && !o1 && c.roofs < 0.25) { pick = r1; break; }
+    }
+    dir.copy(pick.dir); pol = pick.pol; target = pick.t; dist = pick.d; fitSteps = pick.steps; pos = camAt(target, dist);
   }
-  // 3. back from that middle, a step at a time, and a little toward the rest, until they are in too (or the
-  // limit is reached); never so far toward them that one of its own leaves the picture
-  var ownOff = offClear(pos, target, own, null, 90), offs3 = [], n3 = offClear(pos, target, must, offs3), t3 = target.clone(), d3 = dist, best3 = { n: n3, t: t3.clone(), d: d3 };
-  for (var s3 = 0; n3 && s3 < 16; s3++) {
-    var dN = Math.min(fitCap, d3 * 1.07), tN = t3.clone();
-    if (offs3.length) { var qx = 0, qy = 0; offs3.forEach(function (q) { qx += q[0]; qy += q[1]; }); qx /= offs3.length; qy /= offs3.length; tN.set(t3.x + (qx - t3.x) * 0.1, 0, t3.z + (-qy - t3.z) * 0.1); }
-    if (offClear(camAt(tN, dN), tN, own, null, 90) > ownOff) tN = t3.clone();   // that far toward them takes one of its own near the edge: only back
-    if (dN === d3 && tN.equals(t3)) break;
-    t3 = tN; d3 = dN; fitSteps++;
-    offs3 = []; n3 = offClear(camAt(t3, d3), t3, must, offs3);
-    if (n3 < best3.n) best3 = { n: n3, t: t3.clone(), d: d3 };
-  }
-  target = best3.t; dist = best3.d; pos = camAt(target, dist); out0 = offClear(pos, target, must);
+  out0 = offClear(pos, target, must);
   var offNow = []; offClear(pos, target, must, offNow);
-  return { target: target, pos: pos, far: farOnes.length, fit: fitSteps, off: out0, offWho: offNow.map(function (q) { return q[2] || 'point'; }), mustN: must.length, dist: Math.round(target.distanceTo(pos)), pol: +pol.toFixed(2), look: farOnes.filter(function (q) { return q[3] && !onReedsWay(q); }).length };
+  return { target: target, pos: pos, far: farOnes.length, fit: fitSteps, off: out0, offWho: offNow.map(function (q) { return q[2] || 'point'; }), mustN: must.length, dist: Math.round(target.distanceTo(pos)), pol: +pol.toFixed(2), seen: pick ? +pick.s1.toFixed(2) : null, hidOwn: pick ? pick.bad : null, look: farOnes.filter(function (q) { return q[3] && !onReedsWay(q); }).length };
 }
 // how much of the ground from (x, y) out along (dx, dy), 12 to r metres, is under buildings taller than 8 m
 function builtFrac(x, y, dx, dy, r) {
@@ -5349,7 +5381,8 @@ function builtFrac(x, y, dx, dy, r) {
 // is the point (x, y) at height h hidden from a camera at (cx, cy), height ch, by a building? (map metres)
 function hiddenBy(cx, cy, ch, x, y, h) {
   var L = Math.hypot(x - cx, y - cy); if (L < 4) return false;
-  for (var d = 3; d < Math.min(L, 260); d += 3) {
+  // finer near the figure, where the ray climbs past the corner of the block beside it
+  for (var d = 1.5; d < Math.min(L, 260); d += d < 30 ? 1.5 : 3) {
     var f = 1 - d / L, px = cx + (x - cx) * f, py = cy + (y - cy) * f, ph = ch + (h - ch) * f;
     var cell = BGRID[Math.floor(px / 100) + ',' + Math.floor(py / 100)]; if (!cell) continue;
     for (var j = 0; j < cell.length; j++) {
@@ -5960,7 +5993,7 @@ if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, sce
   hallFloor: function (x, y, top) { if (!hallOn || !hallOn.shell) return null; hallOn.shell.updateMatrixWorld(true); var hit = new THREE.Raycaster(new THREE.Vector3(x, top, -y), new THREE.Vector3(0, -1, 0)).intersectObjects(hallOn.shell.children, false)[0]; return hit ? hit.point.y : null; },   // the height of what is drawn under a point, below `top`
   hallShots: function () { if (!hallOn || !cur) return null; var keep = hallOn.t0; hallCam(hallOn, cur, performance.now() / 1000); var start = hallOn.t0; hallOn.t0 = keep; var b = bcam; bcam = null; if (b) b.start = start; return b; },
   hallGo: function (secs) { if (hallOn) hallOn.t0 = performance.now() / 1000 - secs; },   // the hall's clock, as if the camera came down `secs` ago
-  finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, x: c.target.x, y: -c.target.z }; },
+  finish: function () { if (walk) walk.t0 = -1e9; movers.forEach(function (mv) { mv.vd = null; mv.lag = 0; }); engageFinish(); }, groups: function () { return GROUPS; }, letters: function () { return Object.keys(letterPool).map(function (t) { return t + ':' + letterPool[t].map(function (g) { return g.visible + '@' + g.position.x.toFixed(0) + ',' + g.position.z.toFixed(0); }).join(';'); }); }, flyClose: function () { var c = cur && closeFrame(cur); if (c) flyTo(c, 0); }, frame: function () { var c = cur && closeFrame(cur); return c && { far: c.far, look: c.look, fit: c.fit, off: c.off, offWho: c.offWho, mustN: c.mustN, dist: c.dist, pol: c.pol, seen: c.seen, hidOwn: c.hidOwn, hall: !!c.hall, x: c.target.x, y: -c.target.z }; },
   movers: function () { return movers; }, openWho: function (r) { openWho(r); }, trains: function () { return trains.map(function (T) { return { n: T.n, total: Math.round(T.r.total), a: T.r.pts[0].map(Math.round), b: T.r.pts[T.r.pts.length - 1].map(Math.round) }; }); }, still: function () { follow = null; closeAfter = null; bcam = null; camAfterWalk = null; }, wallAt: wallAt, insts: function () { return instList; }, walk: function () { return walk && { dur: walk.dur, at: performance.now() - walk.t0 }; }, cur: function () { return cur; }, arm: function () { armFights(); }, hold: function (id) { return holdAt(id, cur.t); }, blocOf: blocOf, AC: AC,
   // stage the open scene again with Reed's words for its bodies changed: {who: {form, fire, assault, ...}}
   restage: function (spec) { var idx = seq.indexOf(cur); (S.presence || []).forEach(function (p) { if (spec[p.who] && p.from <= idx && (p.to == null || idx < p.to) && near(p.place, cur.loc, 300)) { Object.assign(p, spec[p.who]); p.from = idx; } }); stageScene(cur); return GROUPS.map(function (g) { return g.label + (g.form ? ':' + g.form : '') + (g.fire ? ' fire=' + g.fire : '') + (g.secs ? ' secs=' + g.secs.length : '') + (g.windows ? ' windows=' + g.windows.length : '') + ' n=' + (g.members || []).length; }).join('; '); },

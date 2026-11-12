@@ -22,7 +22,7 @@ every audit below this way on each push, the audits side by side.
 | Script | What it checks or makes | Exit |
 |---|---|---|
 | `node tools/audit/smoke.js` | every scene, chosen from the timeline as a reader would: page errors, failed requests, figures or a camera with a coordinate that is not a number | 1 on any |
-| `node tools/audit/crowds.js` | how the people stand in every scene, seen from its own close frame (below) | 1 past the limits |
+| `node tools/audit/crowds.js` | how the people stand in every scene, seen from its own close frame (below), but for the scenes framed down into a hall | 1 past the limits |
 | `node tools/audit/frames.js [--phone]` | each scene's own bodies (those it brings in, and Reed) on screen in its close frame: left of the card on a desktop, above the sheet on a phone | 1 if more than 2% are off (5% on a phone) |
 | `node tools/audit/vehicles.js` | every scene with a vehicle moving, played at its own pace: someone inside a moving vehicle's outline, the vehicle overlapping a gun, barricade or other vehicle, the vehicle held up, a vehicle still short of its end after its walk | 1 past 2.5%, 1%, 15% of samples, or any vehicle left behind |
 | `node tools/audit/motion.js` | every scene where a fight is acted out, played: people on the move (coming up, running off, a sortie, stepping out of a car's way) standing in a building or walking through another body | 1 past 1%, 3% of samples |
@@ -37,7 +37,9 @@ pictures for `sheet.py`; `--json OUT` keeps the numbers per scene and body; `--o
 ## What `crowds.js` measures
 
 For each body within 320 m of the frame's target (gun and machine-gun crews, who stand round their gun,
-left out):
+left out; and in a scene whose frame looks down into a hall, the bodies outside it, behind the hall's own walls by
+design, which the run counts and prints: `hall.js` audits the hall, and each body outside is measured in the scenes
+that show it):
 
 - **closer than 1.3 m**: members that near another of their body;
 - **run together**: members nearer to another than 0.6 of the size the figure is drawn at, so that on
