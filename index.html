@@ -5273,13 +5273,38 @@ function closeFrame(e) {
   var fitCap = Math.max(capD * 1.15, PHONE ? 900 : 620), fitSteps = 0, own = must.filter(function (q) { return q[3]; });
   function camAt(t, d) { var p = t.clone().add(dir.clone().multiplyScalar(Math.sin(pol) * d)); p.y = Math.cos(pol) * d; return p; }
   // 1. its own in view: a fifth of the way toward those left out, and further back; the best try is kept
-  var offs = [], out0 = offClear(pos, target, own, offs), best1 = { n: out0, t: target.clone(), d: dist };
+  var offs = [], out0 = offClear(pos, target, own, offs), best1 = { n: out0, t: target.clone(), d: dist }, t0 = target.clone(), d0 = dist;
   while (out0 && fitSteps < 14) {
     var ox = 0, oy = 0; offs.forEach(function (q) { ox += q[0]; oy += q[1]; }); ox /= offs.length; oy /= offs.length;
     target.set(target.x + (ox - target.x) * 0.2, 0, target.z + (-oy - target.z) * 0.2);
     dist = Math.min(fitCap, dist * 1.1); fitSteps++;
     offs = []; out0 = offClear(camAt(target, dist), target, own, offs);
     if (out0 < best1.n) best1 = { n: out0, t: target.clone(), d: dist };
+  }
+  // 1b. one of its own still left out, far off to the side of the way the camera looks ("Two companies of yunkers
+  // passed swinging up the Morskaya", the camera down the Nevsky; a phone's frame is too narrow to take in both
+  // across it): turn to look toward it over the place, so that the place and it lie one beyond the other up the
+  // picture, and find the nearest view, from where the camera is aimed between them, that takes in the most of its
+  // own (and those well inside the edges). Kept only if it leaves fewer out; it does not depend on the way the camera came
+  if (best1.n >= 10) {
+    var offs1 = [], lx = 0, ly = 0; offClear(camAt(best1.t, best1.d), best1.t, own, offs1);
+    offs1.forEach(function (q) { lx += q[0]; ly += q[1]; }); lx /= offs1.length; ly /= offs1.length;
+    var turned = new THREE.Vector3(t0.x - lx, 0, t0.z + ly);
+    if (turned.lengthSq() > 100) {
+      var dir1 = dir.clone(), pol1 = pol, tb = null;
+      dir.copy(turned.normalize());
+      [pol, 0.95, 1.05].forEach(function (pp) {
+        pol = pp;
+        for (var f = 0; f <= 0.5001; f += 0.05) for (var d = d0; ; d = Math.min(fitCap, d * 1.1)) {
+          var t = new THREE.Vector3(t0.x + (lx - t0.x) * f, 0, t0.z + (-ly - t0.z) * f), p = camAt(t, d);
+          var n = offClear(p, t, own), n2 = offClear(p, t, own, null, 30);
+          if (!tb || n < tb.n || (n === tb.n && (n2 < tb.n2 || (n2 === tb.n2 && d < tb.d - 1)))) tb = { n: n, n2: n2, t: t, d: d, pol: pp };
+          if (d >= fitCap) break;
+        }
+      });
+      if (tb && tb.n < best1.n) { best1 = { n: tb.n, t: tb.t, d: tb.d }; pol = tb.pol; fitSteps++; }
+      else { dir.copy(dir1); pol = pol1; }
+    }
   }
   target = best1.t; dist = best1.d; pos = camAt(target, dist);
   // 2. its own in the middle of the clear part of the screen, not hugging its edges
