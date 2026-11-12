@@ -61,7 +61,7 @@ TYPES = {
     'moves': LIST, 'ctl': LIST, 'who': STR, 'with': LIST, 'size': STR, 'via': LIST, 'to': STR,
     'mode': STR, 'rc': STR, 't0': STR, 'gap': BOOL, 'done': BOOL, 'ack': STR, 'place': STR,
     'd': STR, 'os': STR, 'label': STR, 'actors': LIST, 'city': STR,
-    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'empty': BOOL, 'suite': BOOL, 'house': DICT, 'divide': DICT, 'to': STR, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
+    'hall': DICT, 'dims': LIST, 'axis': INT, 'plan': STR, 'features': LIST, 'k': STR, 'speaker': STR, 'bench': STR, 'walkout': BOOL, 'walkin': BOOL, 'part': BOOL, 'empty': BOOL, 'suite': BOOL, 'house': DICT, 'after_walkout': BOOL, 'divide': DICT, 'to': STR, 'all': BOOL, 'prop': STR, 'speaker_out': DICT,
     'present': LIST, 'gone': LIST, 'n': INT, 'kit': LIST, 'brief': BOOL, 'stay': BOOL, 'say': LIST, 'form': STR, 'march': BOOL, 'fire': (BOOL, STR), 'at': STR, 'pose': STR, 'run': BOOL, 'assault': STR, 'patrol': BOOL, 'face': STR, 'inside': BOOL,
     'file': STR, 'w': INT, 'h': INT, 'scenes': LIST, 'license': STR, 'author': STR, 'date': STR, 'page': INT, 'caption': STR,
     'group': STR, 'order': INT, 'side': STR, 'members': LIST, 'see': LIST, 'names': LIST, 'def': DICT, 'background': DICT,
@@ -937,6 +937,31 @@ class Checker:
         # the scene's own moment: within 1,500 characters of the scene's quote, or of one of its other passages
         if not any(sec == ref.get('sec') and abs(x - at) <= 1500 for sec, x in self.scene_at(e)):
             F.err('phrase.not-near', hw, "house: Reed's words for it are not within 1,500 characters of the scene's own passages")
+        if 'after_walkout' in h:
+            self.after_walkout(e, h, at, hw)
+
+    def after_walkout(self, e, h, at, hw):
+        """the hall answering once those walking out have gone: a walk-out in the scene, Reed's words for the
+        house after its words, and a word that puts the one after the other"""
+        F, ref = self.F, h['ref']
+        if h['after_walkout'] is not True:
+            F.err('field.range', hw, 'after_walkout is true or left out')
+            return
+        outs = [r for r in e.get('present', []) if isinstance(r, dict) and r.get('walkout') and r.get('place', e.get('loc')) == e.get('loc')]
+        if not outs:
+            F.err('field.missing', hw, 'after_walkout: nobody walks out of the hall in the scene')
+            return
+        if e.get('divide'):
+            F.err('field.range', hw, 'after_walkout: in a vote by walking to one side, those left behind already go out after it')
+        if not re.search(L.SEQUENCE_WORDS, ref['q'], re.I):
+            F.err('phrase.not-in-text', hw, f'after_walkout: the quote has no word putting it after the walk-out ({L.SEQUENCE_WORDS})')
+        for r in outs:
+            w = r.get('ref') if isinstance(r.get('ref'), dict) else None
+            segs = L.segments(w['q']) if w and isinstance(w.get('q'), str) else []
+            hits = self.book.find(w.get('sec'), segs[0]) if segs else []   # its own errors are its record's
+            x = hits[0] if len(hits) == 1 else None
+            if w and x is not None and (w.get('sec') != ref.get('sec') or x >= at):
+                F.err('field.range', hw, f"after_walkout: Reed's words for the house do not come after those for {r.get('who')!r} walking out")
 
     def speaker(self, e, pos, w):
         """the one at the tribune: a person in the Faction Map, named near the scene's passage, in a hall"""

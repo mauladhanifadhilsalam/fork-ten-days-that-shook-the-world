@@ -703,6 +703,16 @@ for si, sp in enumerate(spans):
                 rec[k] = sp[k]
     rec_of[si] = rec
     presence.append(rec)
+# a body in a hall whose size points back at those already there ("the rest of the assembly tried to yell them
+# down"), with no kind of its own, is dressed as it was at the session before: the same delegates
+last = {}
+for rec in sorted(presence, key=lambda r: r['from']):
+    key = (rec['who'], rec['place'])
+    if rec.get('bench') and not rec.get('part') and key in last and 'fig' in rec and re.search(L.SIZE_BACK, rec.get('size') or '', re.I) \
+            and figures(rec['who'], rec.get('size'))[0] == figures(rec['who'])[0]:
+        rec['fig'] = last[key]['fig']
+    if rec.get('bench') and not rec.get('part') and 'fig' in rec:
+        last[key] = rec
 for si, sp in enumerate(spans):   # a part with a pose Reed gives no kind of its own is dressed as the rest of its body
     rec, body = rec_of.get(si), rec_of.get(sp.get('of'))
     if rec and rec.get('part') and not rec.get('walkout') and body and 'fig' in body and figures(sp['who'], sp.get('size'))[0] == figures(sp['who'])[0]:
@@ -717,6 +727,8 @@ for e in [e for e, ok in zip(events_all, in_tour) if ok]:
         rec['house'] = {'pose': e['house']['pose'], 'q': L.norm(e['house']['ref']['q'])}
         if e['house'].get('all'):   # by all the hall but the speaker's party, not one side
             rec['house']['all'] = True
+        if e['house'].get('after_walkout'):   # once those walking out in the scene have gone
+            rec['house']['after_walkout'] = True
     if e.get('divide'):   # a vote by walking to one side of a hall with no benches
         rec['divide'] = {'to': e['divide']['to'], 'q': L.norm(e['divide']['ref']['q'])}
     rec['q'] = ' … '.join(L.segments(e['q']))

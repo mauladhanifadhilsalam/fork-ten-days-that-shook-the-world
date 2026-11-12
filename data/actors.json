@@ -175,7 +175,7 @@
  "ru": "Военно-революционный комитет"},
 {"id": "peasants-congress", "kind": "organ", "bloc": "neutral",
  "name": "Extraordinary Congress of Peasants’ Soviets",
- "reed": ["Peasants’ Congress", "Peasant Congress"],
+ "reed": ["Peasants’ Congress", "Peasant Congress", "peasant delegates"],
  "ru": "Чрезвычайный крестьянский съезд",
  "stance": [
   {"from": "1917-11-24", "s": "divided", "ev": "peasants-first-session"},

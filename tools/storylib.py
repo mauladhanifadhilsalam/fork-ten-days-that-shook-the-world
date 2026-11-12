@@ -43,8 +43,10 @@ FIELDS = {
     'presence': ['who', 'place', 'size', 'n', 'prop', 'kit', 'say', 'form', 'march', 'face', 'inside', 'fire', 'at', 'pose', 'assault', 'patrol', 'bench', 'walkout', 'walkin', 'part', 'empty', 'suite', 'brief', 'ref', 'outside'],
     'gone': ['who', 'place', 'all', 'ref'],
     # the whole hall's response in a scene (on its feet, a show of cards, cheering, hooting), in Reed's words;
-    # `all`: by everyone in the hall but the speaker's party, where Reed says most or all of it
-    'house': ['pose', 'all', 'ref'],
+    # `all`: by everyone in the hall but the speaker's party, where Reed says most or all of it; `after_walkout`:
+    # once those walking out in the scene have gone ("Whereupon the old Executive Committee left the hall….
+    # Almost immediately ... hooted down")
+    'house': ['pose', 'all', 'after_walkout', 'ref'],
     # a vote taken by walking to one side of a hall with no benches ("those opposed, to the left")
     'divide': ['to', 'ref'],
     'picture': ['id', 'kind', 'from', 'file', 'w', 'h', 'scenes', 'license', 'author', 'date', 'url', 'page', 'title', 'caption', 'ref', 'note'],
@@ -134,7 +136,7 @@ POSE_WORDS = {'fallen': r'\bdead\b|killed|corpse|bodies|wounded|\blay\b|lying|\b
               'stand': r'stood up|on (their|its|our) feet|\b(hall|house|crowd|assembly|delegates|soldiers|presidium|they|all|we) rose\b|rose to (him|her|them)\b|a rising (house|ovation)|got up|standing up|began to stand',
               'vote': r'hold up their cards|held up|show of hands|hands? (up|raised)|raised (their )?hands|\bcards\b|put to (the )?vote',
               'cheer': r'cheer|hurrah|applause|ovation|wild with joy|roar(ed|ing)? (of|with)|shaking roar|victorious roar|exultation|pandemonium|embracing',
-              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with|Uproar from the (Left|Right)',
+              'jeer': r'hoot|jeer|curses|menaces|insults|shaking their fists|cat-?calls|You lie|\bLie!|Shame!|threatening|imprecation|Down with|Uproar from the (Left|Right)|yell(ed|ing)? (him|her|them) down',
               'laugh': r'\blaugh',
               # two bodies in each other's arms ("the two embracing")
               'embrace': r'embrac|in (their|each other.s) arms'}
@@ -157,6 +159,10 @@ PART_POSES = ('stand', 'vote', 'cheer', 'jeer', 'laugh')
 EMPTY_WORDS = r'\bempty\b'
 SUITE_WORDS = r'with (his|her) (suite|staff|escort|aides)'
 # a body leaving the hall, or coming into it, in the scene that says so
+# a body's size that points back at people already there ("the rest of the assembly"): dressed as they were
+SIZE_BACK = r'\bthe (rest|others) of\b|\bthe same\b'
+# words that put one thing after another ("Whereupon ... left the hall…. Almost immediately ... hooted down")
+SEQUENCE_WORDS = r'\b(then|afterwards?|immediately|whereupon|thereupon|next|at once|when (they|he|she) had (gone|left))\b'
 WALKOUT_WORDS = r'left the (hall|Congress|room|platform|chamber)|leave the (hall|Congress|room)|walk(ed|s)? out|strode out|pushed their way out|got up and (left|went)|withdr[ae]w'
 WALKIN_WORDS = r'entrance of|came in\b|entered|walked in|filed in|came into|(head|coming) of the procession|announced the arrival'
 # a hall's shape, where Reed gives it ("the high, amphitheatrical Nicolai Hall")

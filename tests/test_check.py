@@ -36,7 +36,7 @@ SECTIONS = {
           'In the high, amphitheatrical hall the galleries were thronged with workers. About a hundred people were grouped '
           'around the platform, where Kameniev was speaking, and from the right came imprecations. Others cried, "Down with the traitors!" '
           'Whereupon the Sailors left the chamber. It was evident that most of the delegates were hostile, and Kameniev was hooted down; '
-          'the Red Guards held a bare fifth of the seats.',
+          'the Red Guards held a bare fifth of the seats. Then the Red Guards were hooted down.',
           'Then Kameniev demanded the floor once more. He was interrupted by a great burst of laughter; and he left the room. '
           'At the end Kameniev announced the arrival of the Sailors, greeted with a rising ovation. Upon his arrival the Sailor was arrested. '
           'They went to slaughter and be slaughtered.',
@@ -1122,6 +1122,33 @@ class Hall(unittest.TestCase):
         evs = [{'id': 'a', 'loc': 'hall', 'present': [{'who': 'g', 'n': 3, 'pose': 'cheer', 'part': True, 'brief': True}, {'who': 'g', 'n': 10, 'bench': 'right', 'brief': True}]}]
         sp = L.presence_spans(evs, acts, pls)[0]
         self.assertEqual(sorted((s.get('n'), s.get('bench')) for s in sp), [(3, 'right'), (10, 'right')])
+
+    # the hall answering once those walking out have gone ("Whereupon the old Executive Committee left the hall….
+    # Almost immediately ... Zinoviev ... was hooted down")
+    def after_out(self, d):
+        _, l, *_ = self.add(d)
+        l['house'] = {'pose': 'jeer', 'after_walkout': True, 'ref': {'sec': 'V', 'q': 'Then the Red Guards were hooted down.'}}
+        return l
+
+    def test_the_house_after_a_walkout(self):
+        d = good(); self.after_out(d)
+        self.assertEqual(errors(d), [])
+
+    def test_after_a_walkout_needs_one_its_order_and_its_word(self):
+        d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'jeer', 'after_walkout': True, 'ref': {'sec': 'V', 'q': 'Then the Red Guards were hooted down.'}}
+        self.assertIn('field.missing', errors(d))   # nobody walks out of the session
+        d = good(); l = self.after_out(d); l['house']['ref']['q'] = 'It was evident that most of the delegates were hostile, and Kameniev was hooted down'
+        self.assertIn('phrase.not-in-text', errors(d))   # no word putting it after the walk-out
+        d = good(); l = self.after_out(d); l['present'][0]['ref']['q'] = 'Near us a few were left stranded, and they walked out.'
+        self.assertIn('field.range', errors(d))   # Reed has them walk out after it
+        d = good(); l = self.after_out(d); l['house']['after_walkout'] = False
+        self.assertIn('field.range', errors(d))
+
+    def test_yelled_down_is_a_hoot_and_the_rest_are_as_they_were(self):
+        self.assertRegex('the rest of the assembly tried to yell them down', L.POSE_WORDS['jeer'])
+        self.assertNotRegex('the crowd was yelling with joy', L.POSE_WORDS['jeer'])
+        self.assertRegex('the rest of the assembly', L.SIZE_BACK)   # dressed as at the session before
+        self.assertNotRegex('thronged with armed men', L.SIZE_BACK)
 
     def test_put_to_vote_is_a_vote(self):
         d = good(); s, *_ = self.add(d); s['house'] = {'pose': 'vote', 'ref': {'sec': 'V', 'q': 'The Land Decree was put to vote, with the peasant delegates wild with joy.'}}
