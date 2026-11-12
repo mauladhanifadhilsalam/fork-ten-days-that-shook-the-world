@@ -132,7 +132,7 @@ scene briefly, as now.
 
 - The Peasants' Congress's first session: the old Executive Committee walks out while Zinoviev is hooted, where Reed has it leave first; one scene holds both. Zinoviev leaving the platform "amid laughter" is drawn, the laughter not.
 - Where the Bolsheviki sat at the Duma, and the Duma's numbers: Reed gives "the Bolshevik benches" and "the right" only; the sides and the counts (30 and 10) are the map's.
-- Layout seeds still follow the presence order, so adding records reshuffles unrelated scenes (the audit numbers move with them).
+- ~~Layout seeds still follow the presence order, so adding records reshuffles unrelated scenes (the audit numbers move with them).~~ Done: a body's seed now comes from who it is, where, and the scene it comes in (`src/app.html`, `keySeed`), so a record added in one scene leaves every other body as it was (`tools/audit/README.md`).
 
 ## Decisions taken
 

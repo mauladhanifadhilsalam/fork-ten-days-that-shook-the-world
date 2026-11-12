@@ -492,6 +492,18 @@ if (!window.THREE || !THREE.MapControls || !THREE.Line2) {
 var DATA = JSON.parse($('data').textContent);
 var M = DATA.map, S = DATA.story;
 var PL = S.places, AC = S.actors, EV = S.events, CTL = S.control, DAYS = S.days;
+// Each body's random seed (its layout, its figures, when its patrol sets off, who in a hall cheers and who
+// only rises) comes from what it is: who, where, and the scene it comes in. Not from where its record falls
+// in the data, or a record added in one scene would lay out every body after it afresh. Taken once, here,
+// so a restaged record keeps its seed. The few records that share all three (a body and the part of it
+// that walks out) are told apart by their order among themselves.
+(function () {
+  var seen = {};
+  (S.presence || []).forEach(function (p) {
+    var k = p.who + '|' + p.place + '|' + EV[p.from].id, n = seen[k] = (seen[k] || 0) + 1;
+    p.seed = keySeed(n > 1 ? k + '|' + n : k);
+  });
+})();
 var REDUCED = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 var PHONE = window.matchMedia && matchMedia('(max-width: 760px)').matches;
 var ORIGIN = M.origin;   // lat, lon of local (0, 0)
@@ -611,6 +623,13 @@ function buildGround() {
 
 // ---------- buildings ----------
 function hash(i) { var x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+// a string to a seed in [1, 2001): FNV-1a, then MurmurHash3's finaliser so that keys differing in a letter land far apart
+function keySeed(s) {
+  var h = 2166136261;
+  for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16;
+  return 1 + (h >>> 0) / 4294967296 * 2000;
+}
 // walls with baked colours in one mesh; roofs in another, whose colour turns white after the first snow
 function extrude(list, wallsOut, roofsOut, colourOf, heightOf) {
   var tA = new THREE.Vector3(), tB = new THREE.Vector3(), nr = new THREE.Vector3();
@@ -1696,7 +1715,7 @@ function stageScene(e, noReed) {
     if (!(on(p) || fled(p)) || (!p.brief && !p.part && briefs[p.who + '|' + p.place])) return;   // part of a body walking out is drawn beside a brief one
     var l = PL[p.place]; if (!l || !l.p || l.far) return;
     if (l.hall && !(H && H.id === p.place)) return;   // in a hall, seen only in a scene there
-    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && (p.from === idx || p.form === 'line') ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && (p.from === idx || p.form === 'line') ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: pi * 7.13 + 1, label: groupLabel(p.who), size: p.size, ship: p.ship, flee: !on(p) };
+    var a = AC[p.who] || {}, g = { pi: pi, p: p, who: p.who, place: p.place, bloc: a.bloc || 'neutral', fig: p.fig, n: p.n, kit: p.kit, say: p.say, brief: !!p.brief, form: p.form && (p.from === idx || p.form === 'line') ? p.form : null, march: !!(p.march && p.from === idx), fire: p.fire && p.from === idx ? p.fire : null, at: p.from === idx ? p.at : null, pose: p.pose && p.from === idx ? p.pose : null, face: p.face && (p.from === idx || p.form === 'line') ? p.face : null, inside: !!p.inside, assault: p.assault && p.from === idx ? p.assault : null, patrol: !!(p.patrol && p.from === idx), abreast: p.abreast, blocks: p.blocks, ragged: !!p.ragged, seed: p.seed, label: groupLabel(p.who), size: p.size, ship: p.ship, flee: !on(p) };
     GROUPS.push(g);
     if (l.hall) hallGs.push(g);
     else if (!g.ship) (byPlace[p.place] = byPlace[p.place] || []).push(g);
