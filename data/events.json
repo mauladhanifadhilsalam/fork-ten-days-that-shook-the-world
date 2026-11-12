@@ -516,7 +516,7 @@
   {"sec": "IV", "q": "A great motor-truck stood there, shaking to the roar of its engine."}],
  "present": [
   {"who": "mrc", "place": "smolny", "size": "Men were tossing bundles into it, and others receiving them", "n": 8, "kit": ["car:6", "truck:1"], "brief": true, "ref": {"sec": "IV", "q": "all the front of Smolny was one huge park of arriving and departing automobiles, above the sound of which could be heard the far-off slow beat of the cannon. A great motor-truck stood there, shaking to the roar of its engine."}}]},
-{"id": "truck-ride", "t": "1917-11-08T00:20", "tq": "inferred", "tr": ["1917-11-07T23:15", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 111, "loc": "znamensky-square", "witness": "seen", "actors": ["mrc"],
+{"id": "truck-ride", "t": "1917-11-08T00:20", "tq": "inferred", "tr": ["1917-11-07T23:15", "1917-11-08T01:00"], "cal": "none", "sec": "IV", "p": 111, "loc": "kazan-bridge", "witness": "seen", "actors": ["mrc"],
  "title": "Proclamations from a truck",
  "why": "After the passes are made out at Smolny, before the Duma march.",
  "sum": "On an MRC truck Reed helps fling the proclamation of the Provisional Government’s fall into the streets, down the Suvorovsky and the Nevsky, until a line of sailors beyond the lighted Duma yells at it to stop.",
@@ -627,9 +627,7 @@
  "sum": "Leaving the palace, Reed walks over stucco knocked off the cornice, “the only damage done by the bombardment”.",
  "q": ["Underfoot the sidewalk was littered with broken stucco, from the cornice of the Palace where two shells from the battleship Avrora had struck", "It was now after three in the morning."],
  "moves": [
-  {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}],
- "present": [
-  {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}]},
+  {"who": "reed", "from": "winter-palace", "to": "palace-embankment", "mode": "foot", "rc": "stated"}]},
 {"id": "salvation-formed", "t": "1917-11-08T03:40", "tq": "inferred", "tr": ["1917-11-08T03:15", "1917-11-08T05:00"], "cal": "none", "sec": "IV", "p": 119, "loc": "duma-alexander-hall", "witness": "seen", "speaker": "skobeliev", "actors": ["committee-for-salvation", "duma", "skobeliev", "mensheviki", "srs"],
  "title": "The Committee for Salvation is formed",
  "why": "Reed walks from the palace to the Duma “after three”.",
@@ -638,7 +636,8 @@
  "moves": [
   {"who": "reed", "from": "palace-embankment", "via": ["nevsky"], "to": "city-duma", "mode": "foot", "rc": "inferred"}],
  "present": [
-  {"who": "committee-for-salvation", "place": "duma-alexander-hall", "size": "About a hundred people", "n": 16, "bench": "front", "brief": true, "ref": {"sec": "IV", "q": "About a hundred people were grouped around the platform, where Skobeliev was speaking."}}]},
+  {"who": "committee-for-salvation", "place": "duma-alexander-hall", "size": "About a hundred people", "n": 16, "bench": "front", "brief": true, "ref": {"sec": "IV", "q": "About a hundred people were grouped around the platform, where Skobeliev was speaking."}},
+  {"who": "red-guards", "place": "nevsky", "size": "Red Guards and soldiers squatting around fires", "kit": ["fire"], "ref": {"sec": "IV", "q": "the only signs of war were Red Guards and soldiers squatting around fires"}}]},
 {"id": "internationalists-leave", "t": "1917-11-08T04:50", "tq": "inferred", "tr": ["1917-11-08T04:00", "1917-11-08T05:15"], "cal": "none", "sec": "IV", "p": 121, "loc": "smolny-hall", "witness": "seen", "actors": ["menshevik-internationalists", "congress"],
  "house": {"pose": "jeer", "ref": {"sec": "IV", "q": "The vote was overwhelmingly against, and the Mensheviki Internationalists left the Congress in a Whirlwind of Jocular insults."}},
  "title": "The Internationalists leave",

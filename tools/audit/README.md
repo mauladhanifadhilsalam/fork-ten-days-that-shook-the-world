@@ -169,6 +169,19 @@ median 208 m, 66 of 66 within 360 m, 0 of 414. A few scenes trade a little visib
 `vladimir-prisoners` 26 figures are hidden, where 3 were, the Red Guards' near the school and the corner party's,
 all of them bodies from earlier scenes.
 
+The last two frames that left out a body of their own were not the camera's. The truck ride was pinned at Znamensky
+Square, half way along it, with its sailors' line 1.9 km on at the Kazan Bridge (the page never showed that frame: it
+follows a long ride and, with nobody at the scene's place, stays where it ends); it is now placed where the ride
+ends, as every other scene of a ride of Reed's is. And `broken-stucco` brought in the Red Guards "squatting around
+fires" on the Nevsky, 1.2 km from its quay; they now come in with `salvation-formed`, on Reed's walk to the Duma,
+seen before the camera goes down into the hall. After that: frames 0 of 4,144 on a desktop and 0 on a phone (at a
+phone's edges, the truck ride's sailors and the Red Guards by the Duma); `crowds.js` 268 of 5,613 figures hidden
+(4.8%: the Red Guards' seed now comes from the scene they enter in, so they and the Duma crowd beside them are laid
+out afresh, and in `duma-besieged-crowd` 49 of the crowd's 240 are hidden where 22 were); `hall.js` 26 scenes, no
+finding; `vehicles.js` someone inside 0.0%, overlapping 0.0%, held 8.1%; `motion.js` 0.3% in a wall, 0.0% through;
+`camera.js` a median 127 m (129 of 131 within 250 m), 0 of 861 close-shot samples under 70%; on a phone a median
+208 m, 0 of 413.
+
 On one build the numbers still differ a little from run to run, since the audits sample the page's own clock: on
 phase 5's build `vehicles.js` gave held 6.5% in one run and 7.3% in another, someone inside 0.0% and 0.4%. And in
 an assault (`assault` in the data) who runs, where to and when are drawn from `Math.random`, not from a seed, so
