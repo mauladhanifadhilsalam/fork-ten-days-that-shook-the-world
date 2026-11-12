@@ -2973,12 +2973,19 @@ function drawHallKit(H, t) {
 function hallView(H) {
   if (H.view) return H.view;
   var probe = [[0, 0], [-H.L / 2 + 1, 0], [H.L / 2 - 2, 0], [-H.L / 2 + 1, H.W / 2 - 1], [-H.L / 2 + 1, -H.W / 2 + 1], [H.L / 2 - 2, H.W / 2 - 1], [H.L / 2 - 2, -H.W / 2 + 1], [H.ub, 0], [H.uf, 0]];
+  // the side, and the least height over it, from which none of the hall is hidden by the rest of the building (a wing
+  // of the Duma stands across the Alexander Hall's platform end from 28 m up): the over-the-rows shot is taken from there
   var best = null;
   [1, -1].forEach(function (s) {
-    var c = H.at(-4, s * (H.W / 2 + 26)), n = 0;
-    probe.forEach(function (q) { var p = H.at(q[0], q[1]); if (hiddenBy(c[0], c[1], 28, p[0], p[1], 1.5)) n++; });
-    if (!best || n < best.n) best = { s: s, n: n };
+    var c = H.at(-4, s * (H.W / 2 + 26)), seen = null;
+    [28, 36, 44, 54].forEach(function (h) {
+      if (seen && !seen.n) return;
+      var n = 0; probe.forEach(function (q) { var p = H.at(q[0], q[1]); if (hiddenBy(c[0], c[1], h, p[0], p[1], 1.5)) n++; });
+      if (!seen || n < seen.n) seen = { n: n, h: h };
+    });
+    if (!best || seen.n < best.n || (seen.n === best.n && seen.h < best.h)) best = { s: s, n: seen.n, h: seen.h };
   });
+  H.viewH = best.h;
   return (H.view = best.s);
 }
 function hallFrame(H, kind, at, along, far) {
@@ -2993,7 +3000,7 @@ function hallFrame(H, kind, at, along, far) {
   else if (H.floor) { t = [0, 0]; p = PHONE ? [-46, 0] : [-8, s * (Wd / 2 + 30)]; h = PHONE ? 46 : 32; pts = [q(-24, Wd / 2), q(-24, -Wd / 2), q(24, Wd / 2), q(24, -Wd / 2)]; }
   // the platform: from in front of it, low enough to see the white wall behind it and what hangs there
   else if (kind === 'front') { t = [L / 2 - 3, 0]; p = PHONE ? [L / 2 - H.Dp - 22, 0] : [L / 2 - H.Dp - 14, s * (Wd / 2 - 1)]; h = PHONE ? 20 : 17; pts = [q(L / 2, Wd / 2), q(L / 2, -Wd / 2), q(L / 2 - H.Dp - 2, Wd / 2), q(L / 2 - H.Dp - 2, -Wd / 2)]; }
-  else { t = [1.5, 0]; p = PHONE ? [-L / 2 - 4, 0] : [-4, s * (Wd / 2 + 26)]; h = PHONE ? 60 : 28; pts = [q(-L / 2, Wd / 2), q(-L / 2, -Wd / 2), q(L / 2, Wd / 2), q(L / 2, -Wd / 2)]; }
+  else { t = [1.5, 0]; p = PHONE ? [-L / 2 - 4, 0] : [-4, s * (Wd / 2 + 26)]; h = PHONE ? 60 : H.viewH || 28; pts = [q(-L / 2, Wd / 2), q(-L / 2, -Wd / 2), q(L / 2, Wd / 2), q(L / 2, -Wd / 2)]; }
   var tm = H.at(t[0], t[1]), pm = H.at(p[0], p[1]), T = new THREE.Vector3(tm[0], 0, -tm[1]);
   var dir = new THREE.Vector3(pm[0], h, -pm[1]).sub(T), d = dir.length(), pos = null; dir.normalize();
   // back far enough for the whole of it, and in the clear part of the screen, beside the card
@@ -6001,7 +6008,7 @@ function boot(state) {
   }, 30);
 }
 if (/[?&]debug\b/.test(location.search)) window.__td = { renderer: renderer, scene: scene, camera: camera, controls: controls, select: select, PL: PL, flyTo: flyTo, bgrid: function () { return BGRID; }, inRing: inRing, obst: OBST, halfW: HALF_W, sceneDur: function () { return sceneDur; }, norender: false, bcam: function () { return bcam; }, folk: function () { return FOLK.concat(WALK_PREV.map(function (w) { return { x: w.x, y: w.y, walker: true }; })); }, halfLen: HALF_LEN,
-  hall: function () { return hallOn && { id: hallOn.id, t0: hallOn.t0, L: hallOn.L, W: hallOn.W, Hc: hallOn.Hc, Hp: hallOn.Hp, Dp: hallOn.Dp, ub: hallOn.ub, uf: hallOn.uf, rows: hallOn.rows, rp: hallOn.rp, bw: hallOn.bw, blocks: hallOn.blocks, aisles: hallOn.aisles, tribune: hallOn.tribune, tableU: hallOn.tableU, chairU: hallOn.chairU, view: hallOn.view, f: hallOn.f, lf: hallOn.lf, c: hallOn.c, rise: hallOn.rise, land: hallOn.land, gal: hallOn.gal, Hg: hallOn.Hg, Dg: hallOn.Dg, floor: hallOn.floor, carTop: hallOn.carTop, car: hallOn.car, carA: hallOn.carA, carB: hallOn.carB, wallCars: hallOn.wallCars }; },
+  hall: function () { return hallOn && { id: hallOn.id, t0: hallOn.t0, L: hallOn.L, W: hallOn.W, Hc: hallOn.Hc, Hp: hallOn.Hp, Dp: hallOn.Dp, ub: hallOn.ub, uf: hallOn.uf, rows: hallOn.rows, rp: hallOn.rp, bw: hallOn.bw, blocks: hallOn.blocks, aisles: hallOn.aisles, tribune: hallOn.tribune, tableU: hallOn.tableU, chairU: hallOn.chairU, view: hallOn.view, viewH: hallOn.viewH, f: hallOn.f, lf: hallOn.lf, c: hallOn.c, rise: hallOn.rise, land: hallOn.land, gal: hallOn.gal, Hg: hallOn.Hg, Dg: hallOn.Dg, floor: hallOn.floor, carTop: hallOn.carTop, car: hallOn.car, carA: hallOn.carA, carB: hallOn.carB, wallCars: hallOn.wallCars }; },
   hallFloor: function (x, y, top) { if (!hallOn || !hallOn.shell) return null; hallOn.shell.updateMatrixWorld(true); var hit = new THREE.Raycaster(new THREE.Vector3(x, top, -y), new THREE.Vector3(0, -1, 0)).intersectObjects(hallOn.shell.children, false)[0]; return hit ? hit.point.y : null; },   // the height of what is drawn under a point, below `top`
   hallShots: function () { if (!hallOn || !cur) return null; var keep = hallOn.t0; hallCam(hallOn, cur, performance.now() / 1000); var start = hallOn.t0; hallOn.t0 = keep; var b = bcam; bcam = null; if (b) b.start = start; return b; },
   hallGo: function (secs) { if (hallOn) hallOn.t0 = performance.now() / 1000 - secs; },   // the hall's clock, as if the camera came down `secs` ago
