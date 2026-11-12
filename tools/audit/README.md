@@ -148,6 +148,27 @@ someone inside 0.5%, overlapping 0.0%, held 7.5%; `motion.js` 0.3% in a wall, 0.
 finding on desktop or phone; `camera.js` a median 125 m (129 of 131 within 250 m), 0 of 863 close-shot samples
 under 70%; on a phone (every other scene) a median 202 m, 66 of 66 within 360 m, 0 of 413.
 
+Then the camera's heading judged from where it ends (`closeFrame` in `src/app.html`). It had taken the first heading
+from which most of the people showed as the search began, then drawn back and moved its target to fit everyone in
+without looking again; in `hotel-agency-recaptured` 22 of the 24 sailors the scene brings in stood behind the hotel
+they had just retaken. Each heading, in the same order, is now fitted (the turn above included) and judged from
+where the camera ends, at the size the figures are drawn there: it passes if most of the people show, none of the
+scene's own bodies is more than half hidden and all of them are on the screen, else the best is kept. `hiddenBy`
+samples every 1.5 m for its first 30 m. And `crowds.js` leaves out the bodies outside a hall in the 24 scenes framed
+down into one: they had counted as hidden behind the hall's own walls, 428 figures, which is what took it to 8.1%.
+With that, the two hall scenes put in Reed's order (the old Executive Committee out before Zinoviev is hooted; "the
+rest of the assembly tried to yell them down" at Tchernov's return) and the Alexander Hall's shot over the rows
+raised above the Duma's wing: smoke 132 scenes, no error; `crowds.js` 234 of 5,582 figures hidden (4.2%; the scenes'
+own 110, none of their bodies more than a third hidden, where 168 and the sailors above), 22 run together, 16 in a
+wall; frames 38 of 4,144 on a desktop and 38 on a phone, the truck ride's sailors and `broken-stucco`'s Red Guards
+on both (the Morskaya yunkers are in on a phone, near the top of a 900 m view up the street, too small there to
+read as a column: Play's close shots are where they are seen); `vehicles.js` someone inside 0.0%, overlapping 0.0%,
+held 7.9%; `motion.js` 0.3% in a wall, 0.0% through; `hall.js` 26 scenes, no finding on desktop or phone; `camera.js`
+a median 126 m (129 of 131 within 250 m), 0 of 860 close-shot samples under 70%; on a phone (every other scene) a
+median 208 m, 66 of 66 within 360 m, 0 of 414. A few scenes trade a little visibility for less turning: in
+`vladimir-prisoners` 26 figures are hidden, where 3 were, the Red Guards' near the school and the corner party's,
+all of them bodies from earlier scenes.
+
 On one build the numbers still differ a little from run to run, since the audits sample the page's own clock: on
 phase 5's build `vehicles.js` gave held 6.5% in one run and 7.3% in another, someone inside 0.0% and 0.4%. And in
 an assault (`assault` in the data) who runs, where to and when are drawn from `Math.random`, not from a seed, so
